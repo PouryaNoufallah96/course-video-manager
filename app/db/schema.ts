@@ -1,10 +1,11 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   integer,
   pgTableCreator,
   serial,
   text,
   timestamp,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -18,7 +19,10 @@ export const createTable = pgTableCreator(
 );
 
 export const repos = createTable("repo", {
-  id: serial("id").primaryKey(),
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   filePath: text("file_path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
@@ -29,7 +33,11 @@ export const repos = createTable("repo", {
 });
 
 export const sections = createTable("section", {
-  id: serial("id").primaryKey(),
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  repoId: varchar("repo_id", { length: 255 }).references(() => repos.id),
   path: text("path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
@@ -41,7 +49,13 @@ export const sections = createTable("section", {
 });
 
 export const lessons = createTable("lesson", {
-  id: serial("id").primaryKey(),
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sectionId: varchar("section_id", { length: 255 }).references(
+    () => sections.id
+  ),
   path: text("path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
@@ -53,13 +67,38 @@ export const lessons = createTable("lesson", {
 });
 
 export const videos = createTable("video", {
-  id: serial("id").primaryKey(),
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  lessonId: varchar("lesson_id", { length: 255 }).references(() => lessons.id),
   path: text("path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
     withTimezone: true,
   }),
 });
+
+export const videosRelations = relations(videos, ({ one }) => ({
+  lesson: one(lessons, { fields: [videos.lessonId], references: [lessons.id] }),
+}));
+
+export const lessonsRelations = relations(lessons, ({ one, many }) => ({
+  section: one(sections, {
+    fields: [lessons.sectionId],
+    references: [sections.id],
+  }),
+  videos: many(videos),
+}));
+
+export const sectionsRelations = relations(sections, ({ one, many }) => ({
+  repo: one(repos, { fields: [sections.repoId], references: [repos.id] }),
+  lessons: many(lessons),
+}));
+
+export const reposRelations = relations(repos, ({ many }) => ({
+  sections: many(sections),
+}));
 
 // export const chats = createTable("chat", {
 //   id: varchar("id", { length: 255 })
