@@ -15,72 +15,68 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Effect } from "effect";
+import { DBService } from "@/services/db-service";
+import type { Route } from "./+types/_index";
+import { layerLive } from "@/services/layer";
+import path from "node:path";
+import { homedir } from "node:os";
+import { useSearchParams } from "react-router";
 
-interface Video {
-  id: string;
-  type: "problem" | "solution";
-  title: string;
-}
+export const loader = async (args: Route.LoaderArgs) => {
+  const url = new URL(args.request.url);
+  const selectedRepoId = url.searchParams.get("repoId");
 
-interface Lesson {
-  id: string;
-  title: string;
-  videos: Video[];
-}
+  return Effect.gen(function* () {
+    const db = yield* DBService;
+    const [repos, selectedRepo] = yield* Effect.all(
+      [
+        db.getRepos().pipe(
+          Effect.map((repos) => {
+            return repos.map((repo) => {
+              return {
+                ...repo,
+                name: path.relative(
+                  path.join(homedir(), "repos"),
+                  repo.filePath
+                ),
+              };
+            });
+          })
+        ),
+        !selectedRepoId
+          ? Effect.succeed(undefined)
+          : db.getRepoWithSections(selectedRepoId).pipe(
+              Effect.map((repo) => {
+                if (!repo) {
+                  return undefined;
+                }
 
-interface Section {
-  id: string;
-  title: string;
-  lessons: Lesson[];
-}
+                return {
+                  ...repo,
+                  name: path.relative(
+                    path.join(homedir(), "repos"),
+                    repo.filePath
+                  ),
+                };
+              })
+            ),
+      ],
+      {
+        concurrency: "unbounded",
+      }
+    );
+    return { repos, selectedRepo };
+  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+};
 
-interface Repository {
-  id: string;
-  name: string;
-  sections: Section[];
-}
-
-export default function Component() {
-  const [selectedRepo, setSelectedRepo] = useState("ai-typescript-toolkit");
+export default function Component(props: Route.ComponentProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedRepoId = searchParams.get("repoId");
   const [isAddRepoModalOpen, setIsAddRepoModalOpen] = useState(false);
   const [newRepoPath, setNewRepoPath] = useState("");
 
-  // Generate sample data
-  const repositories: Repository[] = [
-    {
-      id: "ai-typescript-toolkit",
-      name: "ai-typescript-toolkit",
-      sections: Array.from({ length: 5 }, (_, sectionIndex) => ({
-        id: `section-${sectionIndex + 1}`,
-        title: `${String(sectionIndex + 1).padStart(3, "0")}-section-${
-          sectionIndex + 1
-        }`,
-        lessons: Array.from({ length: 3 }, (_, lessonIndex) => ({
-          id: `lesson-${sectionIndex + 1}-${lessonIndex + 1}`,
-          title: `${String(sectionIndex + 1).padStart(3, "0")}-lesson-${
-            lessonIndex + 1
-          }`,
-          videos: [
-            {
-              id: `problem-${sectionIndex + 1}-${lessonIndex + 1}`,
-              type: "problem",
-              title: "Problem Video",
-            },
-            {
-              id: `solution-${sectionIndex + 1}-${lessonIndex + 1}`,
-              type: "solution",
-              title: "Solution Video",
-            },
-          ],
-        })),
-      })),
-    },
-    {
-      id: "some-other-repo",
-      name: "some-other-repo",
-      sections: [],
-    },
-  ];
+  const repos = props.loaderData.repos;
 
   const handleAddRepo = () => {
     if (newRepoPath.trim()) {
@@ -91,7 +87,7 @@ export default function Component() {
     }
   };
 
-  const currentRepo = repositories.find((repo) => repo.id === selectedRepo);
+  const currentRepo = props.loaderData.selectedRepo;
 
   return (
     <div className="flex h-screen bg-background">
@@ -101,12 +97,14 @@ export default function Component() {
           <h2 className="text-lg font-semibold mb-4">Repos</h2>
           <ScrollArea className="h-[calc(100vh-120px)]">
             <div className="space-y-2">
-              {repositories.map((repo) => (
+              {repos.map((repo) => (
                 <Button
                   key={repo.id}
-                  variant={selectedRepo === repo.id ? "default" : "ghost"}
+                  variant={selectedRepoId === repo.id ? "default" : "ghost"}
                   className="w-full justify-start"
-                  onClick={() => setSelectedRepo(repo.id)}
+                  onClick={() => {
+                    setSearchParams({ repoId: repo.id });
+                  }}
                 >
                   {repo.name}
                 </Button>
@@ -167,7 +165,7 @@ export default function Component() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">{currentRepo?.name}</h1>
 
@@ -175,13 +173,13 @@ export default function Component() {
             {currentRepo?.sections.map((section) => (
               <Card key={section.id} className="border-0 shadow-none">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">{section.title}</CardTitle>
+                  <CardTitle className="text-lg">{section.path}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {section.lessons.map((lesson) => (
                     <div key={lesson.id} className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium">{lesson.title}</h3>
+                        <h3 className="font-medium">{lesson.path}</h3>
                         <Button variant="outline" size="sm">
                           <Plus className="w-4 h-4 mr-2" />
                           Add from OBS
@@ -196,7 +194,7 @@ export default function Component() {
                           >
                             <div className="flex items-center gap-2">
                               <VideoIcon />
-                              <span className="font-medium">{video.title}</span>
+                              <span className="font-medium">{video.path}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button variant="ghost" size="sm">

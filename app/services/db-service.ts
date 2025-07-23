@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
-import { lessons, repos, sections } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { lessons, repos, sections, videos } from "@/db/schema";
+import { asc, eq, ilike } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
@@ -21,22 +21,54 @@ const makeDbCall = <T>(fn: () => Promise<T>) => {
 
 export class DBService extends Effect.Service<DBService>()("DBService", {
   effect: Effect.gen(function* () {
+    const getRepo = Effect.fn("getRepo")(function* (filePath: string) {
+      const repo = yield* makeDbCall(() =>
+        db.query.repos.findFirst({
+          where: ilike(repos.filePath, `%${filePath}%`),
+        })
+      );
+
+      if (!repo) {
+        return yield* new NotFoundError({
+          type: "getRepo",
+          params: { filePath },
+        });
+      }
+
+      return repo;
+    });
+
     return {
-      getRepo: Effect.fn("getRepo")(function* (filePath: string) {
+      getRepo,
+      getRepoWithSections: Effect.fn("getRepoWithSections")(function* (
+        id: string
+      ) {
         const repo = yield* makeDbCall(() =>
           db.query.repos.findFirst({
-            where: eq(repos.filePath, filePath),
+            where: eq(repos.id, id),
+            with: {
+              sections: {
+                with: {
+                  lessons: {
+                    with: {
+                      videos: {
+                        orderBy: asc(videos.path),
+                      },
+                    },
+                    orderBy: asc(lessons.order),
+                  },
+                },
+                orderBy: asc(sections.order),
+              },
+            },
           })
         );
 
-        if (!repo) {
-          return yield* new NotFoundError({
-            type: "getRepo",
-            params: { filePath },
-          });
-        }
-
         return repo;
+      }),
+      getRepos: Effect.fn("getRepos")(function* () {
+        const repos = yield* makeDbCall(() => db.query.repos.findMany());
+        return repos;
       }),
       createRepo: Effect.fn("createRepo")(function* (filePath: string) {
         const reposResult = yield* makeDbCall(() =>
