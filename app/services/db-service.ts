@@ -252,7 +252,14 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }
       ) {
         const lessonResult = yield* makeDbCall(() =>
-          db.update(lessons).set(lesson).where(eq(lessons.id, lessonId))
+          db
+            .update(lessons)
+            .set({
+              path: lesson.path,
+              sectionId: lesson.sectionId,
+              order: lesson.lessonNumber,
+            })
+            .where(eq(lessons.id, lessonId))
         );
 
         return lessonResult;
