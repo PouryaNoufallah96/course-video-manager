@@ -21,6 +21,8 @@ class CouldNotFindTranscript extends Data.TaggedError(
   readonly originalFootagePath: string;
 }> {}
 
+const ALLOWED_FILE_EXTENSIONS = ["ts", "tsx", "js", "jsx", "json", "md", "mdx"];
+
 export const action = async (args: Route.ActionArgs) => {
   const body = await args.request.json();
   const videoId = args.params.videoId;
@@ -50,7 +52,11 @@ export const action = async (args: Route.ActionArgs) => {
       );
 
     const filteredFiles = allFilesInDirectory.filter((filePath) => {
-      return !filePath.includes("node_modules") && !filePath.includes(".vite");
+      return (
+        !filePath.includes("node_modules") &&
+        !filePath.includes(".vite") &&
+        ALLOWED_FILE_EXTENSIONS.includes(path.extname(filePath).slice(1))
+      );
     });
 
     const files = yield* Effect.forEach(filteredFiles, (filePath) => {

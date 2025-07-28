@@ -50,13 +50,34 @@ There are many tools such as [Tool 1](https://www.example.com), [Tool 2](https:/
 
 ## Code
 
-Use lots of code samples to break up the article.
+Use lots of code samples!
 
 Use code samples to describe what the text is saying. Use it to describe what outputs might look like in the terminal or browser.
 
 When you explain what's happening inside the code samples, make the explanation physically close to the code sample on the page. I prefer having the explanation for the code _above_ the code, not below it.
 
-Here is the code for the article. It will be in the form of multiple files in a directory. The directory may have a problem section and a solution section. If the transcript appears to be discussing only the problem section, do not refer to the solution section code.
+Here is the code for the article. It will be in the form of multiple files in a directory. The directory may have a problem section and a solution section.
+
+If the transcript appears to be discussing only the problem section, do not refer to the solution section code - but DO use code samples from the problem section.
+
+Discussing the problem -> Use problem code samples only.
+Discussing the solution -> Use solution code samples mostly, but use problem code samples if they are relevant (before vs after, etc.)
+
+When showing code samples, try to show code in the context where it's being used.
+
+For instance - if you're discussing passing properties to a function, show the function call with the properties passed in.
+
+You can omit function properties that are not relevant, with this technique:
+
+${markdownCodeBlock(
+  "ts",
+  `
+myFunc({
+  // ...other properties...
+  thePropertyWeAreFocusingOn: "value",
+})
+`
+)}
 
 Here is the code:
 
@@ -68,5 +89,5 @@ Here is the transcript of the video:
 
 ${opts.transcript}
 
-Stick closely to the transcript, especially towards the end.
+Stick closely to the transcript, especially towards the end. But ensure you also use code samples to describe the transcript.
 `;
