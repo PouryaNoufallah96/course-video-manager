@@ -181,7 +181,7 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Left Sidebar - Repos */}
-      <div className="w-80 border-r bg-muted/30">
+      <div className="w-80 border-r bg-muted/30 hidden lg:block">
         <div className="p-4 pb-0">
           <h2 className="text-lg font-semibold mb-4">Repos</h2>
           <ScrollArea className="h-[calc(100vh-120px)]">
