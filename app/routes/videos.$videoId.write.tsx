@@ -15,6 +15,7 @@ import {
   AIInputTextarea,
   AIInputToolbar,
 } from "components/ui/kibo-ui/ai/input";
+
 import { AIMessage, AIMessageContent } from "components/ui/kibo-ui/ai/message";
 import { AIResponse } from "components/ui/kibo-ui/ai/response";
 import { Effect } from "effect";
@@ -23,6 +24,10 @@ import type { Route } from "./+types/videos.$videoId.write";
 import { ChevronLeftIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
+import {
+  AISuggestion,
+  AISuggestions,
+} from "components/ui/kibo-ui/ai/suggestion";
 
 const partsToText = (parts: UIMessage["parts"]) => {
   return parts
@@ -51,11 +56,39 @@ export const loader = async (args: Route.LoaderArgs) => {
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
 
+const PROBLEM_PROMPT = `
+Go.
+
+## Steps To Complete Instructions
+
+At the end of the output, add a list of steps to complete to solve the problem.
+
+Use an unordered list to list the steps.
+
+Do NOT refer to the solution code in the steps. Do not show the user code samples they can copy. Do not reveal the exact solution - just describe the problem they need to solve.
+
+Include steps to test whether the problem has been solved, such as logging in the terminal (running the local dev server), observing the local dev server at localhost:3000, or checking the browser console.
+
+This should be in the format of:
+
+<example>
+
+## Steps To Complete
+
+- <A description of the step to take>
+
+<there can be code samples in here if you like!>
+
+- <A description of the step to take>
+
+</example>
+`.trim();
+
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
   const { videoPath, lessonPath, sectionPath, repoId, lessonId } =
     props.loaderData;
-  const [text, setText] = useState<string>("Go.");
+  const [text, setText] = useState<string>("");
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -111,15 +144,28 @@ export default function Component(props: Route.ComponentProps) {
         </AIConversationContent>
         <AIConversationScrollButton />
       </AIConversation>
-      <AIInput onSubmit={handleSubmit}>
-        <AIInputTextarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <AIInputToolbar>
-          <AIInputSubmit status={status} />
-        </AIInputToolbar>
-      </AIInput>
+      <div>
+        <AISuggestions className="mb-4">
+          <AISuggestion
+            suggestion="Problem Description"
+            onClick={() => {
+              sendMessage({
+                text: PROBLEM_PROMPT,
+              });
+            }}
+          ></AISuggestion>
+        </AISuggestions>
+        <AIInput onSubmit={handleSubmit}>
+          <AIInputTextarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="What would you like to create?"
+          />
+          <AIInputToolbar>
+            <AIInputSubmit status={status} />
+          </AIInputToolbar>
+        </AIInput>
+      </div>
     </div>
   );
 }
