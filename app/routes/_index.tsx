@@ -77,6 +77,9 @@ export const loader = async (args: Route.LoaderArgs) => {
                     path.join(homedir(), "repos"),
                     repo.filePath
                   ),
+                  sections: repo.sections.filter((section) => {
+                    return !section.path.endsWith("ARCHIVE");
+                  }),
                 };
               })
             ),
@@ -189,8 +192,6 @@ export default function Component(props: Route.ComponentProps) {
     data.selectedRepo?.sections.reduce((acc, section) => {
       return acc + section.lessons.length;
     }, 0) ?? 0;
-
-  const progress = (totalLessonsWithVideos / totalLessons) * 100;
 
   return (
     <div className="flex h-screen bg-background text-foreground">
