@@ -3,6 +3,7 @@ import { layerLive } from "@/services/layer";
 import { Effect, Schema } from "effect";
 import type { Route } from "./+types/api.videos.edit-latest-obs-video";
 import { execSync } from "child_process";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const editLatestObsVideoSchema = Schema.Struct({
   lessonId: Schema.String,
@@ -37,5 +38,5 @@ export const action = async (args: Route.ActionArgs) => {
     });
 
     return video;
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };

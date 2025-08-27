@@ -3,6 +3,7 @@ import type { Route } from "./+types/api.repos.add";
 import { Console, Effect, Schema } from "effect";
 import { layerLive } from "@/services/layer";
 import { DBService } from "@/services/db-service";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const addRepoSchema = Schema.Struct({
   repoPath: Schema.String,
@@ -36,6 +37,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
       id: repo.id,
     };
   }).pipe(
+    withDatabaseDump,
     Effect.tapErrorCause((e) => {
       return Console.dir(e, { depth: null });
     }),
@@ -53,7 +55,6 @@ export const action = async ({ request }: Route.ActionArgs) => {
       );
     }),
     Effect.provide(layerLive),
-    Effect.ensureErrorType<never>(),
     Effect.runPromise
   );
 };

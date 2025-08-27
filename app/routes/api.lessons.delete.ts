@@ -2,6 +2,7 @@ import { Effect, Schema } from "effect";
 import type { Route } from "./+types/api.lessons.delete";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const deleteLessonSchema = Schema.Struct({
   lessonId: Schema.String,
@@ -21,5 +22,5 @@ export const action = async (args: Route.ActionArgs) => {
     yield* db.deleteLesson(lessonId);
 
     return { success: true };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };

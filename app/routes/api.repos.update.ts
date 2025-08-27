@@ -1,11 +1,12 @@
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
-import { Console, Data, Effect, Schema } from "effect";
+import { ConfigProvider, Console, Data, Effect, Schema } from "effect";
 import type { Route } from "./+types/api.repos.update";
 import {
   getSectionAndLessonNumberFromPath,
   notFound,
 } from "@/services/repo-parser";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const lessonPathSchema = Schema.String.pipe(
   Schema.filter((path) => {
@@ -248,6 +249,8 @@ export const action = async (args: Route.ActionArgs) => {
       success: true,
     };
   }).pipe(
+    withDatabaseDump,
+    Effect.withConfigProvider(ConfigProvider.fromEnv()),
     Effect.provide(layerLive),
     Effect.tapErrorCause((cause) => {
       return Console.error(cause);

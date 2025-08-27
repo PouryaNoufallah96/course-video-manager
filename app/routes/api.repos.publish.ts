@@ -15,6 +15,7 @@ import { DBService } from "@/services/db-service";
 import { FileSystem } from "@effect/platform";
 import path from "node:path";
 import { makeSemaphore } from "effect/Effect";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const publishRepoSchema = Schema.Struct({
   repoId: Schema.String,
@@ -309,14 +310,13 @@ export const action = async ({ request }: Route.ActionArgs) => {
           new Response(`Not found: ${e.message}`, { status: 404 })
         ),
     }),
+    Effect.withConfigProvider(ConfigProvider.fromEnv()),
     Effect.catchAll((e) => {
       return Effect.succeed(
         new Response("Internal server error", { status: 500 })
       );
     }),
     Effect.provide(layerLive),
-    Effect.withConfigProvider(ConfigProvider.fromEnv()),
-    Effect.ensureErrorType<never>(),
     Effect.runPromise
   );
 };
