@@ -17,7 +17,16 @@ import { cn } from "@/lib/utils";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Effect } from "effect";
-import { PencilIcon, Play, Plus, Trash2, VideoIcon } from "lucide-react";
+import {
+  Loader2,
+  PencilIcon,
+  Play,
+  Plus,
+  RefreshCcw,
+  Send,
+  Trash2,
+  VideoIcon,
+} from "lucide-react";
 import { homedir } from "node:os";
 import path from "node:path";
 import React, { useEffect, useState } from "react";
@@ -50,19 +59,7 @@ export const loader = async (args: Route.LoaderArgs) => {
     const db = yield* DBService;
     const [repos, selectedRepo] = yield* Effect.all(
       [
-        db.getRepos().pipe(
-          Effect.map((repos) => {
-            return repos.map((repo) => {
-              return {
-                ...repo,
-                name: path.relative(
-                  path.join(homedir(), "repos"),
-                  repo.filePath
-                ),
-              };
-            });
-          })
-        ),
+        db.getRepos(),
         !selectedRepoId
           ? Effect.succeed(undefined)
           : db.getRepoWithSectionsById(selectedRepoId).pipe(
@@ -115,6 +112,7 @@ export default function Component(props: Route.ComponentProps) {
   });
 
   const addRepoFetcher = useFetcher();
+  const publishRepoFetcher = useFetcher();
 
   const poller = useFetcher<typeof props.loaderData>();
 
@@ -264,10 +262,26 @@ export default function Component(props: Route.ComponentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-2">{currentRepo?.name}</h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            {totalLessonsWithVideos} / {totalLessons} lessons with recordings
-          </p>
+          <div className="flex gap-6">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">{currentRepo?.name}</h1>
+              <p className="text-sm text-muted-foreground mb-8">
+                {totalLessonsWithVideos} / {totalLessons} lessons with
+                recordings
+              </p>
+            </div>
+            <publishRepoFetcher.Form method="post" action="/api/repos/publish">
+              <input type="hidden" name="repoId" value={currentRepo?.id} />
+              <Button type="submit">
+                {publishRepoFetcher.state === "submitting" ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-1" />
+                )}
+                <span className="hidden md:block">Publish</span>
+              </Button>
+            </publishRepoFetcher.Form>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
             {currentRepo?.sections.map((section) => (
