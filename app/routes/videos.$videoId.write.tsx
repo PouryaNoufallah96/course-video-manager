@@ -25,7 +25,7 @@ import {
 } from "components/ui/kibo-ui/ai/suggestion";
 import { Effect } from "effect";
 import { ChevronLeftIcon } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
 
@@ -112,7 +112,16 @@ const TIP_PROMPT = () =>
 `.trim();
 
 const Video = (props: { src: string }) => {
-  return <video src={props.src} className="w-full" controls />;
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    console.log(ref.current);
+    if (ref.current) {
+      ref.current.playbackRate = 2;
+    }
+  }, [props.src, ref.current]);
+
+  return <video src={props.src} className="w-full" controls ref={ref} />;
 };
 
 export default function Component(props: Route.ComponentProps) {

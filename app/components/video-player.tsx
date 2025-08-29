@@ -13,7 +13,7 @@ interface VideoPlayerProps {
   onClose: () => void;
 }
 
-export function VideoPlayer({
+export function VideoModal({
   videoId,
   videoPath,
   isOpen,
@@ -27,6 +27,10 @@ export function VideoPlayer({
     }
     onClose();
   };
+
+  if (videoRef.current) {
+    videoRef.current.playbackRate = 1.75;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

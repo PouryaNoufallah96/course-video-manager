@@ -125,6 +125,7 @@ export const action = async (args: Route.ActionArgs) => {
         attributes: ["path", "startText", "endText"],
         transform: ({ attributes }) =>
           parseCodeSnippet({
+            cwd: lessonPath,
             path: attributes.path,
             startText: attributes.startText,
             endText: attributes.endText,
@@ -286,11 +287,12 @@ type XMLTagTransformState =
     };
 
 const parseCodeSnippet = async (opts: {
+  cwd: string;
   path: string;
   startText: string;
   endText: string;
 }): Promise<string> => {
-  const result = await readFile(opts.path, "utf-8");
+  const result = await readFile(path.resolve(opts.cwd, opts.path), "utf-8");
 
   const markdownFileType = path.extname(opts.path).slice(1);
 

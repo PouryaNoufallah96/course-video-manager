@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { VideoPlayer } from "@/components/video-player";
+import { VideoModal } from "@/components/video-player";
 import { cn } from "@/lib/utils";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
@@ -469,7 +469,7 @@ export default function Component(props: Route.ComponentProps) {
         </div>
       </div>
 
-      <VideoPlayer
+      <VideoModal
         videoId={videoPlayerState.videoId}
         videoPath={videoPlayerState.videoPath}
         isOpen={videoPlayerState.isOpen}
