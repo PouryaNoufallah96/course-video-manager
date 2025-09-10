@@ -8,7 +8,7 @@ export interface Clip {
 export type ClipState = "playing" | "paused";
 
 export interface ClipWithWaveformData extends Clip {
-  waveformDataForTimeRange: number[];
+  waveformData: number[] | undefined;
 }
 
 export interface State {
@@ -224,7 +224,9 @@ export const videoEditorReducer = (state: State, action: Action): State => {
         if (state.selectedClipsSet.has(action.clipId)) {
           return preloadSelectedClips({
             ...state,
-            selectedClipsSet: new Set(),
+            currentClipId: action.clipId,
+            runningState: "playing",
+            currentTimeInClip: 0,
           });
         }
         return preloadSelectedClips({

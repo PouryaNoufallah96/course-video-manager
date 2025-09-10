@@ -1,6 +1,7 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { generateNKeysBetween } from "fractional-indexing";
+import { asc, desc, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
@@ -21,6 +22,27 @@ const makeDbCall = <T>(fn: () => Promise<T>) => {
 
 export class DBService extends Effect.Service<DBService>()("DBService", {
   effect: Effect.gen(function* () {
+    const archiveClip = Effect.fn("archiveClip")(function* (clipId: string) {
+      const clipExists = yield* makeDbCall(() =>
+        db.query.clips.findFirst({
+          where: eq(clips.id, clipId),
+        })
+      );
+
+      if (!clipExists) {
+        return yield* new NotFoundError({
+          type: "archiveClip",
+          params: { clipId },
+        });
+      }
+
+      const clip = yield* makeDbCall(() =>
+        db.update(clips).set({ archived: true }).where(eq(clips.id, clipId))
+      );
+
+      return clip;
+    });
+
     const getRepoById = Effect.fn("getRepoById")(function* (id: string) {
       const repo = yield* makeDbCall(() =>
         db.query.repos.findFirst({
@@ -176,6 +198,47 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
     return {
       getLessonById,
+      appendClips: Effect.fn("addClips")(function* (
+        videoId: string,
+        inputClips: readonly {
+          inputVideo: string;
+          startTime: number;
+          endTime: number;
+        }[]
+      ) {
+        const lastClip = yield* makeDbCall(() =>
+          db.query.clips.findFirst({
+            where: eq(clips.videoId, videoId),
+            orderBy: desc(clips.order),
+          })
+        );
+
+        const order = generateNKeysBetween(
+          lastClip?.order,
+          null,
+          inputClips.length,
+          digits
+        );
+
+        const clipsResult = yield* makeDbCall(() =>
+          db
+            .insert(clips)
+            .values(
+              inputClips.map((clip, index) => ({
+                ...clip,
+                videoId,
+                videoFilename: clip.inputVideo,
+                sourceStartTime: clip.startTime,
+                sourceEndTime: clip.endTime,
+                order: order[index]!,
+                archived: false,
+              }))
+            )
+            .returning()
+        );
+
+        return clipsResult;
+      }),
       createVideo: Effect.fn("createVideo")(function* (
         lessonId: string,
         video: {
@@ -244,6 +307,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const repos = yield* makeDbCall(() => db.query.repos.findMany());
         return repos;
       }),
+      archiveClip,
       getVideoById: getVideoDeepById,
       getVideoWithClipsById: getVideoWithClipsById,
       createRepo: Effect.fn("createRepo")(function* (filePath: string) {
@@ -344,3 +408,5 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
     };
   }),
 }) {}
+
+const digits = "0123456789abcdefghijklmnopqrstuvwxyz";

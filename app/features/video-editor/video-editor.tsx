@@ -1,11 +1,10 @@
-import { useEffect, useReducer } from "react";
-import {
-  videoEditorReducer,
-  type Clip,
-  type ClipWithWaveformData,
-} from "./reducer";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PreloadableClip, PreloadableClipManager } from "./preloadable-clip";
+import { ChevronLeftIcon, Loader2, PlusIcon } from "lucide-react";
+import { useEffect, useReducer } from "react";
+import { Link, useFetcher } from "react-router";
+import { PreloadableClipManager } from "./preloadable-clip";
+import { videoEditorReducer, type ClipWithWaveformData } from "./reducer";
 import { TitleSection } from "./title-section";
 
 export const VideoEditor = (props: {
@@ -13,6 +12,9 @@ export const VideoEditor = (props: {
   videoPath: string;
   lessonPath: string;
   repoName: string;
+  repoId: string;
+  lessonId: string;
+  videoId: string;
 }) => {
   const [state, dispatch] = useReducer(videoEditorReducer, {
     runningState: "paused",
@@ -48,6 +50,7 @@ export const VideoEditor = (props: {
     const handleKeyDown = (e: KeyboardEvent) => {
       console.log("handleKeyDown", e.key);
       if (e.key === " ") {
+        e.preventDefault();
         if (e.repeat) return;
         dispatch({ type: "press-space-bar" });
       } else if (e.key === "Delete") {
@@ -76,62 +79,90 @@ export const VideoEditor = (props: {
     };
   }, []);
 
+  const appendFromOBSFetcher = useFetcher();
+
   return (
     <div className="flex gap-6">
       <div className="flex-1 p-6 flex-wrap flex gap-2 h-full">
-        <TitleSection
-          videoPath={props.videoPath}
-          lessonPath={props.lessonPath}
-          repoName={props.repoName}
-        />
-        {state.clips.map((clip) => {
-          const duration = clip.sourceEndTime - clip.sourceStartTime;
-
-          const waveformData = clip.waveformDataForTimeRange;
-
-          const percentComplete = state.currentTimeInClip / duration;
-
-          return (
-            <button
-              key={clip.id}
-              style={{ width: `${duration * 50}px` }}
-              className={cn(
-                "bg-gray-800 p-2 rounded-md text-left block relative overflow-hidden h-12",
-                state.selectedClipsSet.has(clip.id) &&
-                  "outline-2 outline-blue-200 bg-gray-600",
-                clip.id === currentClipId && "bg-blue-500"
-              )}
-              onClick={(e) => {
-                dispatch({
-                  type: "click-clip",
-                  clipId: clip.id,
-                  ctrlKey: e.ctrlKey,
-                  shiftKey: e.shiftKey,
-                });
-              }}
+        <div className="mb-6">
+          <TitleSection
+            videoPath={props.videoPath}
+            lessonPath={props.lessonPath}
+            repoName={props.repoName}
+          />
+          <div className="flex gap-2 mt-4">
+            <Button asChild variant="secondary">
+              <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
+                <ChevronLeftIcon className="w-4 h-4 mr-1" />
+                Go Back
+              </Link>
+            </Button>
+            <appendFromOBSFetcher.Form
+              method="post"
+              action={`/videos/${props.videoId}/append-from-obs`}
             >
-              {/* Moving bar indicator */}
-              {clip.id === currentClipId && (
-                <div
-                  className="absolute top-0 left-0 w-full h-full bg-blue-400 z-0"
-                  style={{
-                    width: `${percentComplete * 100}%`,
-                    height: "100%",
-                  }}
-                />
-              )}
-              <div className="absolute bottom-0 left-0 w-full h-full flex items-end z-0">
-                {waveformData.map((data, index) => {
-                  return (
-                    <div
-                      key={index}
-                      style={{ height: `${data * 120}px`, width: "0.5%" }}
-                      className="bg-blue-300 z-0"
-                    />
-                  );
-                })}
-              </div>
-              {/* <Button
+              <Button variant="default">
+                {appendFromOBSFetcher.state === "submitting" ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <PlusIcon className="w-4 h-4 mr-1" />
+                )}
+                Append From OBS
+              </Button>
+            </appendFromOBSFetcher.Form>
+          </div>
+        </div>
+        <div className="flex-wrap flex gap-2 h-full">
+          {state.clips.map((clip) => {
+            const duration = clip.sourceEndTime - clip.sourceStartTime;
+
+            const waveformData = clip.waveformDataForTimeRange;
+
+            const percentComplete = state.currentTimeInClip / duration;
+
+            return (
+              <button
+                key={clip.id}
+                style={{ width: `${duration * 50}px` }}
+                className={cn(
+                  "bg-gray-800 p-2 rounded-md text-left block relative overflow-hidden h-12",
+                  state.selectedClipsSet.has(clip.id) &&
+                    "outline-2 outline-blue-200 bg-gray-600",
+                  clip.id === currentClipId && "bg-blue-500"
+                )}
+                onClick={(e) => {
+                  dispatch({
+                    type: "click-clip",
+                    clipId: clip.id,
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                  });
+                }}
+              >
+                {/* Moving bar indicator */}
+                {clip.id === currentClipId && (
+                  <div
+                    className="absolute top-0 left-0 w-full h-full bg-blue-400 z-0"
+                    style={{
+                      width: `${percentComplete * 100}%`,
+                      height: "100%",
+                    }}
+                  />
+                )}
+                {waveformData && (
+                  <div className="absolute bottom-0 left-0 w-full h-full flex items-end z-0">
+                    {waveformData.map((data, index) => {
+                      return (
+                        <div
+                          key={index}
+                          style={{ height: `${data * 120}px`, width: "0.5%" }}
+                          className="bg-blue-300 z-0"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+                {/* <Button
                 className="z-10 relative"
                 onClick={() => {
                   setClips(clips.filter((c) => c.id !== clip.id));
@@ -147,17 +178,20 @@ export const VideoEditor = (props: {
               >
                 Delete
               </Button> */}
-              <div
-                className={cn(
-                  "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
-                  clip.id === currentClipId && "text-blue-200"
-                )}
-              >
-                {formatSecondsToTime(clip.sourceEndTime - clip.sourceStartTime)}
-              </div>
-            </button>
-          );
-        })}
+                <div
+                  className={cn(
+                    "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
+                    clip.id === currentClipId && "text-blue-200"
+                  )}
+                >
+                  {formatSecondsToTime(
+                    clip.sourceEndTime - clip.sourceStartTime
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
       <div className="flex-1 relative p-6">
         <div className="sticky top-0">

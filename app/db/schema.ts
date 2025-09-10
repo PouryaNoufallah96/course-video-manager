@@ -100,7 +100,7 @@ export const clips = createTable("clip", {
     mode: "date",
     withTimezone: true,
   }),
-  order: text("order").notNull(),
+  order: varchar("order", { length: 255 }).notNull(),
   archived: boolean("archived").notNull().default(false),
 });
 
