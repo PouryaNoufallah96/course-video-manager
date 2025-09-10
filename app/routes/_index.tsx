@@ -26,6 +26,7 @@ import {
   Send,
   Trash2,
   VideoIcon,
+  VideotapeIcon,
 } from "lucide-react";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -433,6 +434,16 @@ export default function Component(props: Route.ComponentProps) {
                                   </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    asChild
+                                  >
+                                    <Link to={`/videos/${video.id}/edit`}>
+                                      <VideotapeIcon className="w-4 h-4" />
+                                    </Link>
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"

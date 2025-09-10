@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { lessons, repos, sections, videos } from "@/db/schema";
+import { clips, lessons, repos, sections, videos } from "@/db/schema";
 import { asc, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
@@ -100,6 +100,39 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       if (!video) {
         return yield* new NotFoundError({
           type: "getVideoById",
+          params: { id },
+        });
+      }
+
+      return video;
+    });
+
+    const getVideoWithClipsById = Effect.fn("getVideoWithClipsById")(function* (
+      id: string
+    ) {
+      const video = yield* makeDbCall(() =>
+        db.query.videos.findFirst({
+          where: eq(videos.id, id),
+          with: {
+            lesson: {
+              with: {
+                section: {
+                  with: {
+                    repo: true,
+                  },
+                },
+              },
+            },
+            clips: {
+              orderBy: asc(clips.order),
+            },
+          },
+        })
+      );
+
+      if (!video) {
+        return yield* new NotFoundError({
+          type: "getVideoWithClipsById",
           params: { id },
         });
       }
@@ -212,6 +245,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         return repos;
       }),
       getVideoById: getVideoDeepById,
+      getVideoWithClipsById: getVideoWithClipsById,
       createRepo: Effect.fn("createRepo")(function* (filePath: string) {
         const reposResult = yield* makeDbCall(() =>
           db.insert(repos).values({ filePath }).returning()

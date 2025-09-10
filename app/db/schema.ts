@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   doublePrecision,
   pgTableCreator,
   text,
@@ -84,8 +85,32 @@ export const videos = createTable("video", {
   }),
 });
 
-export const videosRelations = relations(videos, ({ one }) => ({
+export const clips = createTable("clip", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  videoId: varchar("video_id", { length: 255 })
+    .references(() => videos.id, { onDelete: "cascade" })
+    .notNull(),
+  videoFilename: text("video_filename").notNull(),
+  sourceStartTime: doublePrecision("source_start_time").notNull(),
+  sourceEndTime: doublePrecision("source_end_time").notNull(),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  }),
+  order: text("order").notNull(),
+  archived: boolean("archived").notNull().default(false),
+});
+
+export const clipsRelations = relations(clips, ({ one }) => ({
+  video: one(videos, { fields: [clips.videoId], references: [videos.id] }),
+}));
+
+export const videosRelations = relations(videos, ({ one, many }) => ({
   lesson: one(lessons, { fields: [videos.lessonId], references: [lessons.id] }),
+  clips: many(clips),
 }));
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
