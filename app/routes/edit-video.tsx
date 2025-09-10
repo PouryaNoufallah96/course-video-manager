@@ -62,6 +62,7 @@ const PRELOAD_PLAY_AMOUNT = 0.1;
 const Clip = (props: {
   clip: Clip;
   onFinish: () => void;
+  aggressivePreload: boolean;
   onPreloadComplete: () => void;
   hidden: boolean;
   state: ClipState;
@@ -83,15 +84,16 @@ const Clip = (props: {
       return;
     }
 
-    if (preloadState === "preloading") {
+    if (preloadState === "preloading" && props.aggressivePreload) {
       ref.current.muted = true;
       ref.current.play();
       return;
     }
 
-    if (props.hidden) {
+    if (props.hidden || !props.aggressivePreload) {
       ref.current.pause();
       ref.current.currentTime = props.clip.sourceStartTime;
+      ref.current.muted = false;
       return;
     }
 
@@ -102,7 +104,13 @@ const Clip = (props: {
     } else {
       ref.current.pause();
     }
-  }, [props.hidden, ref.current, props.state, preloadState]);
+  }, [
+    props.hidden,
+    ref.current,
+    props.state,
+    preloadState,
+    props.aggressivePreload,
+  ]);
 
   useEffect(() => {
     if (!ref.current) {
@@ -159,34 +167,27 @@ const Clip = (props: {
       src={`/view-video?videoPath=${props.clip.inputVideo}#t=${preloadFrom},${modifiedEndTime}`}
       className={cn(props.hidden && "hidden")}
       ref={ref}
-      preload="auto"
     />
   );
 };
 
 const TimelineView = (props: {
   clips: Clip[];
+  clipsToAggressivelyPreload: string[];
   state: ClipState;
   currentClipId: string;
   onClipFinished: () => void;
   onUpdateCurrentTime: (time: number) => void;
 }) => {
-  const prioritizedClips = getPrioritizedListOfClips({
-    clips: props.clips,
-    currentClipId: props.currentClipId,
-  }).slice(0, 4);
-
   return (
-    <div className="flex flex-col gap-4">
-      {prioritizedClips.map((clip) => {
+    <div className="">
+      {props.clips.map((clip) => {
         const isCurrentlyPlaying = clip.id === props.currentClipId;
 
         const onFinish = () => {
           if (!isCurrentlyPlaying) {
             return;
           }
-
-          console.log("onFinish", clip);
 
           props.onClipFinished();
         };
@@ -197,6 +198,9 @@ const TimelineView = (props: {
               clip={clip}
               key={clip.id}
               onFinish={onFinish}
+              aggressivePreload={props.clipsToAggressivelyPreload.includes(
+                clip.id
+              )}
               hidden={!isCurrentlyPlaying}
               state={props.state}
               onUpdateCurrentTime={(time) => {
@@ -241,6 +245,7 @@ interface ClipWithWaveformData extends Clip {
 }
 
 type State = {
+  clipIdsPreloaded: Set<string>;
   runningState: ClipState;
   clips: ClipWithWaveformData[];
   currentClipId: string;
@@ -284,6 +289,42 @@ type Action =
       type: "press-arrow-right";
     };
 
+const preloadSelectedClips = (state: State) => {
+  const currentClipIndex = state.clips.findIndex(
+    (clip) => clip.id === state.currentClipId
+  );
+
+  if (currentClipIndex === -1) {
+    return state;
+  }
+
+  const nextClip = state.clips[currentClipIndex + 1];
+  const nextNextClip = state.clips[currentClipIndex + 2];
+
+  if (nextClip) {
+    state.clipIdsPreloaded.add(nextClip.id);
+  }
+  if (nextNextClip) {
+    state.clipIdsPreloaded.add(nextNextClip.id);
+  }
+
+  const newClipIdsPreloaded = state.clipIdsPreloaded
+    .add(state.currentClipId)
+    .union(state.selectedClipsSet);
+
+  console.log(
+    "preloadSelectedClips",
+    newClipIdsPreloaded,
+    nextClip,
+    nextNextClip
+  );
+
+  return {
+    ...state,
+    clipIdsPreloaded: newClipIdsPreloaded,
+  };
+};
+
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "press-space-bar":
@@ -301,13 +342,13 @@ const reducer = (state: State, action: Action): State => {
       }
       const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
 
-      return {
+      return preloadSelectedClips({
         ...state,
         currentClipId: mostRecentClipId,
         runningState: "playing",
         currentTimeInClip: 0,
         selectedClipsSet: new Set([mostRecentClipId]),
-      };
+      });
     case "click-clip":
       if (action.ctrlKey) {
         const newSelectedClipsSet = new Set(state.selectedClipsSet);
@@ -316,18 +357,18 @@ const reducer = (state: State, action: Action): State => {
         } else {
           newSelectedClipsSet.add(action.clipId);
         }
-        return {
+        return preloadSelectedClips({
           ...state,
           selectedClipsSet: newSelectedClipsSet,
-        };
+        });
       } else if (action.shiftKey) {
         const mostRecentClipId = Array.from(state.selectedClipsSet).pop();
 
         if (!mostRecentClipId) {
-          return {
+          return preloadSelectedClips({
             ...state,
             selectedClipsSet: new Set([action.clipId]),
-          };
+          });
         }
 
         const mostRecentClipIndex = state.clips.findIndex(
@@ -351,32 +392,32 @@ const reducer = (state: State, action: Action): State => {
         const clipsBetweenMostRecentClipIndexAndNewClipIndex =
           state.clips.slice(firstIndex, lastIndex + 1);
 
-        return {
+        return preloadSelectedClips({
           ...state,
           selectedClipsSet: new Set(
             clipsBetweenMostRecentClipIndexAndNewClipIndex.map(
               (clip) => clip.id
             )
           ),
-        };
+        });
       } else {
         if (state.selectedClipsSet.size > 1) {
-          return {
+          return preloadSelectedClips({
             ...state,
             selectedClipsSet: new Set([action.clipId]),
-          };
+          });
         }
 
         if (state.selectedClipsSet.has(action.clipId)) {
-          return {
+          return preloadSelectedClips({
             ...state,
             selectedClipsSet: new Set(),
-          };
+          });
         }
-        return {
+        return preloadSelectedClips({
           ...state,
           selectedClipsSet: new Set([action.clipId]),
-        };
+        });
       }
     case "press-delete":
       const lastClipBeingDeletedIndex = state.clips.findLastIndex((clip) => {
@@ -405,7 +446,7 @@ const reducer = (state: State, action: Action): State => {
         state.currentClipId
       );
 
-      return {
+      return preloadSelectedClips({
         ...state,
         clips: newClips,
         selectedClipsSet: new Set(
@@ -415,23 +456,48 @@ const reducer = (state: State, action: Action): State => {
         currentClipId: isCurrentClipDeleted
           ? newSelectedClipId!
           : state.currentClipId,
-      };
+      });
     case "update-clip-current-time":
       return { ...state, currentTimeInClip: action.time };
     case "clip-finished": {
       const currentClipIndex = state.clips.findIndex(
         (clip) => clip.id === state.currentClipId
       );
+
+      if (currentClipIndex === -1) {
+        return state;
+      }
+
       const nextClip = state.clips[currentClipIndex + 1];
+      const nextNextClip = state.clips[currentClipIndex + 2];
+      console.log("Clip Finished", nextClip, nextNextClip);
+
+      const newClipIdsPreloaded = state.clipIdsPreloaded;
+
       if (nextClip) {
-        return { ...state, currentClipId: nextClip.id };
+        newClipIdsPreloaded.add(nextClip.id);
+      }
+
+      if (nextNextClip) {
+        newClipIdsPreloaded.add(nextNextClip.id);
+      }
+
+      if (nextClip) {
+        return {
+          ...state,
+          currentClipId: nextClip.id,
+          clipIdsPreloaded: newClipIdsPreloaded,
+        };
       } else {
         return { ...state, runningState: "paused" };
       }
     }
     case "press-arrow-left": {
       if (state.selectedClipsSet.size === 0) {
-        return { ...state, selectedClipsSet: new Set([state.currentClipId]) };
+        return preloadSelectedClips({
+          ...state,
+          selectedClipsSet: new Set([state.currentClipId]),
+        });
       }
 
       const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
@@ -441,14 +507,20 @@ const reducer = (state: State, action: Action): State => {
       );
       const previousClip = state.clips[currentClipIndex - 1];
       if (previousClip) {
-        return { ...state, selectedClipsSet: new Set([previousClip.id]) };
+        return preloadSelectedClips({
+          ...state,
+          selectedClipsSet: new Set([previousClip.id]),
+        });
       } else {
         return state;
       }
     }
     case "press-arrow-right": {
       if (state.selectedClipsSet.size === 0) {
-        return { ...state, selectedClipsSet: new Set([state.currentClipId]) };
+        return preloadSelectedClips({
+          ...state,
+          selectedClipsSet: new Set([state.currentClipId]),
+        });
       }
 
       const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
@@ -458,7 +530,10 @@ const reducer = (state: State, action: Action): State => {
       );
       const nextClip = state.clips[currentClipIndex + 1];
       if (nextClip) {
-        return { ...state, selectedClipsSet: new Set([nextClip.id]) };
+        return preloadSelectedClips({
+          ...state,
+          selectedClipsSet: new Set([nextClip.id]),
+        });
       } else {
         return state;
       }
@@ -474,7 +549,25 @@ export default function Component(props: Route.ComponentProps) {
     currentClipId: initialClips[0]!.id,
     currentTimeInClip: 0,
     selectedClipsSet: new Set<string>(),
+    clipIdsPreloaded: new Set<string>([
+      initialClips[0]!.id,
+      initialClips[1]!.id,
+    ]),
   });
+
+  const currentClipIndex = state.clips.findIndex(
+    (clip) => clip.id === state.currentClipId
+  );
+
+  const nextClip = state.clips[currentClipIndex + 1];
+
+  const selectedClipId = Array.from(state.selectedClipsSet)[0];
+
+  const clipsToAggressivelyPreload = [
+    state.currentClipId,
+    nextClip?.id,
+    selectedClipId,
+  ].filter((id) => id !== undefined);
 
   const currentClipId = state.currentClipId;
 
@@ -582,7 +675,10 @@ export default function Component(props: Route.ComponentProps) {
       <div className="flex-1 relative p-6">
         <div className="sticky top-0">
           <TimelineView
-            clips={state.clips}
+            clipsToAggressivelyPreload={clipsToAggressivelyPreload}
+            clips={state.clips.filter((clip) =>
+              state.clipIdsPreloaded.has(clip.id)
+            )}
             state={state.runningState}
             currentClipId={currentClipId}
             onClipFinished={() => {
