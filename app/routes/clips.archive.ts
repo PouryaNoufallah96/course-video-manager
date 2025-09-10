@@ -8,14 +8,11 @@ const archiveClipsSchema = Schema.Struct({
 });
 
 export const action = async (args: Route.ActionArgs) => {
-  const formData = await args.request.formData();
-  const formDataObject = Object.fromEntries(formData);
+  const json = await args.request.json();
 
   return Effect.gen(function* () {
     const db = yield* DBService;
-    const { clipIds } = yield* Schema.decodeUnknown(archiveClipsSchema)(
-      formDataObject
-    );
+    const { clipIds } = yield* Schema.decodeUnknown(archiveClipsSchema)(json);
 
     const resolvedClipIds = typeof clipIds === "string" ? [clipIds] : clipIds;
     yield* Effect.forEach(resolvedClipIds, (clipId) => db.archiveClip(clipId));

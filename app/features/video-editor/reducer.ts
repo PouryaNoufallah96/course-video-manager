@@ -68,6 +68,10 @@ export type Action =
     }
   | {
       type: "press-k";
+    }
+  | {
+      type: "clips-updated-from-props";
+      clips: Clip[];
     };
 
 const preloadSelectedClips = (state: State) => {
@@ -110,6 +114,11 @@ export const makeVideoEditorReducer =
   (reportEffect: (effect: Effect) => void) =>
   (state: State, action: Action): State => {
     switch (action.type) {
+      case "clips-updated-from-props":
+        return {
+          ...state,
+          clips: action.clips,
+        };
       case "press-space-bar":
         return {
           ...state,

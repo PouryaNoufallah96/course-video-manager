@@ -1,11 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, Loader2, PlusIcon } from "lucide-react";
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { makeVideoEditorReducer, type Clip } from "./reducer";
 import { TitleSection } from "./title-section";
+
+const useDebounceArchiveClips = () => {
+  const archiveClipFetcher = useFetcher();
+
+  const [clipsToArchive, setClipsToArchive] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (clipsToArchive.length === 0) return;
+
+    const timeout = setTimeout(() => {
+      archiveClipFetcher.submit(
+        { clipIds: clipsToArchive },
+        {
+          method: "POST",
+          action: "/clips/archive",
+          encType: "application/json",
+        }
+      );
+      setClipsToArchive([]);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [clipsToArchive]);
+
+  return {
+    setClipsToArchive: (clipIds: string[]) => {
+      setClipsToArchive([...clipsToArchive, ...clipIds]);
+    },
+  };
+};
 
 export const VideoEditor = (props: {
   initialClips: Clip[];
@@ -17,18 +46,12 @@ export const VideoEditor = (props: {
   lessonId: string;
   videoId: string;
 }) => {
-  const archiveClipFetcher = useFetcher();
+  const { setClipsToArchive } = useDebounceArchiveClips();
 
   const [state, dispatch] = useReducer(
     makeVideoEditorReducer((effect) => {
       if (effect.type === "archive-clips") {
-        archiveClipFetcher.submit(
-          { clipIds: effect.clipIds },
-          {
-            method: "POST",
-            action: "/clips/archive",
-          }
-        );
+        setClipsToArchive(effect.clipIds);
       }
     }),
     {
@@ -45,6 +68,10 @@ export const VideoEditor = (props: {
       playbackRate: 1,
     }
   );
+
+  useEffect(() => {
+    dispatch({ type: "clips-updated-from-props", clips: props.initialClips });
+  }, [props.initialClips]);
 
   const currentClipIndex = state.clips.findIndex(
     (clip) => clip.id === state.currentClipId
