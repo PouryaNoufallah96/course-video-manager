@@ -175,6 +175,12 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                     with: {
                       videos: {
                         orderBy: asc(videos.path),
+                        with: {
+                          clips: {
+                            orderBy: asc(clips.order),
+                            where: eq(clips.archived, false),
+                          },
+                        },
                       },
                     },
                     orderBy: asc(lessons.order),

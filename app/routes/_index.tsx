@@ -33,6 +33,7 @@ import path from "node:path";
 import React, { useEffect, useState } from "react";
 import { Link, useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
+import { formatSecondsToTimeCode } from "@/services/utils";
 
 export const meta: Route.MetaFunction = ({ data }) => {
   const selectedRepo = data?.selectedRepo;
@@ -419,77 +420,90 @@ export default function Component(props: Route.ComponentProps) {
                         </div>
                         {lesson.videos.length > 0 && (
                           <div className="ml-8 text-foreground">
-                            {lesson.videos.map((video, index) => (
-                              <div
-                                key={video.id}
-                                className={cn(
-                                  "flex items-center justify-between text-sm border-x px-3 py-2",
-                                  index !== 0 ? "border-t" : ""
-                                )}
-                              >
-                                <div className="flex items-center">
-                                  <VideoIcon className="w-4 h-4 mr-2" />
-                                  <span className="tracking-wide">
-                                    {video.path}
-                                  </span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    asChild
-                                  >
-                                    <Link to={`/videos/${video.id}/edit`}>
-                                      <VideotapeIcon className="w-4 h-4" />
-                                    </Link>
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    asChild
-                                  >
-                                    <Link to={`/videos/${video.id}/write`}>
-                                      <PencilIcon className="w-4 h-4" />
-                                    </Link>
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => {
-                                      setVideoPlayerState({
-                                        isOpen: true,
-                                        videoId: video.id,
-                                        videoPath: `${section.path}/${lesson.path}/${video.path}`,
-                                      });
-                                    }}
-                                  >
-                                    <Play className="w-4 h-4" />
-                                  </Button>
-                                  <deleteVideoFetcher.Form
-                                    method="post"
-                                    action="/api/videos/delete"
-                                    className="inline"
-                                  >
-                                    <input
-                                      type="hidden"
-                                      name="videoId"
-                                      value={video.id}
-                                    />
+                            {lesson.videos.map((video, index) => {
+                              const totalDuration = video.clips.reduce(
+                                (acc, clip) => {
+                                  return (
+                                    acc +
+                                    (clip.sourceEndTime - clip.sourceStartTime)
+                                  );
+                                },
+                                0
+                              );
+
+                              return (
+                                <div
+                                  key={video.id}
+                                  className={cn(
+                                    "flex items-center justify-between text-sm border-x px-3 py-2",
+                                    index !== 0 ? "border-t" : ""
+                                  )}
+                                >
+                                  <div className="flex items-center">
+                                    <VideoIcon className="w-4 h-4 mr-2" />
+                                    <span className="tracking-wide">
+                                      {video.path} (
+                                      {formatSecondsToTimeCode(totalDuration)})
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       className="h-6 w-6 p-0"
-                                      onClick={() => {}}
+                                      asChild
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Link to={`/videos/${video.id}/edit`}>
+                                        <VideotapeIcon className="w-4 h-4" />
+                                      </Link>
                                     </Button>
-                                  </deleteVideoFetcher.Form>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      asChild
+                                    >
+                                      <Link to={`/videos/${video.id}/write`}>
+                                        <PencilIcon className="w-4 h-4" />
+                                      </Link>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => {
+                                        setVideoPlayerState({
+                                          isOpen: true,
+                                          videoId: video.id,
+                                          videoPath: `${section.path}/${lesson.path}/${video.path}`,
+                                        });
+                                      }}
+                                    >
+                                      <Play className="w-4 h-4" />
+                                    </Button>
+                                    <deleteVideoFetcher.Form
+                                      method="post"
+                                      action="/api/videos/delete"
+                                      className="inline"
+                                    >
+                                      <input
+                                        type="hidden"
+                                        name="videoId"
+                                        value={video.id}
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => {}}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </deleteVideoFetcher.Form>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </React.Fragment>

@@ -7,6 +7,7 @@ import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { makeVideoEditorReducer, type Clip } from "./reducer";
 import { TitleSection } from "./title-section";
+import { formatSecondsToTimeCode } from "@/services/utils";
 
 const useDebounceArchiveClips = () => {
   const archiveClipFetcher = useFetcher();
@@ -293,10 +294,4 @@ export const VideoEditor = (props: {
 
 const formatSecondsToTime = (seconds: number) => {
   return seconds.toFixed(1) + "s";
-};
-
-const formatSecondsToTimeCode = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
