@@ -1,10 +1,6 @@
-import { Data, Effect, Schema } from "effect";
 import { Command } from "@effect/platform";
-import {
-  NodeCommandExecutor,
-  NodeContext,
-  NodeRuntime,
-} from "@effect/platform-node";
+import { NodeContext } from "@effect/platform-node";
+import { Data, Effect, Schema } from "effect";
 
 const getLatestOBSVideoClipsSchema = Schema.Struct({
   clips: Schema.Array(
@@ -52,7 +48,7 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
             catch: (e) =>
               new CouldNotParseJsonError({
                 cause: e,
-                message: `Could not parse JSON from get-clips-from-latest-video command`,
+                message: `Could not parse JSON from get-clips-from-latest-video: ${result}`,
               }),
           });
 

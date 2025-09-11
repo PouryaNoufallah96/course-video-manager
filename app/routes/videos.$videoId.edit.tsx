@@ -1,19 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
-  extractAudioFromVideoURL,
-  getWaveformForTimeRange,
-} from "@/services/video-editing";
-import { useEffect, useReducer, useRef, useState } from "react";
-import type { Route } from "./+types/videos.$videoId.edit";
+  OBSConnectionButton,
+  useOBSConnector,
+} from "@/features/video-editor/obs-connector";
+import { TitleSection } from "@/features/video-editor/title-section";
+import { VideoEditor } from "@/features/video-editor/video-editor";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Effect } from "effect";
-import type { Clip, ClipState } from "@/features/video-editor/reducer";
-import { VideoEditor } from "@/features/video-editor/video-editor";
+import { ChevronLeftIcon } from "lucide-react";
 import { Link, useFetcher } from "react-router";
-import { ChevronLeftIcon, DownloadIcon, Loader2, PlusIcon } from "lucide-react";
-import { TitleSection } from "@/features/video-editor/title-section";
+import type { Route } from "./+types/videos.$videoId.edit";
 
 // Core data model - flat array of clips
 
@@ -52,7 +49,18 @@ export const loader = async (args: Route.LoaderArgs) => {
 // };
 
 export default function Component(props: Route.ComponentProps) {
-  const appendFromOBSFetcher = useFetcher();
+  const refetch = useFetcher();
+  const obsConnector = useOBSConnector({
+    videoId: props.loaderData.video.id,
+    onImportComplete: () => {
+      refetch.load(`/videos/${props.loaderData.video.id}/edit`).then(() => {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      });
+    },
+  });
 
   if (props.loaderData.clips.length === 0) {
     return (
@@ -72,19 +80,7 @@ export default function Component(props: Route.ComponentProps) {
               Go Back
             </Link>
           </Button>
-          <appendFromOBSFetcher.Form
-            method="post"
-            action={`/videos/${props.loaderData.video.id}/append-from-obs`}
-          >
-            <Button variant="default">
-              {appendFromOBSFetcher.state === "submitting" ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <PlusIcon className="w-4 h-4 mr-1" />
-              )}
-              Append From OBS
-            </Button>
-          </appendFromOBSFetcher.Form>
+          <OBSConnectionButton state={obsConnector.state} />
         </div>
       </div>
     );
@@ -92,6 +88,7 @@ export default function Component(props: Route.ComponentProps) {
 
   return (
     <VideoEditor
+      obsConnectorState={obsConnector.state}
       initialClips={props.loaderData.clips}
       // waveformDataForClip={props.loaderData.waveformData ?? {}}
       repoId={props.loaderData.video.lesson.section.repo.id}

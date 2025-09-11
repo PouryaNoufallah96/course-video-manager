@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useFetcher } from "react-router";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, Loader2, Mic, MicIcon } from "lucide-react";
 
-type OBSConnectionState =
+export type OBSConnectionState =
   | {
       type: "obs-not-running";
     }
@@ -36,7 +36,10 @@ const createNotRunningListener = (
   };
 };
 
-export const useOBSConnector = (videoId: string) => {
+export const useOBSConnector = (props: {
+  videoId: string;
+  onImportComplete: () => void;
+}) => {
   const appendFromOBSFetcher = useFetcher();
 
   const [websocket] = useState(() => new OBSWebSocket());
@@ -44,6 +47,22 @@ export const useOBSConnector = (videoId: string) => {
   const [state, setState] = useState<OBSConnectionState>({
     type: "checking-obs-connection-status",
   });
+
+  const onRecordingComplete = useCallback(() => {
+    setState({ type: "importing-video" });
+    appendFromOBSFetcher
+      .submit(null, {
+        method: "POST",
+        action: `/videos/${props.videoId}/append-from-obs`,
+      })
+      .then(() => {
+        setState({ type: "obs-connected" });
+        props.onImportComplete();
+      })
+      .catch((e) => {
+        throw e;
+      });
+  }, [appendFromOBSFetcher, props.videoId, props.onImportComplete]);
 
   useEffect(() => {
     if (state.type === "checking-obs-connection-status") {
@@ -73,12 +92,9 @@ export const useOBSConnector = (videoId: string) => {
 
   useEffect(() => {
     if (state.type === "obs-connected" || state.type === "obs-recording") {
-      const disposeCreateNotRunningListener = createNotRunningListener(
-        websocket,
-        () => {
-          setState({ type: "obs-not-running" });
-        }
-      );
+      createNotRunningListener(websocket, () => {
+        setState({ type: "obs-not-running" });
+      });
 
       const recordingListener = (e: {
         outputActive: boolean;
@@ -89,34 +105,15 @@ export const useOBSConnector = (videoId: string) => {
           setState({ type: "obs-recording" });
         } else if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
           setState({ type: "importing-video" });
+          onRecordingComplete();
         }
       };
 
       websocket.on("RecordStateChanged", recordingListener);
 
       return () => {
-        disposeCreateNotRunningListener();
-        websocket.removeListener("RecordStateChanged", recordingListener);
+        websocket.removeAllListeners();
       };
-    }
-  }, [state]);
-
-  useEffect(() => {
-    if (state.type === "importing-video") {
-      appendFromOBSFetcher
-        .submit(
-          { videoId },
-          {
-            method: "POST",
-            action: `/videos/${videoId}/append-from-obs`,
-          }
-        )
-        .then(() => {
-          setState({ type: "obs-connected" });
-        })
-        .catch((e) => {
-          throw e;
-        });
     }
   }, [state]);
 
