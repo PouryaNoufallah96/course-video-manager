@@ -27,29 +27,29 @@ export const loader = async (args: Route.LoaderArgs) => {
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
 
-export const clientLoader = async (args: Route.ClientLoaderArgs) => {
-  const { video } = await args.serverLoader();
+// export const clientLoader = async (args: Route.ClientLoaderArgs) => {
+//   const { video } = await args.serverLoader();
 
-  if (video.clips.length === 0) {
-    return { clips: [], video };
-  }
+//   if (video.clips.length === 0) {
+//     return { clips: [], video };
+//   }
 
-  const audioBuffer = await extractAudioFromVideoURL(
-    `/view-video?videoPath=${video.clips[0]!.videoFilename}`
-  );
+//   const audioBuffer = await extractAudioFromVideoURL(
+//     `/view-video?videoPath=${video.clips[0]!.videoFilename}`
+//   );
 
-  const waveformData = video.clips.reduce((acc, clip) => {
-    acc[clip.id] = getWaveformForTimeRange(
-      audioBuffer,
-      clip.sourceStartTime,
-      clip.sourceEndTime,
-      200
-    );
-    return acc;
-  }, {} as Record<string, number[]>);
+//   const waveformData = video.clips.reduce((acc, clip) => {
+//     acc[clip.id] = getWaveformForTimeRange(
+//       audioBuffer,
+//       clip.sourceStartTime,
+//       clip.sourceEndTime,
+//       200
+//     );
+//     return acc;
+//   }, {} as Record<string, number[]>);
 
-  return { clips: video.clips, waveformData, video };
-};
+//   return { clips: video.clips, waveformData, video };
+// };
 
 export default function Component(props: Route.ComponentProps) {
   const appendFromOBSFetcher = useFetcher();
@@ -93,7 +93,7 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <VideoEditor
       initialClips={props.loaderData.clips}
-      waveformDataForClip={props.loaderData.waveformData ?? {}}
+      // waveformDataForClip={props.loaderData.waveformData ?? {}}
       repoId={props.loaderData.video.lesson.section.repo.id}
       lessonId={props.loaderData.video.lesson.id}
       videoPath={props.loaderData.video.path}

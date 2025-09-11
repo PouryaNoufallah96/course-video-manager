@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Clip, ClipState } from "./reducer";
 import { cn } from "@/lib/utils";
+import { FINAL_VIDEO_PADDING } from "./constants";
 
 const PRELOAD_PLAY_AMOUNT = 0.1;
 
@@ -125,6 +126,7 @@ export const PreloadableClip = (props: {
 export const PreloadableClipManager = (props: {
   playbackRate: number;
   clips: Clip[];
+  finalClipId: string | undefined;
   clipsToAggressivelyPreload: string[];
   state: ClipState;
   currentClipId: string;
@@ -144,11 +146,17 @@ export const PreloadableClipManager = (props: {
           props.onClipFinished();
         };
 
+        const isFinalClip = clip.id === props.finalClipId;
+
+        const modifiedClip = isFinalClip
+          ? { ...clip, sourceEndTime: clip.sourceEndTime + FINAL_VIDEO_PADDING }
+          : clip;
+
         return (
           <div key={clip.id}>
             <PreloadableClip
               playbackRate={props.playbackRate}
-              clip={clip}
+              clip={modifiedClip}
               key={clip.id}
               onFinish={onFinish}
               aggressivePreload={props.clipsToAggressivelyPreload.includes(

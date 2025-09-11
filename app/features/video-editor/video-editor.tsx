@@ -38,7 +38,6 @@ const useDebounceArchiveClips = () => {
 
 export const VideoEditor = (props: {
   initialClips: Clip[];
-  waveformDataForClip: Record<string, number[]>;
   videoPath: string;
   lessonPath: string;
   repoName: string;
@@ -179,7 +178,7 @@ export const VideoEditor = (props: {
           {state.clips.map((clip) => {
             const duration = clip.sourceEndTime - clip.sourceStartTime;
 
-            const waveformData = props.waveformDataForClip[clip.id];
+            // const waveformData = props.waveformDataForClip[clip.id];
 
             const percentComplete = state.currentTimeInClip / duration;
 
@@ -269,6 +268,7 @@ export const VideoEditor = (props: {
             clips={state.clips.filter((clip) =>
               state.clipIdsPreloaded.has(clip.id)
             )}
+            finalClipId={props.initialClips[props.initialClips.length - 1]?.id}
             state={state.runningState}
             currentClipId={currentClipId}
             onClipFinished={() => {
