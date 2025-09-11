@@ -161,7 +161,7 @@ export default function Component(props: Route.ComponentProps) {
     };
   }, [selectedRepoId]);
 
-  const latestObsVideoFetcher = useFetcher();
+  const addVideoFetcher = useFetcher();
 
   const deleteVideoFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
@@ -345,13 +345,13 @@ export default function Component(props: Route.ComponentProps) {
                                   <DialogHeader>
                                     <DialogTitle>Add New Video</DialogTitle>
                                   </DialogHeader>
-                                  <latestObsVideoFetcher.Form
+                                  <addVideoFetcher.Form
                                     method="post"
-                                    action="/api/videos/edit-latest-obs-video"
+                                    action={`/api/lessons/${lesson.id}/add-video`}
                                     className="space-y-4 py-4"
                                     onSubmit={async (e) => {
                                       e.preventDefault();
-                                      await latestObsVideoFetcher.submit(
+                                      await addVideoFetcher.submit(
                                         e.currentTarget
                                       );
                                       setAddVideoToLessonId(null);
@@ -384,7 +384,7 @@ export default function Component(props: Route.ComponentProps) {
                                         Cancel
                                       </Button>
                                       <Button type="submit">
-                                        {latestObsVideoFetcher.state ===
+                                        {addVideoFetcher.state ===
                                         "submitting" ? (
                                           <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
@@ -392,7 +392,7 @@ export default function Component(props: Route.ComponentProps) {
                                         )}
                                       </Button>
                                     </div>
-                                  </latestObsVideoFetcher.Form>
+                                  </addVideoFetcher.Form>
                                 </DialogContent>
                               </Dialog>
                               <deleteLessonFetcher.Form
