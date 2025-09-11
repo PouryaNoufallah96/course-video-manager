@@ -4,6 +4,7 @@ import { layerLive } from "@/services/layer";
 import type { Route } from "./+types/api.videos.$videoId.export";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { FINAL_VIDEO_PADDING } from "@/features/video-editor/constants";
+import { withDatabaseDump } from "@/services/dump-service";
 
 export const action = async (args: Route.ActionArgs) => {
   const { videoId } = args.params;
@@ -34,5 +35,5 @@ export const action = async (args: Route.ActionArgs) => {
     yield* Console.log(result);
 
     return { success: true };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };

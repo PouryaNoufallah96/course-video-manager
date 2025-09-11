@@ -1,3 +1,4 @@
+import { withDatabaseDump } from "@/services/dump-service";
 import type { Route } from "./+types/videos.$videoId.append-from-obs";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
@@ -19,5 +20,5 @@ export const action = async (args: Route.ActionArgs) => {
     const clips = yield* db.appendClips(videoId, latestOBSVideoClips.clips);
 
     return clips;
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };

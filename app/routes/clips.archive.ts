@@ -2,6 +2,7 @@ import { Effect, Schema } from "effect";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import type { Route } from "./+types/clips.archive";
+import { withDatabaseDump } from "@/services/dump-service";
 
 const archiveClipsSchema = Schema.Struct({
   clipIds: Schema.Union(Schema.Array(Schema.String), Schema.String),
@@ -18,5 +19,5 @@ export const action = async (args: Route.ActionArgs) => {
     yield* Effect.forEach(resolvedClipIds, (clipId) => db.archiveClip(clipId));
 
     return { success: true };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };
