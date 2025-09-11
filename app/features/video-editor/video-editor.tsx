@@ -130,6 +130,10 @@ export const VideoEditor = (props: {
 
   const exportVideoClipsFetcher = useFetcher();
 
+  const totalDuration = state.clips.reduce((acc, clip) => {
+    return acc + (clip.sourceEndTime - clip.sourceStartTime);
+  }, 0);
+
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
@@ -138,7 +142,12 @@ export const VideoEditor = (props: {
           <div className="">
             <div className="mb-4">
               <TitleSection
-                videoPath={props.videoPath}
+                videoPath={
+                  props.videoPath +
+                  " (" +
+                  formatSecondsToTimeCode(totalDuration) +
+                  ")"
+                }
                 lessonPath={props.lessonPath}
                 repoName={props.repoName}
               />
@@ -284,4 +293,10 @@ export const VideoEditor = (props: {
 
 const formatSecondsToTime = (seconds: number) => {
   return seconds.toFixed(1) + "s";
+};
+
+const formatSecondsToTimeCode = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
