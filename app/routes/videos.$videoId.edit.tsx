@@ -7,6 +7,7 @@ import { TitleSection } from "@/features/video-editor/title-section";
 import {
   LiveMediaStream,
   RecordingSignalIndicator,
+  useSpeechDetector,
   VideoEditor,
 } from "@/features/video-editor/video-editor";
 import { DBService } from "@/services/db-service";
@@ -66,6 +67,11 @@ export default function Component(props: Route.ComponentProps) {
     },
   });
 
+  const speechDetectorState = useSpeechDetector({
+    mediaStream: obsConnector.mediaStream,
+    isRecording: obsConnector.state.type === "obs-recording",
+  });
+
   if (props.loaderData.clips.length === 0) {
     return (
       <div className="flex p-6 w-full">
@@ -97,7 +103,10 @@ export default function Component(props: Route.ComponentProps) {
               <RecordingSignalIndicator />
             )}
 
-            <LiveMediaStream mediaStream={obsConnector.mediaStream} />
+            <LiveMediaStream
+              mediaStream={obsConnector.mediaStream}
+              speechDetectorState={speechDetectorState}
+            />
           </div>
         )}
       </div>
@@ -117,6 +126,7 @@ export default function Component(props: Route.ComponentProps) {
       videoId={props.loaderData.video.id}
       isImporting={obsConnector.isImporting}
       liveMediaStream={obsConnector.mediaStream}
+      speechDetectorState={speechDetectorState}
     />
   );
 }

@@ -65,7 +65,7 @@ export const useConnectToOBSVirtualCamera = (props: {
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: false,
+        audio: true,
       });
 
       stream.getTracks().forEach((track) => track.stop());
@@ -89,6 +89,7 @@ export const useConnectToOBSVirtualCamera = (props: {
             width: 1280,
             height: 720,
           },
+          audio: true,
         });
 
         setMediaStream(obsStream);
@@ -245,22 +246,26 @@ export const OBSConnectionButton = (props: {
           Connecting to OBS...
         </>
       )}
-      {props.state.type === "obs-connected" && (
-        <>
-          <CheckIcon className="w-4 h-4 mr-1" />
-          OBS Ready
-        </>
-      )}
+
       {props.state.type === "obs-recording" && (
         <>
           <MicIcon className="w-4 h-4 mr-1" />
           Recording...
         </>
       )}
-      {props.isImporting && (
+      {props.state.type === "obs-connected" && (
         <>
-          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-          Appending...
+          {props.isImporting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              Appending...
+            </>
+          ) : (
+            <>
+              <CheckIcon className="w-4 h-4 mr-1" />
+              OBS Ready
+            </>
+          )}
         </>
       )}
     </Button>

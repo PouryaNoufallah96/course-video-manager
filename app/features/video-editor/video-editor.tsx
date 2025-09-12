@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChevronLeftIcon, DownloadIcon, Loader2 } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  DownloadIcon,
+  Loader2,
+  MicOffIcon,
+  ThumbsUpIcon,
+} from "lucide-react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
@@ -49,6 +56,7 @@ export const VideoEditor = (props: {
   videoId: string;
   isImporting: boolean;
   liveMediaStream: MediaStream | null;
+  speechDetectorState: SpeechDetectorState;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
 
@@ -167,7 +175,10 @@ export const VideoEditor = (props: {
                   <RecordingSignalIndicator />
                 )}
 
-                <LiveMediaStream mediaStream={props.liveMediaStream} />
+                <LiveMediaStream
+                  mediaStream={props.liveMediaStream}
+                  speechDetectorState={props.speechDetectorState}
+                />
               </div>
             )}
             <div
@@ -330,7 +341,10 @@ const formatSecondsToTime = (seconds: number) => {
   return seconds.toFixed(1) + "s";
 };
 
-export const LiveMediaStream = (props: { mediaStream: MediaStream }) => {
+export const LiveMediaStream = (props: {
+  mediaStream: MediaStream;
+  speechDetectorState: SpeechDetectorState;
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -340,7 +354,118 @@ export const LiveMediaStream = (props: { mediaStream: MediaStream }) => {
     }
   }, [props.mediaStream, videoRef.current]);
 
-  return <video ref={videoRef} />;
+  return (
+    <div className="relative">
+      {props.speechDetectorState.type === "long-enough-silence-detected" && (
+        <div className="absolute top-4 left-4 bg-blue-600 rounded-full size-8 flex items-center justify-center">
+          <CheckIcon className="w-4 h-4 text-white" />
+        </div>
+      )}
+      <video ref={videoRef} muted />
+    </div>
+  );
+};
+
+type SpeechDetectorState =
+  | {
+      type: "initial-silence-detected";
+      silenceStartTime: number;
+    }
+  | {
+      type: "long-enough-silence-detected";
+      silenceStartTime: number;
+    }
+  | {
+      type: "no-silence-detected";
+    };
+
+const SPEAKING_THRESHOLD = -33;
+const LONG_ENOUGH_TIME_IN_MILLISECONDS = 800;
+
+export const useSpeechDetector = (opts: {
+  mediaStream: MediaStream | null;
+  isRecording: boolean;
+}) => {
+  const [state, setState] = useState<SpeechDetectorState>({
+    type: "no-silence-detected",
+  });
+
+  useEffect(() => {
+    if (opts.isRecording) {
+      setState({
+        type: "no-silence-detected",
+      });
+    }
+  }, [opts.isRecording]);
+
+  useEffect(() => {
+    if (!opts.mediaStream) return;
+
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(opts.mediaStream);
+    const processor = audioContext.createScriptProcessor(1024, 1, 1);
+
+    source.connect(processor);
+    processor.connect(audioContext.destination);
+
+    processor.onaudioprocess = (e) => {
+      const inputBuffer = e.inputBuffer;
+      const inputData = inputBuffer.getChannelData(0); // Get the first channel
+
+      // Calculate RMS (Root Mean Square) volume
+      let sum = 0;
+      for (let i = 0; i < inputData.length; i++) {
+        sum += inputData[i]! * inputData[i]!;
+      }
+      const rms = Math.sqrt(sum / inputData.length);
+
+      // Convert to decibels (dB)
+      const volumeDb = 20 * Math.log10(rms + 1e-10); // Add small value to avoid log(0)
+
+      switch (state.type) {
+        case "no-silence-detected": {
+          if (volumeDb < SPEAKING_THRESHOLD) {
+            setState({
+              type: "initial-silence-detected",
+              silenceStartTime: e.timeStamp,
+            });
+          }
+          break;
+        }
+        case "initial-silence-detected": {
+          if (volumeDb > SPEAKING_THRESHOLD) {
+            setState({
+              type: "no-silence-detected",
+            });
+          } else if (
+            e.timeStamp - state.silenceStartTime >
+            LONG_ENOUGH_TIME_IN_MILLISECONDS
+          ) {
+            setState({
+              type: "long-enough-silence-detected",
+              silenceStartTime: e.timeStamp,
+            });
+          }
+
+          break;
+        }
+        case "long-enough-silence-detected": {
+          if (volumeDb > SPEAKING_THRESHOLD) {
+            setState({ type: "no-silence-detected" });
+          }
+          break;
+        }
+      }
+    };
+
+    return () => {
+      source.disconnect();
+      processor.disconnect();
+      audioContext.close();
+    };
+  }, [opts.mediaStream, state]);
+
+  return state;
 };
 
 export const RecordingSignalIndicator = () => {
