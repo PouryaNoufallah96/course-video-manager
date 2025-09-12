@@ -1,10 +1,9 @@
-import { withDatabaseDump } from "@/services/dump-service";
-import type { Route } from "./+types/videos.$videoId.append-from-obs";
 import { DBService } from "@/services/db-service";
+import { withDatabaseDump } from "@/services/dump-service";
 import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { Effect, Schema } from "effect";
-import path from "node:path";
+import type { Route } from "./+types/videos.$videoId.append-from-obs";
 
 const appendFromOBSSchema = Schema.Struct({
   filePath: Schema.String.pipe(Schema.optional),
