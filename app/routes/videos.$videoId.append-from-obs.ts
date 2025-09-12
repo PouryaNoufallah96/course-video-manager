@@ -4,20 +4,33 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { Effect, Schema } from "effect";
+import path from "node:path";
 
 const appendFromOBSSchema = Schema.Struct({
   filePath: Schema.String.pipe(Schema.optional),
 });
 
+function windowsToWSL(windowsPath: string) {
+  // Convert C:\Users\... to /mnt/c/Users/...
+  const drive = windowsPath.charAt(0).toLowerCase();
+  const pathWithoutDrive = windowsPath.slice(3); // Remove "C:\"
+
+  // Convert backslashes to forward slashes
+  const unixPath = pathWithoutDrive.replace(/\\/g, "/");
+
+  return `/mnt/${drive}/${unixPath}`;
+}
+
 export const action = async (args: Route.ActionArgs) => {
   const { videoId } = args.params;
-  const formData = await args.request.formData();
-  const formDataObject = Object.fromEntries(formData);
+  const json = await args.request.json();
 
   return Effect.gen(function* () {
-    const result = yield* Schema.decodeUnknown(appendFromOBSSchema)(
-      formDataObject
-    );
+    const result = yield* Schema.decodeUnknown(appendFromOBSSchema)(json);
+
+    const resolvedFilePath = result.filePath
+      ? windowsToWSL(result.filePath)
+      : undefined;
 
     const db = yield* DBService;
 
@@ -26,7 +39,7 @@ export const action = async (args: Route.ActionArgs) => {
     yield* db.getVideoById(videoId);
 
     const latestOBSVideoClips = yield* ttCliService.getLatestOBSVideoClips({
-      filePath: result.filePath,
+      filePath: resolvedFilePath,
     });
 
     if (latestOBSVideoClips.clips.length === 0) {

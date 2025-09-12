@@ -16,9 +16,6 @@ export type OBSConnectionState =
     }
   | {
       type: "obs-recording";
-    }
-  | {
-      type: "importing-video";
     };
 
 const createNotRunningListener = (
@@ -106,33 +103,70 @@ export const useConnectToOBSVirtualCamera = (props: {
   return mediaStream;
 };
 
+export const useOBSImportQueue = (props: {
+  videoId: string;
+  onImportComplete: () => void;
+}) => {
+  const [importQueue, setImportQueue] = useState<string[]>([]);
+  const [importState, setImportState] = useState<"importing" | "idle">("idle");
+  const appendFromOBSFetcher = useFetcher();
+
+  const addToImportQueue = (filePath: string) => {
+    setImportQueue((prev) => [...prev, filePath]);
+  };
+
+  useEffect(() => {
+    if (importState === "importing") return;
+    if (importQueue.length === 0) return;
+
+    setImportState("importing");
+
+    const filePath = importQueue[0];
+
+    if (filePath) {
+      appendFromOBSFetcher
+        .submit(
+          { filePath },
+          {
+            action: `/videos/${props.videoId}/append-from-obs`,
+            method: "POST",
+            encType: "application/json",
+          }
+        )
+        .then(() => {
+          setImportState("idle");
+          setImportQueue((prev) => prev.slice(1));
+          props.onImportComplete();
+        });
+    }
+  }, [
+    importState,
+    importQueue,
+    appendFromOBSFetcher,
+    props.videoId,
+    props.onImportComplete,
+  ]);
+
+  return {
+    isImporting: importQueue.length > 0,
+    addToImportQueue,
+  };
+};
+
 export const useOBSConnector = (props: {
   videoId: string;
   onImportComplete: () => void;
 }) => {
-  const appendFromOBSFetcher = useFetcher();
-
   const [websocket] = useState(() => new OBSWebSocket());
 
   const [state, setState] = useState<OBSConnectionState>({
     type: "checking-obs-connection-status",
   });
 
-  const onRecordingComplete = useCallback(() => {
-    setState({ type: "importing-video" });
-    appendFromOBSFetcher
-      .submit(null, {
-        method: "POST",
-        action: `/videos/${props.videoId}/append-from-obs`,
-      })
-      .then(() => {
-        setState({ type: "obs-connected" });
-        props.onImportComplete();
-      })
-      .catch((e) => {
-        throw e;
-      });
-  }, [appendFromOBSFetcher, props.videoId, props.onImportComplete]);
+  const { isImporting, addToImportQueue } = useOBSImportQueue({
+    videoId: props.videoId,
+    onImportComplete: props.onImportComplete,
+  });
 
   useEffect(() => {
     if (state.type === "checking-obs-connection-status") {
@@ -174,8 +208,8 @@ export const useOBSConnector = (props: {
         if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STARTED") {
           setState({ type: "obs-recording" });
         } else if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
-          setState({ type: "importing-video" });
-          onRecordingComplete();
+          setState({ type: "obs-connected" });
+          addToImportQueue(e.outputPath);
         }
       };
 
@@ -187,29 +221,23 @@ export const useOBSConnector = (props: {
   }, [state]);
 
   const mediaStream = useConnectToOBSVirtualCamera({
-    connected:
-      state.type === "obs-connected" ||
-      state.type === "obs-recording" ||
-      state.type === "importing-video",
+    connected: state.type === "obs-connected" || state.type === "obs-recording",
     websocket,
   });
 
   return {
     state,
     mediaStream,
-    manuallyAppendFromOBS: () => {
-      setState({ type: "importing-video" });
-      onRecordingComplete();
-    },
+    isImporting,
   };
 };
 
 export const OBSConnectionButton = (props: {
   state: OBSConnectionState;
-  manuallyAppendFromOBS: () => void;
+  isImporting: boolean;
 }) => {
   return (
-    <Button variant="ghost" onClick={props.manuallyAppendFromOBS}>
+    <Button variant="ghost">
       {(props.state.type === "checking-obs-connection-status" ||
         props.state.type === "obs-not-running") && (
         <>
@@ -229,7 +257,7 @@ export const OBSConnectionButton = (props: {
           Recording...
         </>
       )}
-      {props.state.type === "importing-video" && (
+      {props.isImporting && (
         <>
           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
           Appending...

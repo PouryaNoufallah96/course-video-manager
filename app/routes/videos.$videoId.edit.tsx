@@ -87,7 +87,7 @@ export default function Component(props: Route.ComponentProps) {
             </Button>
             <OBSConnectionButton
               state={obsConnector.state}
-              manuallyAppendFromOBS={obsConnector.manuallyAppendFromOBS}
+              isImporting={obsConnector.isImporting}
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function Component(props: Route.ComponentProps) {
       lessonPath={props.loaderData.video.lesson.path}
       repoName={props.loaderData.video.lesson.section.repo.name}
       videoId={props.loaderData.video.id}
-      manuallyAppendFromOBS={obsConnector.manuallyAppendFromOBS}
+      isImporting={obsConnector.isImporting}
       liveMediaStream={obsConnector.mediaStream}
     />
   );

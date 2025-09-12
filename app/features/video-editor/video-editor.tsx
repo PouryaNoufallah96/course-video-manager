@@ -47,7 +47,7 @@ export const VideoEditor = (props: {
   repoId: string;
   lessonId: string;
   videoId: string;
-  manuallyAppendFromOBS: () => void;
+  isImporting: boolean;
   liveMediaStream: MediaStream | null;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
@@ -220,7 +220,7 @@ export const VideoEditor = (props: {
               </exportVideoClipsFetcher.Form>
               <OBSConnectionButton
                 state={props.obsConnectorState}
-                manuallyAppendFromOBS={props.manuallyAppendFromOBS}
+                isImporting={props.isImporting}
               />
             </div>
           </div>
@@ -315,7 +315,7 @@ export const VideoEditor = (props: {
             );
           })}
         </div>
-        {props.obsConnectorState.type === "importing-video" && (
+        {props.isImporting && (
           <div className="text-sm text-muted-foreground flex justify-center items-center w-full mt-4">
             <Loader2 className="w-6 h-6 mr-2 animate-spin" />
             <span>Appending video from OBS...</span>
