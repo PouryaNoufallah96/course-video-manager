@@ -156,16 +156,27 @@ export const VideoEditor = (props: {
               />
             </div>
 
-            {props.liveMediaStream &&
-            props.obsConnectorState.type === "obs-recording" ? (
-              <div className="w-full h-full relative">
+            {props.liveMediaStream && (
+              <div
+                className={cn(
+                  "w-full h-full relative",
+                  state.runningState === "playing" && "hidden"
+                )}
+              >
                 {props.obsConnectorState.type === "obs-recording" && (
                   <RecordingSignalIndicator />
                 )}
 
                 <LiveMediaStream mediaStream={props.liveMediaStream} />
               </div>
-            ) : (
+            )}
+            <div
+              className={cn(
+                props.liveMediaStream &&
+                  state.runningState === "paused" &&
+                  "hidden"
+              )}
+            >
               <PreloadableClipManager
                 clipsToAggressivelyPreload={clipsToAggressivelyPreload}
                 clips={state.clips.filter((clip) =>
@@ -184,7 +195,7 @@ export const VideoEditor = (props: {
                 }}
                 playbackRate={state.playbackRate}
               />
-            )}
+            </div>
 
             <div className="flex gap-2 mt-4">
               <Button asChild variant="secondary">
