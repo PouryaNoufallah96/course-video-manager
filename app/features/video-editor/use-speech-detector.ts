@@ -4,6 +4,8 @@ export type SpeechDetectorState =
   | {
       type: "initial-silence-detected";
       silenceStartTime: number;
+      lastLongEnoughSilenceEndTime: number | null;
+      isLongEnoughSpeech: boolean;
     }
   | {
       type: "long-enough-silence-detected";
@@ -11,10 +13,45 @@ export type SpeechDetectorState =
     }
   | {
       type: "no-silence-detected";
+      speechStartTime: number;
+      lastLongEnoughSilenceEndTime: number | null;
+      isLongEnoughSpeech: boolean;
     };
+
+export type FrontendSpeechDetectorState =
+  | "warming-up"
+  | "speaking-detected"
+  | "long-enough-speaking-for-clip-detected"
+  | "silence";
 
 const SPEAKING_THRESHOLD = -33;
 const LONG_ENOUGH_TIME_IN_MILLISECONDS = 800;
+const LONG_ENOUGH_SPEECH_TIME_IN_MILLISECONDS = 1000;
+
+const resolveFrontendSpeechDetectorState = (
+  state: SpeechDetectorState
+): FrontendSpeechDetectorState => {
+  if (
+    state.type === "initial-silence-detected" ||
+    state.type === "no-silence-detected"
+  ) {
+    if (state.lastLongEnoughSilenceEndTime === null) {
+      return "warming-up";
+    }
+    if (state.isLongEnoughSpeech) {
+      return "long-enough-speaking-for-clip-detected";
+    }
+    return "speaking-detected";
+  }
+
+  if (state.type === "long-enough-silence-detected") {
+    return "silence";
+  }
+
+  state satisfies never;
+
+  throw new Error("Invalid speech detector state");
+};
 
 export const useSpeechDetector = (opts: {
   mediaStream: MediaStream | null;
@@ -22,12 +59,18 @@ export const useSpeechDetector = (opts: {
 }) => {
   const [state, setState] = useState<SpeechDetectorState>({
     type: "no-silence-detected",
+    speechStartTime: Date.now(),
+    lastLongEnoughSilenceEndTime: null,
+    isLongEnoughSpeech: false,
   });
 
   useEffect(() => {
     if (opts.isRecording) {
       setState({
         type: "no-silence-detected",
+        speechStartTime: Date.now(),
+        lastLongEnoughSilenceEndTime: null,
+        isLongEnoughSpeech: false,
       });
     }
   }, [opts.isRecording]);
@@ -62,14 +105,32 @@ export const useSpeechDetector = (opts: {
             setState({
               type: "initial-silence-detected",
               silenceStartTime: e.timeStamp,
+              lastLongEnoughSilenceEndTime: state.lastLongEnoughSilenceEndTime,
+              isLongEnoughSpeech: state.isLongEnoughSpeech,
             });
+          } else if (
+            typeof state.lastLongEnoughSilenceEndTime === "number" &&
+            !state.isLongEnoughSpeech
+          ) {
+            const speakingTime =
+              e.timeStamp - state.lastLongEnoughSilenceEndTime;
+            if (speakingTime > LONG_ENOUGH_SPEECH_TIME_IN_MILLISECONDS) {
+              setState({
+                ...state,
+                isLongEnoughSpeech: true,
+              });
+            }
           }
+
           break;
         }
         case "initial-silence-detected": {
           if (volumeDb > SPEAKING_THRESHOLD) {
             setState({
               type: "no-silence-detected",
+              speechStartTime: e.timeStamp,
+              lastLongEnoughSilenceEndTime: state.lastLongEnoughSilenceEndTime,
+              isLongEnoughSpeech: state.isLongEnoughSpeech,
             });
           } else if (
             e.timeStamp - state.silenceStartTime >
@@ -79,13 +140,30 @@ export const useSpeechDetector = (opts: {
               type: "long-enough-silence-detected",
               silenceStartTime: e.timeStamp,
             });
+          } else if (
+            typeof state.lastLongEnoughSilenceEndTime === "number" &&
+            !state.isLongEnoughSpeech
+          ) {
+            const speakingTime =
+              e.timeStamp - state.lastLongEnoughSilenceEndTime;
+            if (speakingTime > LONG_ENOUGH_SPEECH_TIME_IN_MILLISECONDS) {
+              setState({
+                ...state,
+                isLongEnoughSpeech: true,
+              });
+            }
           }
 
           break;
         }
         case "long-enough-silence-detected": {
           if (volumeDb > SPEAKING_THRESHOLD) {
-            setState({ type: "no-silence-detected" });
+            setState({
+              type: "no-silence-detected",
+              speechStartTime: e.timeStamp,
+              lastLongEnoughSilenceEndTime: e.timeStamp,
+              isLongEnoughSpeech: false,
+            });
           }
           break;
         }
@@ -99,5 +177,5 @@ export const useSpeechDetector = (opts: {
     };
   }, [opts.mediaStream, state]);
 
-  return state;
+  return resolveFrontendSpeechDetectorState(state);
 };

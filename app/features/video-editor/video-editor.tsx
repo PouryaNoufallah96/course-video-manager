@@ -1,21 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatSecondsToTimeCode } from "@/services/utils";
 import {
   CheckIcon,
   ChevronLeftIcon,
   DownloadIcon,
   Loader2,
-  MicOffIcon,
-  ThumbsUpIcon,
+  MicIcon,
 } from "lucide-react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { makeVideoEditorReducer, type Clip } from "./reducer";
-import { type SpeechDetectorState } from "./use-speech-detector";
 import { TitleSection } from "./title-section";
-import { formatSecondsToTimeCode } from "@/services/utils";
+import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 
 const useDebounceArchiveClips = () => {
   const archiveClipFetcher = useFetcher();
@@ -57,7 +56,7 @@ export const VideoEditor = (props: {
   videoId: string;
   isImporting: boolean;
   liveMediaStream: MediaStream | null;
-  speechDetectorState: SpeechDetectorState;
+  speechDetectorState: FrontendSpeechDetectorState;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
 
@@ -353,7 +352,7 @@ const formatSecondsToTime = (seconds: number) => {
 
 export const LiveMediaStream = (props: {
   mediaStream: MediaStream;
-  speechDetectorState: SpeechDetectorState;
+  speechDetectorState: FrontendSpeechDetectorState;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -365,13 +364,43 @@ export const LiveMediaStream = (props: {
   }, [props.mediaStream, videoRef.current]);
 
   return (
-    <div className="relative">
-      {props.speechDetectorState.type === "long-enough-silence-detected" && (
-        <div className="absolute top-4 left-4 bg-blue-600 rounded-full size-8 flex items-center justify-center">
-          <CheckIcon className="w-4 h-4 text-white" />
+    <div className={cn("relative")}>
+      {props.speechDetectorState === "silence" && (
+        <div className="absolute top-2 left-2 bg-blue-600 rounded-full size-6 flex items-center justify-center">
+          <CheckIcon className="size-3 text-white" />
         </div>
       )}
-      <video ref={videoRef} muted />
+      {props.speechDetectorState === "speaking-detected" && (
+        <div className="absolute top-2 left-2 bg-yellow-600 rounded-full size-6 flex items-center justify-center">
+          <MicIcon className="size-3 text-white" />
+        </div>
+      )}
+      {props.speechDetectorState ===
+        "long-enough-speaking-for-clip-detected" && (
+        <div className="absolute top-2 left-2 bg-green-600 rounded-full size-6 flex items-center justify-center">
+          <MicIcon className="size-3 text-white" />
+        </div>
+      )}
+      {props.speechDetectorState === "warming-up" && (
+        <div className="absolute top-2 left-2 bg-red-600 rounded-full size-6 flex items-center justify-center">
+          <Loader2 className="size-3 text-white animate-spin" />
+        </div>
+      )}
+
+      <video
+        ref={videoRef}
+        muted
+        className={cn(
+          "outline-4",
+          "rounded-lg",
+          props.speechDetectorState === "speaking-detected" &&
+            "outline-yellow-600",
+          props.speechDetectorState ===
+            "long-enough-speaking-for-clip-detected" && "outline-green-600",
+          props.speechDetectorState === "silence" && "outline-blue-600",
+          props.speechDetectorState === "warming-up" && "outline-red-600"
+        )}
+      />
     </div>
   );
 };
