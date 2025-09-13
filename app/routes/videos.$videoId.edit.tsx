@@ -15,6 +15,9 @@ import { Effect } from "effect";
 import { ChevronLeftIcon } from "lucide-react";
 import { Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos.$videoId.edit";
+import { useDebounceIdStore } from "@/features/video-editor/utils";
+import { useEffect, useState } from "react";
+import type { Clip } from "@/features/video-editor/reducer";
 
 // Core data model - flat array of clips
 
@@ -52,21 +55,81 @@ export const loader = async (args: Route.LoaderArgs) => {
 //   return { clips: video.clips, waveformData, video };
 // };
 
+const useDebounceTranscribeClips = (
+  onClipsUpdated: (clips: Clip[]) => void
+) => {
+  const transcribe = useDebounceIdStore(
+    (ids) =>
+      fetch("/clips/transcribe", {
+        method: "POST",
+        body: JSON.stringify({ clipIds: ids }),
+      })
+        .then((res) => res.json())
+        .then((clips) => {
+          onClipsUpdated(clips);
+        }),
+    500
+  );
+
+  return {
+    transcribe,
+  };
+};
+
 export default function Component(props: Route.ComponentProps) {
   const refetch = useFetcher();
+  const [clips, setClips] = useState<Clip[]>(props.loaderData.clips);
+
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
-    onImportComplete: () => {
-      refetch.load(`/videos/${props.loaderData.video.id}/edit`).then(() => {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
+    onNewClips: (clips) => {
+      setClips((prev) => [...prev, ...clips]);
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
       });
     },
   });
 
-  if (props.loaderData.clips.length === 0) {
+  const transcribeClips = useDebounceTranscribeClips((modifiedClips) => {
+    const newClips = clips.map((clip) => {
+      const modifiedClip = modifiedClips.find((c) => c.id === clip.id);
+      if (modifiedClip) {
+        return modifiedClip;
+      }
+      return clip;
+    });
+    setClips(newClips);
+  });
+
+  const [clipIdsBeingTranscribed, setClipIdsBeingTranscribed] = useState<
+    Set<string>
+  >(new Set());
+
+  useEffect(() => {
+    if (clips.length === 0) {
+      return;
+    }
+
+    const clipIdsToTranscribe = clips
+      .filter(
+        (clip) =>
+          !clip.transcribedAt &&
+          !clipIdsBeingTranscribed.has(clip.id) &&
+          !clip.text
+      )
+      .map((clip) => clip.id);
+
+    setClipIdsBeingTranscribed(
+      (prev) => new Set([...prev, ...clipIdsToTranscribe])
+    );
+
+    if (clipIdsToTranscribe.length > 0) {
+      transcribeClips.transcribe(clipIdsToTranscribe);
+    }
+  }, [clips]);
+
+  if (clips.length === 0) {
     return (
       <div className="flex p-6 w-full">
         <div className="flex-1">
@@ -85,10 +148,7 @@ export default function Component(props: Route.ComponentProps) {
                 Go Back
               </Link>
             </Button>
-            <OBSConnectionButton
-              state={obsConnector.state}
-              isImporting={obsConnector.isImporting}
-            />
+            <OBSConnectionButton state={obsConnector.state} />
           </div>
         </div>
         {obsConnector.mediaStream && (
@@ -110,7 +170,7 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <VideoEditor
       obsConnectorState={obsConnector.state}
-      initialClips={props.loaderData.clips}
+      clips={clips}
       // waveformDataForClip={props.loaderData.waveformData ?? {}}
       repoId={props.loaderData.video.lesson.section.repo.id}
       lessonId={props.loaderData.video.lesson.id}
@@ -118,9 +178,9 @@ export default function Component(props: Route.ComponentProps) {
       lessonPath={props.loaderData.video.lesson.path}
       repoName={props.loaderData.video.lesson.section.repo.name}
       videoId={props.loaderData.video.id}
-      isImporting={obsConnector.isImporting}
       liveMediaStream={obsConnector.mediaStream}
       speechDetectorState={obsConnector.speechDetectorState}
+      clipIdsBeingTranscribed={clipIdsBeingTranscribed}
     />
   );
 }

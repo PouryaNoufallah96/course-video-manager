@@ -31,13 +31,18 @@ export const action = async (args: Route.ActionArgs) => {
       }))
     );
 
-    yield* Effect.forEach(transcribedClips, (transcribedClip) => {
-      return db.updateClip(transcribedClip.id, {
-        text: transcribedClip.segments.map((segment) => segment.text).join(" "),
-        transcribedAt: new Date(),
-      });
-    });
+    const updatedClips = yield* Effect.forEach(
+      transcribedClips,
+      (transcribedClip) => {
+        return db.updateClip(transcribedClip.id, {
+          text: transcribedClip.segments
+            .map((segment) => segment.text)
+            .join(" "),
+          transcribedAt: new Date(),
+        });
+      }
+    );
 
-    return { success: true };
+    return updatedClips;
   }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
 };

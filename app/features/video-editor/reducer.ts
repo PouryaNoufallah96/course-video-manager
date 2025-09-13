@@ -12,24 +12,17 @@ export type ClipState = "playing" | "paused";
 export interface State {
   clipIdsPreloaded: Set<string>;
   runningState: ClipState;
-  clips: Clip[];
   currentClipId: string;
   currentTimeInClip: number;
   selectedClipsSet: Set<string>;
   playbackRate: number;
   forceViewTimeline: boolean;
-  clipIdsBeingTranscribed: Set<string>;
 }
 
-export type Effect =
-  | {
-      type: "archive-clips";
-      clipIds: string[];
-    }
-  | {
-      type: "transcribe-clips";
-      clipIds: string[];
-    };
+export type Effect = {
+  type: "archive-clips";
+  clipIds: string[];
+};
 
 export type Action =
   | {
@@ -89,29 +82,25 @@ export type Action =
     }
   | {
       type: "press-k";
-    }
-  | {
-      type: "clips-updated-from-props";
-      clips: Clip[];
     };
 
-const preloadSelectedClips = (state: State) => {
-  const currentClipIndex = state.clips.findIndex(
-    (clip) => clip.id === state.currentClipId
+const preloadSelectedClips = (clipIds: string[], state: State): State => {
+  const currentClipIndex = clipIds.findIndex(
+    (clipId) => clipId === state.currentClipId
   );
 
   if (currentClipIndex === -1) {
     return state;
   }
 
-  const nextClip = state.clips[currentClipIndex + 1];
-  const nextNextClip = state.clips[currentClipIndex + 2];
+  const nextClip = clipIds[currentClipIndex + 1];
+  const nextNextClip = clipIds[currentClipIndex + 2];
 
   if (nextClip) {
-    state.clipIdsPreloaded.add(nextClip.id);
+    state.clipIdsPreloaded.add(nextClip);
   }
   if (nextNextClip) {
-    state.clipIdsPreloaded.add(nextNextClip.id);
+    state.clipIdsPreloaded.add(nextNextClip);
   }
 
   const newClipIdsPreloaded = state.clipIdsPreloaded
@@ -125,57 +114,32 @@ const preloadSelectedClips = (state: State) => {
 };
 
 export const makeVideoEditorReducer =
-  (reportEffect: (effect: Effect) => void) =>
+  (reportEffect: (effect: Effect) => void, clipIds: string[]) =>
   (state: State, action: Action): State => {
     switch (action.type) {
       case "keydown-v":
         return { ...state, forceViewTimeline: true };
       case "keyup-v":
         return { ...state, forceViewTimeline: false };
-      case "clips-updated-from-props": {
-        const newClipIdsRequiringTranscription = action.clips
-          .filter(
-            (clip) =>
-              clip.transcribedAt === null &&
-              clip.text === "" &&
-              !state.clipIdsBeingTranscribed.has(clip.id)
-          )
-          .map((clip) => clip.id);
-
-        if (newClipIdsRequiringTranscription.length > 0) {
-          reportEffect({
-            type: "transcribe-clips",
-            clipIds: newClipIdsRequiringTranscription,
-          });
-        }
-        return {
-          ...state,
-          clips: action.clips,
-          clipIdsBeingTranscribed: new Set([
-            ...state.clipIdsBeingTranscribed,
-            ...newClipIdsRequiringTranscription,
-          ]),
-        };
-      }
       case "press-space-bar":
         return {
           ...state,
           runningState: state.runningState === "playing" ? "paused" : "playing",
         };
       case "press-home":
-        const firstClip = state.clips[0];
+        const firstClip = clipIds[0];
         if (!firstClip) {
           return state;
         }
-        return { ...state, selectedClipsSet: new Set([firstClip.id]) };
+        return { ...state, selectedClipsSet: new Set([firstClip]) };
       case "press-end":
-        const lastClip = state.clips[state.clips.length - 1];
+        const lastClip = clipIds[clipIds.length - 1];
         if (!lastClip) {
           return state;
         }
         return {
           ...state,
-          selectedClipsSet: new Set([lastClip.id]),
+          selectedClipsSet: new Set([lastClip]),
         };
       case "press-l":
         if (state.playbackRate === 2) {
@@ -216,7 +180,7 @@ export const makeVideoEditorReducer =
           };
         }
 
-        return preloadSelectedClips({
+        return preloadSelectedClips(clipIds, {
           ...state,
           currentClipId: mostRecentClipId,
           runningState: "playing",
@@ -231,7 +195,7 @@ export const makeVideoEditorReducer =
           } else {
             newSelectedClipsSet.add(action.clipId);
           }
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
             selectedClipsSet: newSelectedClipsSet,
           });
@@ -239,22 +203,22 @@ export const makeVideoEditorReducer =
           const mostRecentClipId = Array.from(state.selectedClipsSet).pop();
 
           if (!mostRecentClipId) {
-            return preloadSelectedClips({
+            return preloadSelectedClips(clipIds, {
               ...state,
               selectedClipsSet: new Set([action.clipId]),
             });
           }
 
-          const mostRecentClipIndex = state.clips.findIndex(
-            (clip) => clip.id === mostRecentClipId
+          const mostRecentClipIndex = clipIds.findIndex(
+            (clipId) => clipId === mostRecentClipId
           );
 
           if (mostRecentClipIndex === -1) {
             return state;
           }
 
-          const newClipIndex = state.clips.findIndex(
-            (clip) => clip.id === action.clipId
+          const newClipIndex = clipIds.findIndex(
+            (clipId) => clipId === action.clipId
           );
 
           if (newClipIndex === -1) {
@@ -263,61 +227,56 @@ export const makeVideoEditorReducer =
           const firstIndex = Math.min(mostRecentClipIndex, newClipIndex);
           const lastIndex = Math.max(mostRecentClipIndex, newClipIndex);
 
-          const clipsBetweenMostRecentClipIndexAndNewClipIndex =
-            state.clips.slice(firstIndex, lastIndex + 1);
+          const clipsBetweenMostRecentClipIndexAndNewClipIndex = clipIds.slice(
+            firstIndex,
+            lastIndex + 1
+          );
 
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
             selectedClipsSet: new Set(
-              clipsBetweenMostRecentClipIndexAndNewClipIndex.map(
-                (clip) => clip.id
-              )
+              clipsBetweenMostRecentClipIndexAndNewClipIndex.map((clip) => clip)
             ),
           });
         } else {
           if (state.selectedClipsSet.size > 1) {
-            return preloadSelectedClips({
+            return preloadSelectedClips(clipIds, {
               ...state,
               selectedClipsSet: new Set([action.clipId]),
             });
           }
 
           if (state.selectedClipsSet.has(action.clipId)) {
-            return preloadSelectedClips({
+            return preloadSelectedClips(clipIds, {
               ...state,
               currentClipId: action.clipId,
               runningState: "playing",
               currentTimeInClip: 0,
             });
           }
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
             selectedClipsSet: new Set([action.clipId]),
           });
         }
       case "press-delete":
-        const lastClipBeingDeletedIndex = state.clips.findLastIndex((clip) => {
-          return state.selectedClipsSet.has(clip.id);
+        const lastClipBeingDeletedIndex = clipIds.findLastIndex((clipId) => {
+          return state.selectedClipsSet.has(clipId);
         });
 
         if (lastClipBeingDeletedIndex === -1) {
           return state;
         }
 
-        const clipToMoveSelectionTo =
-          state.clips[lastClipBeingDeletedIndex + 1];
+        const clipToMoveSelectionTo = clipIds[lastClipBeingDeletedIndex + 1];
         const backupClipToMoveSelectionTo =
-          state.clips[lastClipBeingDeletedIndex - 1];
-        const finalBackupClipToMoveSelectionTo = state.clips[0];
+          clipIds[lastClipBeingDeletedIndex - 1];
+        const finalBackupClipToMoveSelectionTo = clipIds[0];
 
         const newSelectedClipId =
-          clipToMoveSelectionTo?.id ??
-          backupClipToMoveSelectionTo?.id ??
-          finalBackupClipToMoveSelectionTo?.id;
-
-        const newClips = state.clips.filter(
-          (clip) => !state.selectedClipsSet.has(clip.id)
-        );
+          clipToMoveSelectionTo ??
+          backupClipToMoveSelectionTo ??
+          finalBackupClipToMoveSelectionTo;
 
         const isCurrentClipDeleted = state.selectedClipsSet.has(
           state.currentClipId
@@ -328,9 +287,8 @@ export const makeVideoEditorReducer =
           clipIds: Array.from(state.selectedClipsSet),
         });
 
-        return preloadSelectedClips({
+        return preloadSelectedClips(clipIds, {
           ...state,
-          clips: newClips,
           selectedClipsSet: new Set(
             [newSelectedClipId].filter((id) => id !== undefined)
           ),
@@ -342,31 +300,31 @@ export const makeVideoEditorReducer =
       case "update-clip-current-time":
         return { ...state, currentTimeInClip: action.time };
       case "clip-finished": {
-        const currentClipIndex = state.clips.findIndex(
-          (clip) => clip.id === state.currentClipId
+        const currentClipIndex = clipIds.findIndex(
+          (clipId) => clipId === state.currentClipId
         );
 
         if (currentClipIndex === -1) {
           return state;
         }
 
-        const nextClip = state.clips[currentClipIndex + 1];
-        const nextNextClip = state.clips[currentClipIndex + 2];
+        const nextClip = clipIds[currentClipIndex + 1];
+        const nextNextClip = clipIds[currentClipIndex + 2];
 
         const newClipIdsPreloaded = state.clipIdsPreloaded;
 
         if (nextClip) {
-          newClipIdsPreloaded.add(nextClip.id);
+          newClipIdsPreloaded.add(nextClip);
         }
 
         if (nextNextClip) {
-          newClipIdsPreloaded.add(nextNextClip.id);
+          newClipIdsPreloaded.add(nextNextClip);
         }
 
         if (nextClip) {
           return {
             ...state,
-            currentClipId: nextClip.id,
+            currentClipId: nextClip,
             clipIdsPreloaded: newClipIdsPreloaded,
           };
         } else {
@@ -376,7 +334,7 @@ export const makeVideoEditorReducer =
       case "press-arrow-up":
       case "press-arrow-left": {
         if (state.selectedClipsSet.size === 0) {
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
             selectedClipsSet: new Set([state.currentClipId]),
           });
@@ -384,14 +342,14 @@ export const makeVideoEditorReducer =
 
         const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
 
-        const currentClipIndex = state.clips.findIndex(
-          (clip) => clip.id === mostRecentClipId
+        const currentClipIndex = clipIds.findIndex(
+          (clipId) => clipId === mostRecentClipId
         );
-        const previousClip = state.clips[currentClipIndex - 1];
+        const previousClip = clipIds[currentClipIndex - 1];
         if (previousClip) {
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
-            selectedClipsSet: new Set([previousClip.id]),
+            selectedClipsSet: new Set([previousClip]),
           });
         } else {
           return state;
@@ -400,7 +358,7 @@ export const makeVideoEditorReducer =
       case "press-arrow-down":
       case "press-arrow-right": {
         if (state.selectedClipsSet.size === 0) {
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
             selectedClipsSet: new Set([state.currentClipId]),
           });
@@ -408,14 +366,14 @@ export const makeVideoEditorReducer =
 
         const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
 
-        const currentClipIndex = state.clips.findIndex(
-          (clip) => clip.id === mostRecentClipId
+        const currentClipIndex = clipIds.findIndex(
+          (clipId) => clipId === mostRecentClipId
         );
-        const nextClip = state.clips[currentClipIndex + 1];
+        const nextClip = clipIds[currentClipIndex + 1];
         if (nextClip) {
-          return preloadSelectedClips({
+          return preloadSelectedClips(clipIds, {
             ...state,
-            selectedClipsSet: new Set([nextClip.id]),
+            selectedClipsSet: new Set([nextClip]),
           });
         } else {
           return state;

@@ -7,6 +7,7 @@ import {
   useSpeechDetector,
   useWatchForSpeechDetected,
 } from "./use-speech-detector";
+import type { Clip } from "./reducer";
 
 export type OBSConnectionState =
   | {
@@ -115,59 +116,50 @@ export const useConnectToOBSVirtualCamera = (props: {
   return mediaStream;
 };
 
-export const useOBSImportQueue = (props: {
+export const useRunOBSImportRepeatedly = (props: {
   videoId: string;
-  onImportComplete: () => void;
+  state:
+    | {
+        type: "should-run";
+        filePath: string;
+      }
+    | {
+        type: "should-not-run";
+      };
+  onNewClips: (clips: Clip[]) => void;
 }) => {
-  const [importQueue, setImportQueue] = useState<string[]>([]);
-  const [importState, setImportState] = useState<"importing" | "idle">("idle");
-  const appendFromOBSFetcher = useFetcher();
-
-  const addToImportQueue = (filePath: string) => {
-    setImportQueue((prev) => [...prev, filePath]);
-  };
-
   useEffect(() => {
-    if (importState === "importing") return;
-    if (importQueue.length === 0) return;
+    if (props.state.type === "should-run") {
+      let unmounted = false;
+      const filePath = props.state.filePath;
 
-    setImportState("importing");
-
-    const filePath = importQueue[0];
-
-    if (filePath) {
-      appendFromOBSFetcher
-        .submit(
-          { filePath },
-          {
-            action: `/videos/${props.videoId}/append-from-obs`,
+      (async () => {
+        while (!unmounted) {
+          await fetch(`/videos/${props.videoId}/append-from-obs`, {
             method: "POST",
-            encType: "application/json",
-          }
-        )
-        .then(() => {
-          setImportState("idle");
-          setImportQueue((prev) => prev.slice(1));
-          props.onImportComplete();
-        });
-    }
-  }, [
-    importState,
-    importQueue,
-    appendFromOBSFetcher,
-    props.videoId,
-    props.onImportComplete,
-  ]);
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filePath }),
+          }).then(async (res) => {
+            if (res.ok) {
+              const clips: Clip[] = await res.json();
+              if (clips.length > 0) {
+                props.onNewClips(clips);
+              }
+            }
+          });
+        }
+      })();
 
-  return {
-    isImporting: importQueue.length > 0,
-    addToImportQueue,
-  };
+      return () => {
+        unmounted = true;
+      };
+    }
+  }, [JSON.stringify(props.state)]);
 };
 
 export const useOBSConnector = (props: {
   videoId: string;
-  onImportComplete: () => void;
+  onNewClips: (clips: Clip[]) => void;
 }) => {
   const [websocket] = useState(() => new OBSWebSocket());
 
@@ -175,9 +167,18 @@ export const useOBSConnector = (props: {
     type: "checking-obs-connection-status",
   });
 
-  const { isImporting, addToImportQueue } = useOBSImportQueue({
+  useRunOBSImportRepeatedly({
     videoId: props.videoId,
-    onImportComplete: props.onImportComplete,
+    state:
+      state.type === "obs-recording" && state.hasSpeechBeenDetected
+        ? {
+            type: "should-run",
+            filePath: state.latestOutputPath,
+          }
+        : {
+            type: "should-not-run",
+          },
+    onNewClips: props.onNewClips,
   });
 
   useEffect(() => {
@@ -235,7 +236,6 @@ export const useOBSConnector = (props: {
             profile: state.profile,
             latestOutputPath: e.outputPath,
           });
-          addToImportQueue(e.outputPath);
         }
       };
 
@@ -284,34 +284,14 @@ export const useOBSConnector = (props: {
     }
   });
 
-  // If speech has been detected, run an import every second
-  useEffect(() => {
-    if (state.type !== "obs-recording") return;
-    if (!state.hasSpeechBeenDetected) return;
-
-    const interval = setInterval(() => {
-      if (state.type === "obs-recording" && state.latestOutputPath) {
-        addToImportQueue(state.latestOutputPath);
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [state]);
-
   return {
     state,
     mediaStream,
-    isImporting,
     speechDetectorState,
   };
 };
 
-export const OBSConnectionButton = (props: {
-  state: OBSConnectionState;
-  isImporting: boolean;
-}) => {
+export const OBSConnectionButton = (props: { state: OBSConnectionState }) => {
   return (
     <Button variant="ghost">
       {(props.state.type === "checking-obs-connection-status" ||
@@ -330,17 +310,10 @@ export const OBSConnectionButton = (props: {
       )}
       {props.state.type === "obs-connected" && (
         <>
-          {props.isImporting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              Appending...
-            </>
-          ) : (
-            <>
-              <CheckIcon className="w-4 h-4 mr-1" />
-              OBS Ready
-            </>
-          )}
+          <>
+            <CheckIcon className="w-4 h-4 mr-1" />
+            OBS Ready
+          </>
         </>
       )}
     </Button>

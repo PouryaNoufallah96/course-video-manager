@@ -15,27 +15,7 @@ import { PreloadableClipManager } from "./preloadable-clip";
 import { makeVideoEditorReducer, type Clip } from "./reducer";
 import { TitleSection } from "./title-section";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
-
-const useDebounceIdStore = (
-  fn: (ids: string[]) => Promise<void>,
-  delay: number
-) => {
-  const [ids, setIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (ids.length === 0) return;
-    const timeout = setTimeout(async () => {
-      await fn(ids);
-
-      setIds([]);
-    }, delay);
-    return () => clearTimeout(timeout);
-  }, [ids]);
-
-  return (ids: string[]) => {
-    setIds((prev) => [...prev, ...ids]);
-  };
-};
+import { useDebounceIdStore } from "./utils";
 
 const useDebounceArchiveClips = () => {
   const archiveClipFetcher = useFetcher();
@@ -58,78 +38,50 @@ const useDebounceArchiveClips = () => {
   };
 };
 
-const useDebounceTranscribeClips = () => {
-  const transcribeClipsFetcher = useFetcher();
-
-  const setClipsToTranscribe = useDebounceIdStore(
-    (ids) =>
-      transcribeClipsFetcher.submit(
-        { clipIds: ids },
-        {
-          method: "POST",
-          action: "/clips/transcribe",
-          encType: "application/json",
-        }
-      ),
-    500
-  );
-
-  return {
-    setClipsToTranscribe,
-  };
-};
-
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
-  initialClips: Clip[];
+  clips: Clip[];
   videoPath: string;
   lessonPath: string;
   repoName: string;
   repoId: string;
   lessonId: string;
   videoId: string;
-  isImporting: boolean;
   liveMediaStream: MediaStream | null;
   speechDetectorState: FrontendSpeechDetectorState;
+  clipIdsBeingTranscribed: Set<string>;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
-  const { setClipsToTranscribe } = useDebounceTranscribeClips();
 
   const [state, dispatch] = useReducer(
-    makeVideoEditorReducer((effect) => {
-      if (effect.type === "archive-clips") {
-        setClipsToArchive(effect.clipIds);
-      }
-      if (effect.type === "transcribe-clips") {
-        setClipsToTranscribe(effect.clipIds);
-      }
-    }),
+    makeVideoEditorReducer(
+      (effect) => {
+        if (effect.type === "archive-clips") {
+          setClipsToArchive(effect.clipIds);
+        }
+      },
+      props.clips.map((clip) => clip.id)
+    ),
     {
       forceViewTimeline: false,
       runningState: "paused",
-      clips: props.initialClips,
-      currentClipId: props.initialClips[0]?.id ?? "",
+      currentClipId: props.clips[0]?.id ?? "",
       currentTimeInClip: 0,
       selectedClipsSet: new Set<string>(),
       clipIdsPreloaded: new Set<string>(
-        [props.initialClips[0]?.id, props.initialClips[1]?.id].filter(
+        [props.clips[0]?.id, props.clips[1]?.id].filter(
           (id) => id !== undefined
         )
       ),
       playbackRate: 1,
-      clipIdsBeingTranscribed: new Set<string>(),
     }
   );
 
-  useEffect(() => {
-    dispatch({ type: "clips-updated-from-props", clips: props.initialClips });
-  }, [props.initialClips]);
-
-  const currentClipIndex = state.clips.findIndex(
+  const currentClipIndex = props.clips.findIndex(
     (clip) => clip.id === state.currentClipId
   );
 
-  const nextClip = state.clips[currentClipIndex + 1];
+  const nextClip = props.clips[currentClipIndex + 1];
 
   const selectedClipId = Array.from(state.selectedClipsSet)[0];
 
@@ -150,6 +102,7 @@ export const VideoEditor = (props: {
       } else if (e.key === "Delete") {
         dispatch({ type: "press-delete" });
       } else if (e.key === "Enter") {
+        e.preventDefault();
         dispatch({ type: "press-return" });
       } else if (e.key === "ArrowLeft") {
         dispatch({ type: "press-arrow-left" });
@@ -190,7 +143,7 @@ export const VideoEditor = (props: {
 
   const exportVideoClipsFetcher = useFetcher();
 
-  const totalDuration = state.clips.reduce((acc, clip) => {
+  const totalDuration = props.clips.reduce((acc, clip) => {
     return acc + (clip.sourceEndTime - clip.sourceStartTime);
   }, 0);
 
@@ -242,12 +195,10 @@ export const VideoEditor = (props: {
             <div className={cn(!shouldShowVideoPlayer && "hidden")}>
               <PreloadableClipManager
                 clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-                clips={state.clips.filter((clip) =>
+                clips={props.clips.filter((clip) =>
                   state.clipIdsPreloaded.has(clip.id)
                 )}
-                finalClipId={
-                  props.initialClips[props.initialClips.length - 1]?.id
-                }
+                finalClipId={props.clips[props.clips.length - 1]?.id}
                 state={state.runningState}
                 currentClipId={currentClipId}
                 onClipFinished={() => {
@@ -281,10 +232,7 @@ export const VideoEditor = (props: {
                   Export
                 </Button>
               </exportVideoClipsFetcher.Form>
-              <OBSConnectionButton
-                state={props.obsConnectorState}
-                isImporting={props.isImporting}
-              />
+              <OBSConnectionButton state={props.obsConnectorState} />
             </div>
           </div>
         </div>
@@ -293,7 +241,7 @@ export const VideoEditor = (props: {
       {/* Clips Section - Shows second on mobile, first on desktop */}
       <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1">
         <div className="flex gap-3 h-full flex-col w-full">
-          {state.clips.map((clip) => {
+          {props.clips.map((clip) => {
             const duration = clip.sourceEndTime - clip.sourceStartTime;
 
             // const waveformData = props.waveformDataForClip[clip.id];
@@ -346,7 +294,7 @@ export const VideoEditor = (props: {
                   </div>
                 )} */}
                 <span className="z-10 block relative text-white text-sm mr-6 leading-6">
-                  {state.clipIdsBeingTranscribed.has(clip.id) &&
+                  {props.clipIdsBeingTranscribed.has(clip.id) &&
                     !clip.transcribedAt &&
                     !clip.text && (
                       <div className="flex items-center">
@@ -387,7 +335,7 @@ export const VideoEditor = (props: {
             );
           })}
         </div>
-        {props.isImporting && (
+        {props.obsConnectorState.type === "obs-recording" && (
           <div className="text-sm text-muted-foreground flex justify-center items-center w-full mt-4">
             <Loader2 className="w-6 h-6 mr-2 animate-spin" />
             <span>Appending video from OBS...</span>
