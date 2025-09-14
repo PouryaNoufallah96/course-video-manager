@@ -77,10 +77,14 @@ export default function Component(props: Route.ComponentProps) {
       } else if (effect.type === "archive-clips") {
         setClipsToArchive(effect.clipIds);
       } else if (effect.type === "scroll-to-bottom") {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
+        // Wrap in a setTimeout to ensure the frontend is rendered
+        // before scrolling to the bottom
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 0);
       }
     }),
     {
