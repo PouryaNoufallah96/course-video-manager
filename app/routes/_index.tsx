@@ -13,19 +13,22 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { VideoModal } from "@/components/video-player";
+import { getVideoPath } from "@/lib/get-video";
 import { cn } from "@/lib/utils";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
+import { formatSecondsToTimeCode } from "@/services/utils";
+import { FileSystem } from "@effect/platform";
 import { Effect } from "effect";
 import {
   Loader2,
   PencilIcon,
   Play,
   Plus,
-  RefreshCcw,
   Send,
   Trash2,
   VideoIcon,
+  VideoOffIcon,
   VideotapeIcon,
 } from "lucide-react";
 import { homedir } from "node:os";
@@ -33,7 +36,6 @@ import path from "node:path";
 import React, { useEffect, useState } from "react";
 import { Link, useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
-import { formatSecondsToTimeCode } from "@/services/utils";
 
 export const meta: Route.MetaFunction = ({ data }) => {
   const selectedRepo = data?.selectedRepo;
@@ -59,13 +61,14 @@ export const loader = async (args: Route.LoaderArgs) => {
 
   return Effect.gen(function* () {
     const db = yield* DBService;
+    const fs = yield* FileSystem.FileSystem;
     const [repos, selectedRepo] = yield* Effect.all(
       [
         db.getRepos(),
         !selectedRepoId
           ? Effect.succeed(undefined)
           : db.getRepoWithSectionsById(selectedRepoId).pipe(
-              Effect.map((repo) => {
+              Effect.andThen((repo) => {
                 if (!repo) {
                   return undefined;
                 }
@@ -89,7 +92,22 @@ export const loader = async (args: Route.LoaderArgs) => {
         concurrency: "unbounded",
       }
     );
-    return { repos, selectedRepo };
+
+    const hasExportedVideoMap: Record<string, boolean> = {};
+
+    const videos = selectedRepo?.sections.flatMap((section) =>
+      section.lessons.flatMap((lesson) => lesson.videos)
+    );
+
+    yield* Effect.forEach(videos ?? [], (video) => {
+      return Effect.gen(function* () {
+        const hasExportedVideo = yield* fs.exists(getVideoPath(video.id));
+
+        hasExportedVideoMap[video.id] = hasExportedVideo;
+      });
+    });
+
+    return { repos, selectedRepo, hasExportedVideoMap };
   }).pipe(
     Effect.catchTag("NotFoundError", (e) => {
       return Effect.succeed(new Response("Not Found", { status: 404 }));
@@ -440,7 +458,11 @@ export default function Component(props: Route.ComponentProps) {
                                   )}
                                 >
                                   <div className="flex items-center">
-                                    <VideoIcon className="w-4 h-4 mr-2" />
+                                    {data.hasExportedVideoMap[video.id] ? (
+                                      <VideoIcon className="w-4 h-4 mr-2" />
+                                    ) : (
+                                      <VideoOffIcon className="w-4 h-4 mr-2 text-red-500" />
+                                    )}
                                     <span className="tracking-wide">
                                       {video.path} (
                                       {formatSecondsToTimeCode(totalDuration)})
