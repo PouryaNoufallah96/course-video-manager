@@ -35,29 +35,38 @@ export const action = async (args: Route.ActionArgs) => {
 
     const ttCliService = yield* TotalTypeScriptCLIService;
 
-    const { clips: existingClips } = yield* db.getVideoWithClipsById(videoId, {
+    const firstClipsResult = yield* db.getVideoWithClipsById(videoId, {
       withArchived: true,
     });
 
-    const clipsWithThisInputVideo = existingClips
+    const clipsWithThisInputVideo = firstClipsResult.clips
       .filter((clip) => clip.videoFilename === resolvedFilePath)
       .sort((a, b) => b.sourceStartTime - a.sourceStartTime);
 
     const lastClipWithThisInputVideo = clipsWithThisInputVideo[0];
 
+    const resolvedStartTime =
+      typeof lastClipWithThisInputVideo?.sourceEndTime === "number"
+        ? Math.max(lastClipWithThisInputVideo.sourceEndTime - 1, 0)
+        : undefined;
+
     const latestOBSVideoClips = yield* ttCliService.getLatestOBSVideoClips({
       filePath: resolvedFilePath,
-      startTime: lastClipWithThisInputVideo?.sourceEndTime,
+      startTime: resolvedStartTime,
     });
 
     if (latestOBSVideoClips.clips.length === 0) {
       return [];
     }
 
+    const secondClipsResult = yield* db.getVideoWithClipsById(videoId, {
+      withArchived: true,
+    });
+
     // Only add new clips
     const clipsToAdd = latestOBSVideoClips.clips.filter(
       (clip) =>
-        !existingClips.some(
+        !secondClipsResult.clips.some(
           (existingClip) =>
             existingClip.videoFilename === clip.inputVideo &&
             existingClip.sourceStartTime === clip.startTime &&
