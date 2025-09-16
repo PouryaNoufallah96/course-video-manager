@@ -161,7 +161,10 @@ export const useRunOBSImportRepeatedly = (props: {
 export const useOBSConnector = (props: {
   videoId: string;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
-  onNewClipOptimisticallyAdded: (scene: string) => void;
+  onNewClipOptimisticallyAdded: (opts: {
+    scene: string;
+    profile: string;
+  }) => void;
 }) => {
   const [websocket] = useState(() => new OBSWebSocket());
 
@@ -306,7 +309,10 @@ export const useOBSConnector = (props: {
     },
     onSpeechPartStarted: () => {
       if (state.type === "obs-recording") {
-        props.onNewClipOptimisticallyAdded(state.scene);
+        props.onNewClipOptimisticallyAdded({
+          scene: state.scene,
+          profile: state.profile,
+        });
       }
     },
   });

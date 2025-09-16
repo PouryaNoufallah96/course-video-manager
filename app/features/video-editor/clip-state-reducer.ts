@@ -14,12 +14,14 @@ export type ClipOnDatabase = {
   text: string;
   transcribedAt: Date | null;
   scene: string | null;
+  profile: string | null;
 };
 
 export type ClipOptimisticallyAdded = {
   type: "optimistically-added";
   frontendId: FrontendId;
   scene: string;
+  profile: string;
   /**
    * If true, when the optimistically added clip is replaced with the database clip,
    * the clip will be archived. Allows the user to delete the clip before it's transcribed.
@@ -42,6 +44,7 @@ type Action =
   | {
       type: "new-optimistic-clip-detected";
       scene: string;
+      profile: string;
     }
   | {
       type: "new-database-clips";
@@ -72,8 +75,8 @@ type Effect =
       type: "scroll-to-bottom";
     }
   | {
-      type: "update-clips-scene";
-      clips: [DatabaseId, string][];
+      type: "update-clips";
+      clips: [DatabaseId, { scene: string; profile: string }][];
     };
 
 export const clipStateReducer =
@@ -92,6 +95,7 @@ export const clipStateReducer =
               type: "optimistically-added",
               frontendId: createFrontendId(),
               scene: action.scene,
+              profile: action.profile,
             },
           ],
         };
@@ -104,7 +108,10 @@ export const clipStateReducer =
         const clipsToArchive = new Set<DatabaseId>();
         const databaseClipIdsToTranscribe = new Set<DatabaseId>();
         const frontendClipIdsToTranscribe = new Set<FrontendId>();
-        const clipsToUpdateScene = new Map<DatabaseId, string>();
+        const clipsToUpdateScene = new Map<
+          DatabaseId,
+          { scene: string; profile: string }
+        >();
 
         for (const databaseClip of action.clips) {
           // Find the first optimistically added clip
@@ -127,7 +134,10 @@ export const clipStateReducer =
                 databaseId: databaseClip.id,
                 scene: frontendClip.scene,
               };
-              clipsToUpdateScene.set(databaseClip.id, frontendClip.scene);
+              clipsToUpdateScene.set(databaseClip.id, {
+                scene: frontendClip.scene,
+                profile: frontendClip.profile,
+              });
               frontendClipIdsToTranscribe.add(frontendClip.frontendId);
               databaseClipIdsToTranscribe.add(databaseClip.id);
             }
@@ -148,7 +158,7 @@ export const clipStateReducer =
 
         if (clipsToUpdateScene.size > 0) {
           reportEffect({
-            type: "update-clips-scene",
+            type: "update-clips",
             clips: Array.from(clipsToUpdateScene.entries()),
           });
         }

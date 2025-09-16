@@ -15,6 +15,7 @@ export const PreloadableClip = (props: {
   hidden: boolean;
   state: RunningState;
   onUpdateCurrentTime: (time: number) => void;
+  profile: string | undefined;
 }) => {
   const [preloadState, setPreloadState] = useState<"preloading" | "finished">(
     "preloading"
@@ -118,7 +119,10 @@ export const PreloadableClip = (props: {
     <video
       key={props.clip.frontendId}
       src={`/view-video?videoPath=${props.clip.videoFilename}#t=${preloadFrom},${modifiedEndTime}`}
-      className={cn(props.hidden && "hidden")}
+      className={cn(
+        props.hidden && "hidden",
+        props.profile === "TikTok" && "w-92 aspect-[9/16]"
+      )}
       ref={ref}
     />
   );
@@ -131,6 +135,7 @@ export const PreloadableClipManager = (props: {
   clipsToAggressivelyPreload: string[];
   state: RunningState;
   currentClipId: FrontendId | undefined;
+  currentClipProfile: string | undefined;
   onClipFinished: () => void;
   onUpdateCurrentTime: (time: number) => void;
 }) => {
@@ -165,6 +170,7 @@ export const PreloadableClipManager = (props: {
               )}
               hidden={!isCurrentlyPlaying}
               state={props.state}
+              profile={props.currentClipProfile}
               onUpdateCurrentTime={(time) => {
                 if (isCurrentlyPlaying) {
                   props.onUpdateCurrentTime(time);

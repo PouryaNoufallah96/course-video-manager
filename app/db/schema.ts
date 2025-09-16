@@ -109,6 +109,7 @@ export const clips = createTable("clip", {
     withTimezone: true,
   }),
   scene: varchar("scene", { length: 255 }),
+  profile: varchar("profile", { length: 255 }),
 });
 
 export namespace DB {

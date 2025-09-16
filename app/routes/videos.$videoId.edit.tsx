@@ -84,8 +84,8 @@ export default function Component(props: Route.ComponentProps) {
             behavior: "smooth",
           });
         }, 0);
-      } else if (effect.type === "update-clips-scene") {
-        fetch("/clips/update-scene", {
+      } else if (effect.type === "update-clips") {
+        fetch("/clips/update", {
           method: "POST",
           body: JSON.stringify({ clips: effect.clips }),
         }).then((res) => {
@@ -111,8 +111,8 @@ export default function Component(props: Route.ComponentProps) {
     onNewDatabaseClips: (databaseClips) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
-    onNewClipOptimisticallyAdded: (scene) => {
-      dispatch({ type: "new-optimistic-clip-detected", scene });
+    onNewClipOptimisticallyAdded: ({ scene, profile }) => {
+      dispatch({ type: "new-optimistic-clip-detected", scene, profile });
     },
   });
 

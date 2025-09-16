@@ -180,6 +180,10 @@ export const VideoEditor = (props: {
     (clip) => clip.type === "on-database"
   );
 
+  const currentClip = props.clips.find(
+    (clip) => clip.frontendId === currentClipId
+  );
+
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
@@ -230,6 +234,7 @@ export const VideoEditor = (props: {
                 finalClipId={props.clips[props.clips.length - 1]?.frontendId}
                 state={state.runningState}
                 currentClipId={currentClipId}
+                currentClipProfile={currentClip?.profile ?? undefined}
                 onClipFinished={() => {
                   dispatch({ type: "clip-finished" });
                 }}
@@ -243,7 +248,8 @@ export const VideoEditor = (props: {
               <div
                 className={cn(
                   viewMode !== "last-frame" && "hidden",
-                  "relative"
+                  "relative",
+                  lastDatabaseClip.profile === "TikTok" && "w-92 aspect-[9/16]"
                 )}
               >
                 <img
