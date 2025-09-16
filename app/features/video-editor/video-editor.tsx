@@ -403,11 +403,13 @@ export const VideoEditor = (props: {
                       clip.frontendId === currentClipId && "text-blue-100"
                     )}
                   >
-                    {clip.scene === "Camera" ? (
+                    {clip.scene === "Camera" || clip.scene === "TikTok Face" ? (
                       <UserRound className="size-5 mr-4 flex-shrink-0" />
-                    ) : clip.scene === "No Face" ? (
+                    ) : clip.scene === "No Face" ||
+                      clip.scene === "TikTok Code No Face" ? (
                       <MonitorIcon className="size-5 mr-4 flex-shrink-0" />
-                    ) : clip.scene === "Code" ? (
+                    ) : clip.scene === "Code" ||
+                      clip.scene === "TikTok Code" ? (
                       <Columns2 className="size-5 mr-4 flex-shrink-0" />
                     ) : (
                       <CircleQuestionMarkIcon className="size-5 mr-4 flex-shrink-0" />
