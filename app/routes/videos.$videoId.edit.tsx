@@ -1,32 +1,21 @@
-import { Button } from "@/components/ui/button";
 import type { DB } from "@/db/schema";
-import {
-  OBSConnectionButton,
-  useOBSConnector,
-} from "@/features/video-editor/obs-connector";
 import type {
   ClipOnDatabase,
-  ClipOptimisticallyAdded,
   FrontendId,
 } from "@/features/video-editor/clip-state-reducer";
-import { TitleSection } from "@/features/video-editor/title-section";
-import { useDebounceIdStore } from "@/features/video-editor/utils";
-import {
-  LiveMediaStream,
-  RecordingSignalIndicator,
-  VideoEditor,
-} from "@/features/video-editor/video-editor";
-import { DBService } from "@/services/db-service";
-import { layerLive } from "@/services/layer";
-import { Effect } from "effect";
-import { ChevronLeftIcon } from "lucide-react";
-import { startTransition, useEffect, useReducer, useState } from "react";
-import { Link, useFetcher } from "react-router";
-import type { Route } from "./+types/videos.$videoId.edit";
 import {
   clipStateReducer,
   createFrontendId,
 } from "@/features/video-editor/clip-state-reducer";
+import { useOBSConnector } from "@/features/video-editor/obs-connector";
+import { useDebounceIdStore } from "@/features/video-editor/utils";
+import { VideoEditor } from "@/features/video-editor/video-editor";
+import { DBService } from "@/services/db-service";
+import { layerLive } from "@/services/layer";
+import { Effect } from "effect";
+import { useReducer } from "react";
+import { useFetcher } from "react-router";
+import type { Route } from "./+types/videos.$videoId.edit";
 
 // Core data model - flat array of clips
 

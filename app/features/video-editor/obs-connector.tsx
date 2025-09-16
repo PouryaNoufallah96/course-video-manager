@@ -3,7 +3,6 @@ import type { DB } from "@/db/schema";
 import { CheckIcon, Loader2, MicIcon, PauseIcon } from "lucide-react";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useCallback, useEffect, useState } from "react";
-import type { ClipOptimisticallyAdded } from "./clip-state-reducer";
 import {
   useSpeechDetector,
   useWatchForSpeechDetected,
