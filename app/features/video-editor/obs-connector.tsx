@@ -306,7 +306,14 @@ const obsConnectorReducer: EffectReducer<
         };
       }
 
-      throw new Error("Obs stopped recording but not recording");
+      if (state.type === "obs-connected") {
+        return {
+          ...state,
+          latestOutputPath: action.outputPath,
+        };
+      }
+
+      throw new Error("Obs stopped recording but not recording or connected");
     }
     case "speech-detected": {
       if (state.type === "obs-recording") {
