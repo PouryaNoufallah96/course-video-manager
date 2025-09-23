@@ -493,32 +493,3 @@ export const useOBSConnector = (props: {
     speechDetectorState,
   };
 };
-
-export const OBSConnectionButton = (props: { state: OBSConnectionState }) => {
-  return (
-    <Button variant="ghost">
-      {(props.state.type === "checking-obs-connection-status" ||
-        props.state.type === "obs-not-running") && (
-        <>
-          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-          Connecting to OBS...
-        </>
-      )}
-
-      {props.state.type === "obs-recording" && (
-        <>
-          <MicIcon className="w-4 h-4 mr-1" />
-          Recording...
-        </>
-      )}
-      {props.state.type === "obs-connected" && (
-        <>
-          <>
-            <CheckIcon className="w-4 h-4 mr-1" />
-            OBS Ready
-          </>
-        </>
-      )}
-    </Button>
-  );
-};

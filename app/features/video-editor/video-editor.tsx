@@ -18,7 +18,6 @@ import {
   CircleQuestionMarkIcon,
   Columns2,
   DownloadIcon,
-  EditIcon,
   Loader2,
   MicIcon,
   MicOffIcon,
@@ -31,7 +30,7 @@ import { Link, useFetcher } from "react-router";
 import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-deck-forwarder-types";
 import { useEffectReducer } from "use-effect-reducer";
 import type { Clip, FrontendId } from "./clip-state-reducer";
-import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
+import { type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import {
@@ -331,7 +330,7 @@ export const VideoEditor = (props: {
                 onOpenChange={setIsExportModalOpen}
               >
                 <DialogTrigger asChild>
-                  <Button variant="default" aria-label="Export">
+                  <Button variant="secondary" aria-label="Export">
                     <DownloadIcon className="w-4 h-4 mr-1" />
                   </Button>
                 </DialogTrigger>
@@ -383,7 +382,6 @@ export const VideoEditor = (props: {
                   </exportVideoClipsFetcher.Form>
                 </DialogContent>
               </Dialog>
-              <OBSConnectionButton state={props.obsConnectorState} />
             </div>
           </div>
         </div>
