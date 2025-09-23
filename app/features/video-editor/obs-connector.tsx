@@ -56,12 +56,13 @@ export const useConnectToOBSVirtualCamera = (props: {
     setMediaStream(null);
   }, [mediaStream]);
 
+  const shouldShowMediaStream =
+    props.state.type === "obs-connected" ||
+    props.state.type === "obs-recording";
+
   // Manage virtualCameraState
   useEffect(() => {
-    if (
-      props.state.type !== "obs-connected" &&
-      props.state.type !== "obs-recording"
-    ) {
+    if (!shouldShowMediaStream) {
       cleanupMediaStream();
 
       return;
@@ -113,7 +114,7 @@ export const useConnectToOBSVirtualCamera = (props: {
     return () => {
       unmounted = true;
     };
-  }, [props.state.type, props.websocket]);
+  }, [shouldShowMediaStream, props.websocket]);
 
   return mediaStream;
 };
