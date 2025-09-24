@@ -28,6 +28,7 @@ import { ChevronLeftIcon } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
+import path from "path";
 
 const partsToText = (parts: UIMessage["parts"]) => {
   return parts
@@ -52,6 +53,11 @@ export const loader = async (args: Route.LoaderArgs) => {
       sectionPath: video.lesson.section.path,
       repoId: video.lesson.section.repoId,
       lessonId: video.lesson.id,
+      fullPath: path.join(
+        video.lesson.section.repo.filePath,
+        video.lesson.section.path,
+        video.lesson.path
+      ),
     };
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
@@ -96,7 +102,7 @@ Each top-level step should be separated by two newlines.
 </example>
 `.trim();
 
-const TIP_PROMPT = () =>
+const CODE_TIP_PROMPT = () =>
   `
   Go.
 
@@ -111,11 +117,32 @@ const TIP_PROMPT = () =>
   </rules>
 `.trim();
 
+const DIAGRAM_TIP_PROMPT = () =>
+  `
+  Go.
+
+  <rules>
+
+  The purpose of the material is to show a user a cool tip that will help them in the future. They are not solving a problem in an active exercise, they are passively learning a tip.
+
+  Stick closely to the transcript.
+
+  The video the transcript is based on is of an instructor walking through diagrams. You have been provided with the diagrams. Use them as markdown links in the output:
+
+  <example>
+  ![Diagram 1](./path/to/diagram.png)
+  </example>
+  <example>
+  ![Diagram 2](./path/to/diagram.png)
+  </example>
+
+  </rules>
+  `.trim();
+
 const Video = (props: { src: string }) => {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    console.log(ref.current);
     if (ref.current) {
       ref.current.playbackRate = 2;
     }
@@ -126,7 +153,7 @@ const Video = (props: { src: string }) => {
 
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
-  const { videoPath, lessonPath, sectionPath, repoId, lessonId } =
+  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath } =
     props.loaderData;
   const [text, setText] = useState<string>("");
 
@@ -177,7 +204,9 @@ export default function Component(props: Route.ComponentProps) {
 
             return (
               <AIMessage from={message.role} key={message.id}>
-                <AIResponse>{partsToText(message.parts)}</AIResponse>
+                <AIResponse imageBasePath={fullPath}>
+                  {partsToText(message.parts)}
+                </AIResponse>
               </AIMessage>
             );
           })}
@@ -195,10 +224,18 @@ export default function Component(props: Route.ComponentProps) {
             }}
           ></AISuggestion>
           <AISuggestion
-            suggestion="Tip"
+            suggestion="Code Tip"
             onClick={() => {
               sendMessage({
-                text: TIP_PROMPT(),
+                text: CODE_TIP_PROMPT(),
+              });
+            }}
+          ></AISuggestion>
+          <AISuggestion
+            suggestion="Diagram Tip"
+            onClick={() => {
+              sendMessage({
+                text: DIAGRAM_TIP_PROMPT(),
               });
             }}
           ></AISuggestion>

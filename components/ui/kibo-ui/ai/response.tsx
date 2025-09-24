@@ -18,7 +18,7 @@ import {
   CodeBlockSelectValue,
 } from "../code-block";
 import type { HTMLAttributes } from "react";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -31,9 +31,10 @@ import "katex/dist/katex.min.css";
 export type AIResponseProps = HTMLAttributes<HTMLDivElement> & {
   options?: Options;
   children: Options["children"];
+  imageBasePath: string;
 };
 
-const components: Options["components"] = {
+const getComponents = (imageBasePath: string): Options["components"] => ({
   ol: ({ node, children, className, ...props }) => (
     <ol className={cn("ml-4 list-outside list-decimal", className)} {...props}>
       {children}
@@ -171,7 +172,17 @@ const components: Options["components"] = {
       </CodeBlock>
     );
   },
-};
+  img: ({ node, children, className, ...props }) => {
+    const fullImagePath = `${imageBasePath}/${props.src}`;
+    return (
+      <img
+        {...props}
+        className={cn("max-w-full my-6", className)}
+        src={`/view-image?imagePath=${fullImagePath}`}
+      />
+    );
+  },
+});
 
 export const AIResponse = memo(
   ({ className, options, children, ...props }: AIResponseProps) => {
@@ -188,6 +199,11 @@ export const AIResponse = memo(
         console.error("Failed to copy to clipboard:", error);
       }
     };
+
+    const components = useMemo(
+      () => getComponents(props.imageBasePath),
+      [props.imageBasePath]
+    );
 
     return (
       <div

@@ -11,7 +11,7 @@ import {
   type ToolSet,
   type UIMessage,
 } from "ai";
-import { Data, Effect, Schema } from "effect";
+import { Array, Data, Effect, Schema } from "effect";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Route } from "./+types/videos.$videoId.completions";
@@ -98,7 +98,7 @@ export const action = async (args: Route.ActionArgs) => {
         Effect.map((files) => files.map((file) => path.join(lessonPath, file)))
       );
 
-    const filteredFiles = allFilesInDirectory.filter((filePath) => {
+    const filteredTextFiles = allFilesInDirectory.filter((filePath) => {
       return (
         !DISALLOWED_FILE_DIRECTORIES.some((disallowedPath) =>
           filePath.includes(disallowedPath)
@@ -106,7 +106,11 @@ export const action = async (args: Route.ActionArgs) => {
       );
     });
 
-    const files = yield* Effect.forEach(filteredFiles, (filePath) => {
+    const filteredDiagramFiles = allFilesInDirectory.filter((filePath) => {
+      return filePath.includes("diagram") && filePath.endsWith(".png");
+    });
+
+    const textFiles = yield* Effect.forEach(filteredTextFiles, (filePath) => {
       return Effect.gen(function* () {
         const stat = yield* fs.stat(filePath);
 
@@ -120,7 +124,28 @@ export const action = async (args: Route.ActionArgs) => {
           fileContent,
         };
       });
-    }).pipe(Effect.map((res) => res.filter((r) => r !== NOT_A_FILE)));
+    }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
+
+    const diagramFiles = yield* Effect.forEach(
+      filteredDiagramFiles,
+      (filePath) => {
+        return Effect.gen(function* () {
+          const stat = yield* fs.stat(filePath);
+
+          if (stat.type !== "File") {
+            return NOT_A_FILE;
+          }
+
+          const fileContent = yield* fs.readFile(filePath);
+
+          const relativeFilePath = path.relative(lessonPath, filePath);
+          return {
+            path: relativeFilePath,
+            content: fileContent,
+          };
+        });
+      }
+    ).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
 
     let transcript = video.clips
       .map((clip) => clip.text)
@@ -145,11 +170,31 @@ export const action = async (args: Route.ActionArgs) => {
       });
     }
 
+    const modelMessages = convertToModelMessages(messages);
+
+    if (diagramFiles.length > 0) {
+      modelMessages.unshift({
+        role: "user",
+        content: diagramFiles.flatMap((file) => {
+          return [
+            {
+              type: "text",
+              text: `The following diagram is at "${file.path}":`,
+            },
+            {
+              type: "image",
+              image: file.content,
+            },
+          ];
+        }),
+      });
+    }
+
     const result = streamText({
       model: anthropic("claude-3-7-sonnet-20250219"),
-      messages: convertToModelMessages(messages),
+      messages: modelMessages,
       system: generateArticlePrompt({
-        code: files.map((file) => ({
+        code: textFiles.map((file) => ({
           path: file.filePath,
           content: file.fileContent,
         })),
