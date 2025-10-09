@@ -25,7 +25,7 @@ export const repos = createTable("repo", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   filePath: text("file_path").notNull(),
-  name: text("name").notNull().default(""),
+  name: text("name").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
     withTimezone: true,

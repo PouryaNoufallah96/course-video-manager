@@ -1,5 +1,6 @@
 "use client";
 
+import { AddRepoModal } from "@/components/add-repo-modal";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -134,7 +135,6 @@ export default function Component(props: Route.ComponentProps) {
     videoPath: "",
   });
 
-  const addRepoFetcher = useFetcher();
   const publishRepoFetcher = useFetcher();
 
   const poller = useFetcher<typeof props.loaderData>();
@@ -245,46 +245,10 @@ export default function Component(props: Route.ComponentProps) {
             </div>
           </ScrollArea>
           <Separator className="mb-4 -mt-4" />
-          <Dialog
-            open={isAddRepoModalOpen}
+          <AddRepoModal
+            isOpen={isAddRepoModalOpen}
             onOpenChange={setIsAddRepoModalOpen}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full bg-transparent">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Repo
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Repository</DialogTitle>
-              </DialogHeader>
-              <addRepoFetcher.Form
-                method="post"
-                action="/api/repos/add"
-                className="space-y-4 py-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="repo-path">Repository File Path</Label>
-                  <Input
-                    id="repo-path"
-                    placeholder="Enter local file path..."
-                    name="repoPath"
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsAddRepoModalOpen(false)}
-                    type="button"
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Add Repository</Button>
-                </div>
-              </addRepoFetcher.Form>
-            </DialogContent>
-          </Dialog>
+          />
         </div>
       </div>
 

@@ -375,9 +375,12 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       archiveClip,
       getVideoById: getVideoDeepById,
       getVideoWithClipsById: getVideoWithClipsById,
-      createRepo: Effect.fn("createRepo")(function* (filePath: string) {
+      createRepo: Effect.fn("createRepo")(function* (input: {
+        filePath: string;
+        name: string;
+      }) {
         const reposResult = yield* makeDbCall(() =>
-          db.insert(repos).values({ filePath }).returning()
+          db.insert(repos).values(input).returning()
         );
 
         const repo = reposResult[0];

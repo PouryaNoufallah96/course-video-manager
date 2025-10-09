@@ -6,6 +6,7 @@ import { DBService } from "@/services/db-service";
 import { withDatabaseDump } from "@/services/dump-service";
 
 const addRepoSchema = Schema.Struct({
+  name: Schema.String,
   repoPath: Schema.String,
 });
 
@@ -23,7 +24,10 @@ export const action = async ({ request }: Route.ActionArgs) => {
     const parsedSections = yield* repoParserService.parseRepo(result.repoPath);
     console.log(parsedSections);
 
-    const repo = yield* db.createRepo(result.repoPath);
+    const repo = yield* db.createRepo({
+      filePath: result.repoPath,
+      name: result.name,
+    });
 
     const sections = yield* db.createSections(repo.id, parsedSections);
 
