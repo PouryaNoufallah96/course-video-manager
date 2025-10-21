@@ -163,6 +163,43 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         return outputFile;
       });
 
+      const getFirstFrame = Effect.fn("getFirstFrame")(function* (
+        inputVideo: string,
+        seekTo: number
+      ) {
+        // A hash of the input video and seekTo with "first" prefix
+        const inputHash = crypto
+          .createHash("sha256")
+          .update("first-" + inputVideo + seekTo.toFixed(2))
+          .digest("hex")
+          .slice(0, 10);
+
+        const folder = path.join(tmpdir(), "tt-cli-images");
+        yield* fs.makeDirectory(folder, { recursive: true });
+
+        const outputFile = path.join(folder, `${inputHash}.png`);
+
+        const outputFileExists = yield* fs.exists(outputFile);
+
+        if (outputFileExists) {
+          return outputFile;
+        }
+
+        const command = Command.make(
+          "ffmpeg",
+          "-ss",
+          seekTo.toFixed(2),
+          "-i",
+          inputVideo,
+          "-frames:v",
+          "1",
+          outputFile
+        );
+        yield* Command.exitCode(command);
+
+        return outputFile;
+      });
+
       const sendClipsToDavinciResolve = Effect.fn("sendClipsToDavinciResolve")(
         function* (opts: {
           timelineName: string;
@@ -188,6 +225,7 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         exportVideoClips,
         transcribeClips,
         getLastFrame,
+        getFirstFrame,
         sendClipsToDavinciResolve,
       };
     }),

@@ -437,8 +437,8 @@ export const VideoEditor = (props: {
       </div>
 
       {/* Clips Section - Shows second on mobile, first on desktop */}
-      <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1">
-        <div className="flex gap-3 h-full flex-col w-full">
+      <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-4 w-full p-2">
           {props.clips.length === 0 && (
             <div className="">
               <h2 className="text-lg font-bold text-gray-100 mb-1">
@@ -453,17 +453,19 @@ export const VideoEditor = (props: {
                 ? clip.sourceEndTime - clip.sourceStartTime
                 : null;
 
-            // const waveformData = props.waveformDataForClip[clip.id];
-
             const percentComplete = duration
               ? state.currentTimeInClip / duration
               : 0;
+
+            const isPortrait =
+              clip.type === "on-database" &&
+              (clip.profile === "TikTok" || clip.profile === "Portrait");
 
             return (
               <button
                 key={clip.frontendId}
                 className={cn(
-                  "bg-gray-800 px-4 py-2 rounded-md text-left block relative overflow-hidden w-full allow-keydown",
+                  "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
                   state.selectedClipsSet.has(clip.frontendId) &&
                     "outline-2 outline-gray-200 bg-gray-700",
                   clip.frontendId === currentClipId && "bg-blue-900"
@@ -477,116 +479,82 @@ export const VideoEditor = (props: {
                   });
                 }}
               >
-                {/* Moving bar indicator */}
-                {clip.frontendId === currentClipId && (
-                  <div
-                    className="absolute top-0 left-0 w-full h-full bg-blue-700 z-0"
-                    style={{
-                      width: `${percentComplete * 100}%`,
-                      height: "100%",
-                    }}
-                  />
+                {/* Thumbnail image */}
+                {clip.type === "on-database" && (
+                  <div className="flex-shrink-0 relative">
+                    <img
+                      src={`/clips/${clip.databaseId}/first-frame`}
+                      alt="First frame"
+                      className={cn(
+                        "rounded object-cover h-full object-center",
+                        isPortrait ? "w-24 aspect-[9/16]" : "w-32 aspect-[16/9]"
+                      )}
+                    />
+                    {/* Timecode overlay on image */}
+                    <div
+                      className={cn(
+                        "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
+                        clip.frontendId === currentClipId && "text-blue-100",
+                        state.selectedClipsSet.has(clip.frontendId) &&
+                          "text-white"
+                      )}
+                    >
+                      {clip.timecode}
+                    </div>
+                  </div>
                 )}
-                {/* {waveformData && (
-                  <div className="absolute bottom-0 left-0 w-full h-full flex items-end z-0">
-                    {waveformData.map((data, index) => {
-                      return (
-                        <div
-                          key={index}
-                          style={{ height: `${data * 120}px`, width: "0.5%" }}
+
+                {/* Content area */}
+                <div className="flex-1 flex flex-col min-w-0 relative p-3">
+                  {/* Progress bar overlay on text */}
+                  {clip.frontendId === currentClipId && (
+                    <div
+                      className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
+                      style={{
+                        width: `${percentComplete * 100}%`,
+                      }}
+                    />
+                  )}
+
+                  {/* Transcript text */}
+                  <div className="z-10 relative text-white text-sm leading-6">
+                    {props.clipIdsBeingTranscribed.has(clip.frontendId) ? (
+                      clip.type === "on-database" &&
+                      !clip.transcribedAt &&
+                      !clip.text && (
+                        <div className="flex items-center">
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
+                          <span className="text-gray-400">Transcribing...</span>
+                        </div>
+                      )
+                    ) : clip.type === "on-database" ? (
+                      <>
+                        {clip.nextLevenshtein >
+                          DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
+                          <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
+                            <AlertTriangleIcon className="w-4 h-4 mr-2" />
+                            {clip.nextLevenshtein.toFixed(0)}%
+                          </span>
+                        )}
+                        <span
                           className={cn(
-                            "z-0",
-                            "bg-gray-700",
-                            clip.id === currentClipId && "bg-blue-800"
+                            "text-gray-100",
+                            clip.frontendId === currentClipId && "text-white"
                           )}
-                        />
-                      );
-                    })}
-                  </div>
-                )} */}
-                <span className="z-10 relative text-white text-sm mr-6 leading-6 flex items-center">
-                  <div
-                    className={cn(
-                      "text-gray-400",
-                      clip.frontendId === currentClipId && "text-blue-100"
-                    )}
-                  >
-                    {clip.scene === "Camera" || clip.scene === "TikTok Face" ? (
-                      <UserRound className="size-5 mr-4 flex-shrink-0" />
-                    ) : clip.scene === "No Face" ||
-                      clip.scene === "TikTok Code No Face" ? (
-                      <MonitorIcon className="size-5 mr-4 flex-shrink-0" />
-                    ) : clip.scene === "Code" ||
-                      clip.scene === "TikTok Code" ? (
-                      <Columns2 className="size-5 mr-4 flex-shrink-0" />
+                        >
+                          {clip.text}
+                        </span>
+                      </>
                     ) : (
-                      <CircleQuestionMarkIcon className="size-5 mr-4 flex-shrink-0" />
-                    )}
-                  </div>
-                  {props.clipIdsBeingTranscribed.has(clip.frontendId) ? (
-                    clip.type === "on-database" &&
-                    !clip.transcribedAt &&
-                    !clip.text && (
                       <div className="flex items-center">
                         <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
-                        <span className="text-gray-400">Transcribing...</span>
-                      </div>
-                    )
-                  ) : clip.type === "on-database" ? (
-                    <>
-                      {clip.nextLevenshtein >
-                        DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
-                        <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
-                          <AlertTriangleIcon className="w-4 h-4 mr-2" />
-                          {clip.nextLevenshtein.toFixed(0)}%
+                        <span className="text-gray-400">
+                          Detecting silence...
                         </span>
-                      )}
-                      <span
-                        className={cn(
-                          "text-gray-100",
-                          clip.frontendId === currentClipId && "text-white"
-                        )}
-                      >
-                        {clip.text}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="flex items-center">
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
-                      <span className="text-gray-400">
-                        Detecting silence...
-                      </span>
-                    </div>
-                  )}
-                </span>
-                {/* <Button
-                className="z-10 relative"
-                onClick={() => {
-                  setClips(clips.filter((c) => c.id !== clip.id));
-
-                  if (clip.id === currentClipId) {
-                    if (nextClip) {
-                      setCurrentClipId(nextClip.id);
-                    } else if (previousClip) {
-                      setCurrentClipId(previousClip.id);
-                    }
-                  }
-                }}
-              >
-                Delete
-              </Button> */}
-                {clip.type === "on-database" && (
-                  <div
-                    className={cn(
-                      "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
-                      clip.frontendId === currentClipId && "text-blue-200",
-                      state.selectedClipsSet.has(clip.frontendId) &&
-                        "text-gray-300"
+                      </div>
                     )}
-                  >
-                    {clip.timecode}
                   </div>
-                )}
+                </div>
               </button>
             );
           })}
@@ -595,7 +563,6 @@ export const VideoEditor = (props: {
     </div>
   );
 };
-
 
 export const LiveMediaStream = (props: {
   mediaStream: MediaStream;
