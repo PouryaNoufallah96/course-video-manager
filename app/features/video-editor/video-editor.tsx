@@ -440,11 +440,25 @@ export const VideoEditor = (props: {
       <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-4 w-full p-2">
           {props.clips.length === 0 && (
-            <div className="">
-              <h2 className="text-lg font-bold text-gray-100 mb-1">
-                No clips found
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2">
+                <CircleQuestionMarkIcon className="size-6" />
+                Pre-recording checklist
               </h2>
-              <p className="text-sm">Time to start recording!</p>
+              <ol className="space-y-3 text-base">
+                <li className="flex items-center gap-3">
+                  <MicIcon className="size-5 flex-shrink-0 text-gray-300" />
+                  <span>Turn the microphone all the way up</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <MonitorIcon className="size-5 flex-shrink-0 text-gray-300" />
+                  <span>Close the windows</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Columns2 className="size-5 flex-shrink-0 text-gray-300" />
+                  <span>Close the blinds</span>
+                </li>
+              </ol>
             </div>
           )}
           {clipsWithTimecodeAndLevenshtein.map((clip) => {
