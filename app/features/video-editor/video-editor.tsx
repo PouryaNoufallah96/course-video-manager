@@ -494,16 +494,24 @@ export const VideoEditor = (props: {
                 }}
               >
                 {/* Thumbnail image */}
-                {clip.type === "on-database" && (
+                {clip.type === "on-database" ? (
                   <div className="flex-shrink-0 relative">
                     <img
                       src={`/clips/${clip.databaseId}/first-frame`}
                       alt="First frame"
                       className={cn(
                         "rounded object-cover h-full object-center",
-                        isPortrait ? "w-24 aspect-[9/16]" : "w-32 aspect-[16/9]"
+                        isPortrait ? "w-24 aspect-[9/16]" : "w-32 aspect-[16/9]",
+                        props.clipIdsBeingTranscribed.has(clip.frontendId) &&
+                          "opacity-50 grayscale"
                       )}
                     />
+                    {/* Loading spinner overlay */}
+                    {props.clipIdsBeingTranscribed.has(clip.frontendId) && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                      </div>
+                    )}
                     {/* Timecode overlay on image */}
                     <div
                       className={cn(
@@ -515,6 +523,10 @@ export const VideoEditor = (props: {
                     >
                       {clip.timecode}
                     </div>
+                  </div>
+                ) : (
+                  <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                   </div>
                 )}
 
@@ -536,10 +548,7 @@ export const VideoEditor = (props: {
                       clip.type === "on-database" &&
                       !clip.transcribedAt &&
                       !clip.text && (
-                        <div className="flex items-center">
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
-                          <span className="text-gray-400">Transcribing...</span>
-                        </div>
+                        <span className="text-gray-400">Transcribing...</span>
                       )
                     ) : clip.type === "on-database" ? (
                       <>
@@ -560,12 +569,7 @@ export const VideoEditor = (props: {
                         </span>
                       </>
                     ) : (
-                      <div className="flex items-center">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
-                        <span className="text-gray-400">
-                          Detecting silence...
-                        </span>
-                      </div>
+                      <span className="text-gray-400">Detecting silence...</span>
                     )}
                   </div>
                 </div>

@@ -286,10 +286,19 @@ export default function Component(props: Route.ComponentProps) {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
-                {currentRepo.sections.map((section) => (
+                {currentRepo.sections.map((section) => {
+                  const sectionDuration = section.lessons.reduce((acc, lesson) => {
+                    return acc + lesson.videos.reduce((videoAcc, video) => {
+                      return videoAcc + video.clips.reduce((clipAcc, clip) => {
+                        return clipAcc + (clip.sourceEndTime - clip.sourceStartTime);
+                      }, 0);
+                    }, 0);
+                  }, 0);
+
+                  return (
                   <div key={section.id} className="">
                     <h2 className="mb-4 text-foreground text-lg font-semibold tracking-tight">
-                      {section.path}
+                      {section.path} ({formatSecondsToTimeCode(sectionDuration)})
                     </h2>
                     {section.lessons.map((lesson, index, arr) => (
                       <React.Fragment key={lesson.id}>
@@ -497,7 +506,8 @@ export default function Component(props: Route.ComponentProps) {
                       </React.Fragment>
                     ))}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
