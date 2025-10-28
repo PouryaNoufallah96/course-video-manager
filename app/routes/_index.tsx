@@ -22,6 +22,7 @@ import { formatSecondsToTimeCode } from "@/services/utils";
 import { FileSystem } from "@effect/platform";
 import { Effect } from "effect";
 import {
+  Download,
   FolderGit2,
   Loader2,
   PencilIcon,
@@ -131,6 +132,7 @@ export default function Component(props: Route.ComponentProps) {
   });
 
   const publishRepoFetcher = useFetcher();
+  const exportAllFetcher = useFetcher();
 
   const poller = useFetcher<typeof props.loaderData>();
 
@@ -269,20 +271,35 @@ export default function Component(props: Route.ComponentProps) {
                     recordings ({percentageComplete}%)
                   </p>
                 </div>
-                <publishRepoFetcher.Form
-                  method="post"
-                  action="/api/repos/publish"
-                >
-                  <input type="hidden" name="repoId" value={currentRepo.id} />
-                  <Button type="submit">
-                    {publishRepoFetcher.state === "submitting" ? (
-                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 mr-1" />
-                    )}
-                    <span className="hidden md:block">Publish</span>
-                  </Button>
-                </publishRepoFetcher.Form>
+                <div className="flex gap-2">
+                  <exportAllFetcher.Form
+                    method="post"
+                    action={`/api/repos/${currentRepo.id}/export-all`}
+                  >
+                    <Button type="submit" variant="outline">
+                      {exportAllFetcher.state === "submitting" ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4 mr-1" />
+                      )}
+                      <span className="hidden md:block">Export All</span>
+                    </Button>
+                  </exportAllFetcher.Form>
+                  <publishRepoFetcher.Form
+                    method="post"
+                    action="/api/repos/publish"
+                  >
+                    <input type="hidden" name="repoId" value={currentRepo.id} />
+                    <Button type="submit">
+                      {publishRepoFetcher.state === "submitting" ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 mr-1" />
+                      )}
+                      <span className="hidden md:block">Publish</span>
+                    </Button>
+                  </publishRepoFetcher.Form>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
