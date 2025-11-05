@@ -9,6 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,6 +28,7 @@ import { formatSecondsToTimeCode } from "@/services/utils";
 import { FileSystem } from "@effect/platform";
 import { Effect } from "effect";
 import {
+  ChevronDown,
   Download,
   FolderGit2,
   Loader2,
@@ -151,7 +158,7 @@ export default function Component(props: Route.ComponentProps) {
   });
 
   const publishRepoFetcher = useFetcher();
-  const exportAllFetcher = useFetcher();
+  const exportUnexportedFetcher = useFetcher();
 
   const poller = useFetcher<typeof props.loaderData>();
 
@@ -250,8 +257,8 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Left Sidebar - Repos */}
-      <div className="w-80 border-r bg-muted/30 hidden lg:block">
-        <div className="p-4 pb-0">
+      <div className="w-80 border-r bg-muted/30 hidden lg:block flex flex-col">
+        <div className="p-4 flex-1 flex flex-col min-h-0">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FolderGit2 className="w-5 h-5" />
             Repos
@@ -261,8 +268,8 @@ export default function Component(props: Route.ComponentProps) {
               Diagram Playground
             </Button>
           </Link>
-          <ScrollArea className="h-[calc(100vh-120px)]">
-            <div className="space-y-2">
+          <ScrollArea className="flex-1 mb-4">
+            <div className="space-y-2 pr-4">
               {repos.map((repo) => (
                 <Button
                   key={repo.id}
@@ -281,7 +288,7 @@ export default function Component(props: Route.ComponentProps) {
               ))}
             </div>
           </ScrollArea>
-          <Separator className="mb-4 -mt-4" />
+          <Separator className="mb-4" />
           <AddRepoModal
             isOpen={isAddRepoModalOpen}
             onOpenChange={setIsAddRepoModalOpen}
@@ -305,33 +312,64 @@ export default function Component(props: Route.ComponentProps) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <exportAllFetcher.Form
-                    method="post"
-                    action={`/api/repos/${currentRepo.id}/export-all`}
-                  >
-                    <Button type="submit" variant="outline">
-                      {exportAllFetcher.state === "submitting" ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Download className="w-4 h-4 mr-1" />
-                      )}
-                      <span className="hidden md:block">Export All</span>
-                    </Button>
-                  </exportAllFetcher.Form>
-                  <publishRepoFetcher.Form
-                    method="post"
-                    action="/api/repos/publish"
-                  >
-                    <input type="hidden" name="repoId" value={currentRepo.id} />
-                    <Button type="submit">
-                      {publishRepoFetcher.state === "submitting" ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4 mr-1" />
-                      )}
-                      <span className="hidden md:block">Publish</span>
-                    </Button>
-                  </publishRepoFetcher.Form>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={
+                          exportUnexportedFetcher.state === "submitting" ||
+                          publishRepoFetcher.state === "submitting"
+                        }
+                      >
+                        {(exportUnexportedFetcher.state === "submitting" ||
+                          publishRepoFetcher.state === "submitting") ? (
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        ) : null}
+                        Actions
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          exportUnexportedFetcher.submit(
+                            {},
+                            {
+                              method: "post",
+                              action: `/api/repos/${currentRepo.id}/export-unexported`,
+                            }
+                          );
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Export</span>
+                          <span className="text-xs text-muted-foreground">
+                            Export videos not yet exported
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          publishRepoFetcher.submit(
+                            { repoId: currentRepo.id },
+                            {
+                              method: "post",
+                              action: "/api/repos/publish",
+                            }
+                          );
+                        }}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Publish</span>
+                          <span className="text-xs text-muted-foreground">
+                            Copy all files to Dropbox
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 

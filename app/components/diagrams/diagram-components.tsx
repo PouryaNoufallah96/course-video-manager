@@ -289,8 +289,6 @@ export const DocumentWithHighlights = (props: {
     100 - DOCUMENT_START_WIDTH
   );
 
-  const color = props.color || "gray";
-
   return (
     <div className={cn("", props.className)}>
       {widths.map((width, index) => {
