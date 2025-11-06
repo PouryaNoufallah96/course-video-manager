@@ -6,14 +6,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatSecondsToTimeCode } from "@/services/utils";
 import levenshtein from "js-levenshtein";
 import {
   AlertTriangleIcon,
   CheckIcon,
+  ChevronDown,
   ChevronLeftIcon,
   CircleQuestionMarkIcon,
   Columns2,
@@ -217,6 +230,14 @@ export const VideoEditor = (props: {
     (clip) => clip.frontendId === currentClipId
   );
 
+  const allClipsHaveSilenceDetected = props.clips.every(
+    (clip) => clip.type === "on-database"
+  );
+
+  const allClipsHaveText = props.clips.every(
+    (clip) => clip.type === "on-database" && clip.text
+  );
+
   let timecode = 0;
 
   const clipsWithTimecodeAndLevenshtein = useMemo(
@@ -334,103 +355,188 @@ export const VideoEditor = (props: {
             </div>
 
             <div className="flex gap-2 mt-4">
-              <Button asChild variant="secondary" aria-label="Go Back">
-                <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
-                  <ChevronLeftIcon className="w-4 h-4 mr-1" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" aria-label="Write Article">
-                <Link to={`/videos/${props.videoId}/write`}>
-                  <PencilIcon className="w-4 h-4 mr-1" />
-                </Link>
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild={allClipsHaveSilenceDetected}
+                      variant="secondary"
+                      aria-label="Go Back"
+                      disabled={!allClipsHaveSilenceDetected}
+                    >
+                      {allClipsHaveSilenceDetected ? (
+                        <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
+                          <ChevronLeftIcon className="w-4 h-4" />
+                        </Link>
+                      ) : (
+                        <span>
+                          <ChevronLeftIcon className="w-4 h-4" />
+                        </span>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  {!allClipsHaveSilenceDetected && (
+                    <TooltipContent>
+                      <p>Waiting for silence detection to complete</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
 
-              <Button
-                variant="secondary"
-                aria-label="Copy Transcript"
-                onClick={copyTranscriptToClipboard}
-              >
-                {isCopied ? (
-                  <CheckIcon className="w-4 h-4 mr-1" />
-                ) : (
-                  <CopyIcon className="w-4 h-4 mr-1" />
-                )}
-              </Button>
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="secondary"
+                            disabled={!allClipsHaveSilenceDetected}
+                          >
+                            {exportVideoClipsFetcher.state === "submitting" ||
+                            exportToDavinciResolveFetcher.state ===
+                              "submitting" ? (
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                            ) : null}
+                            Actions
+                            <ChevronDown className="w-4 h-4 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    {!allClipsHaveSilenceDetected && (
+                      <TooltipContent>
+                        <p>Waiting for silence detection to complete</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuItem asChild>
+                      <Link to={`/videos/${props.videoId}/write`}>
+                        <PencilIcon className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Write Article</span>
+                          <span className="text-xs text-muted-foreground">
+                            Go to article writing interface
+                          </span>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
 
-              <Dialog
-                open={isExportModalOpen}
-                onOpenChange={setIsExportModalOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="secondary" aria-label="Export">
-                    <DownloadIcon className="w-4 h-4 mr-1" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Export</DialogTitle>
-                  </DialogHeader>
-                  <exportVideoClipsFetcher.Form
-                    method="post"
-                    action={`/api/videos/${props.videoId}/export`}
-                    className="space-y-4 py-4"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      await exportVideoClipsFetcher.submit(e.currentTarget);
-                      setIsExportModalOpen(false);
-                    }}
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor="shorts-directory-output-name">
-                        Short Title
-                      </Label>
-                      <Input
-                        id="shorts-directory-output-name"
-                        placeholder="Leave empty for normal export only..."
-                        name="shortsDirectoryOutputName"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        If provided, the video will be queued for YouTube and
-                        TikTok under the given title.
-                      </p>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsExportModalOpen(false)}
-                        type="button"
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit">
-                        {exportVideoClipsFetcher.state === "submitting" ? (
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                        ) : (
-                          <DownloadIcon className="w-4 h-4 mr-1" />
-                        )}
-                        Export
-                      </Button>
-                    </div>
-                  </exportVideoClipsFetcher.Form>
-                </DialogContent>
-              </Dialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <DropdownMenuItem
+                            disabled={!allClipsHaveText}
+                            onSelect={copyTranscriptToClipboard}
+                          >
+                            {isCopied ? (
+                              <CheckIcon className="w-4 h-4 mr-2" />
+                            ) : (
+                              <CopyIcon className="w-4 h-4 mr-2" />
+                            )}
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                Copy Transcript
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                Copy all transcript to clipboard
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </div>
+                      </TooltipTrigger>
+                      {!allClipsHaveText && (
+                        <TooltipContent side="left">
+                          <p>Waiting for transcription to complete</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
 
-              <Button
-                variant="secondary"
-                aria-label="Export to Davinci Resolve"
-                onClick={() => {
-                  exportToDavinciResolveFetcher.submit(null, {
-                    method: "post",
-                    action: `/videos/${props.videoId}/export-to-davinci-resolve`,
-                  });
-                }}
-              >
-                {exportToDavinciResolveFetcher.state === "submitting" ? (
-                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                ) : (
-                  <FilmIcon className="w-4 h-4 mr-1" />
-                )}
-              </Button>
+                    <Dialog
+                      open={isExportModalOpen}
+                      onOpenChange={setIsExportModalOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <DownloadIcon className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Export</span>
+                            <span className="text-xs text-muted-foreground">
+                              Export video clips to file
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Export</DialogTitle>
+                        </DialogHeader>
+                        <exportVideoClipsFetcher.Form
+                          method="post"
+                          action={`/api/videos/${props.videoId}/export`}
+                          className="space-y-4 py-4"
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            await exportVideoClipsFetcher.submit(
+                              e.currentTarget
+                            );
+                            setIsExportModalOpen(false);
+                          }}
+                        >
+                          <div className="space-y-2">
+                            <Label htmlFor="shorts-directory-output-name">
+                              Short Title
+                            </Label>
+                            <Input
+                              id="shorts-directory-output-name"
+                              placeholder="Leave empty for normal export only..."
+                              name="shortsDirectoryOutputName"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              If provided, the video will be queued for YouTube
+                              and TikTok under the given title.
+                            </p>
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsExportModalOpen(false)}
+                              type="button"
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="submit">
+                              {exportVideoClipsFetcher.state ===
+                              "submitting" ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <DownloadIcon className="w-4 h-4 mr-1" />
+                              )}
+                              Export
+                            </Button>
+                          </div>
+                        </exportVideoClipsFetcher.Form>
+                      </DialogContent>
+                    </Dialog>
+
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        exportToDavinciResolveFetcher.submit(null, {
+                          method: "post",
+                          action: `/videos/${props.videoId}/export-to-davinci-resolve`,
+                        });
+                      }}
+                    >
+                      <FilmIcon className="w-4 h-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">DaVinci Resolve</span>
+                        <span className="text-xs text-muted-foreground">
+                          Create a new timeline with clips
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -505,7 +611,9 @@ export const VideoEditor = (props: {
                       alt="First frame"
                       className={cn(
                         "rounded object-cover h-full object-center",
-                        isPortrait ? "w-24 aspect-[9/16]" : "w-32 aspect-[16/9]",
+                        isPortrait
+                          ? "w-24 aspect-[9/16]"
+                          : "w-32 aspect-[16/9]",
                         props.clipIdsBeingTranscribed.has(clip.frontendId) &&
                           "opacity-50 grayscale"
                       )}
@@ -573,7 +681,9 @@ export const VideoEditor = (props: {
                         </span>
                       </>
                     ) : (
-                      <span className="text-gray-400">Detecting silence...</span>
+                      <span className="text-gray-400">
+                        Detecting silence...
+                      </span>
                     )}
                   </div>
                 </div>
