@@ -16,13 +16,125 @@ import {
   Wrapper,
 } from "@/components/diagrams/diagram-components";
 import type { Route } from "./+types/diagram-playground";
-import { Trash2, Archive } from "lucide-react";
+import {
+  Trash2,
+  Archive,
+  Calendar,
+  Mail,
+  Database,
+  CheckCircle2,
+  Search,
+  ShieldAlert,
+} from "lucide-react";
 
 export default function DiagramPlayground(_props: Route.ComponentProps) {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Diagram Playground</h1>
       <div className="flex flex-col-reverse">
+        <Wrapper>
+          <TitleAndDescription
+            title="Personal Assistant Agents"
+            description="use multiple phases to understand context, gather info, take action, and learn from their mistakes."
+            titleClassName="text-3xl"
+          />
+          <ArrowList
+            steps={[
+              {
+                title: "User Query",
+                description:
+                  "Initial conversation and chat history provide context",
+                ring: <Ring color="blue"></Ring>,
+                children: (
+                  <div className="space-y-2 text-xs">
+                    <div className="border-l-4 border-blue-400 pl-3 pr-3 py-1 text-gray-300 bg-blue-900/20 inline-block">
+                      "Schedule team meeting for next week"
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                title: "Memory Retrieval",
+                description:
+                  "LLM retrieves user preferences and working patterns from memory banks",
+                ring: <Ring color="purple"></Ring>,
+                children: (
+                  <div className="space-y-2 text-xs">
+                    <div className="border-l-4 border-purple-400 pl-3 py-1 text-gray-300 flex items-center gap-2">
+                      <Database size={14} className="shrink-0" /> Prefers 9-11am
+                      meetings
+                    </div>
+                    <div className="border-l-4 border-purple-400 pl-3 py-1 text-gray-300 flex items-center gap-2">
+                      <Database size={14} className="shrink-0" /> Team: Alice,
+                      Bob, Carol (PST)
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                title: "Exploration Phase",
+                description:
+                  "Retrieves data from various sources via tool calls",
+                ring: <Ring color="green"></Ring>,
+                children: (
+                  <div className="space-y-2 text-xs">
+                    <div className="border-l-4 border-green-400 pl-3 py-1 text-gray-300 flex items-center gap-2">
+                      <Calendar size={14} className="shrink-0" /> Check calendar
+                      availability
+                    </div>
+                    <div className="border-l-4 border-green-400 pl-3 py-1 text-gray-300 flex items-center gap-2">
+                      <Search size={14} className="shrink-0" /> Search team
+                      schedules
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                title: "Action Request",
+                description:
+                  "Asks user to confirm dangerous or impactful actions",
+                ring: <Ring color="orange"></Ring>,
+                children: (
+                  <div className="space-y-2 text-xs">
+                    <div className="border-l-4 border-orange-400 pl-3 pr-3 py-2 text-gray-300 bg-orange-900/20 inline-block">
+                      <div className="font-semibold mb-1">Confirm Action:</div>
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} className="shrink-0" /> Send meeting
+                        invite to 3 people
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Calendar size={14} className="shrink-0" /> Tuesday 10am
+                        PST (1pm EST)
+                      </div>
+                      <div className="mt-2 text-orange-200 flex items-center gap-2">
+                        <ShieldAlert size={14} className="shrink-0" /> Requires
+                        approval
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                title: "Extraction & Learning",
+                description:
+                  "Summarizes actions taken and extracts memories for future use",
+                ring: <Ring color="red"></Ring>,
+                children: (
+                  <div className="space-y-2 text-xs">
+                    <div className="border-l-4 border-red-400 pl-3 py-1 text-gray-300 flex items-center gap-2">
+                      <CheckCircle2 size={14} className="shrink-0" /> Meeting
+                      scheduled for Tue 10am PST
+                    </div>
+                    <div className="border-l-4 border-gray-400 pl-3 pr-3 py-1 text-gray-400 bg-gray-800/40 inline-flex items-center gap-2">
+                      <Database size={14} className="shrink-0" /> User approved
+                      Tuesday meetings
+                    </div>
+                  </div>
+                ),
+              },
+            ]}
+          ></ArrowList>
+        </Wrapper>
         <Wrapper>
           <TitleAndDescription
             title="Why Chunk?"

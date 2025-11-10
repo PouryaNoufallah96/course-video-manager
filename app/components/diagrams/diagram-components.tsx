@@ -106,6 +106,11 @@ export const Embedding = (props: {
       1: "bg-gray-400",
       2: "bg-gray-300",
     },
+    purple: {
+      0: "bg-purple-600",
+      1: "bg-purple-400",
+      2: "bg-purple-300",
+    },
   };
 
   return (
@@ -204,6 +209,7 @@ const borderColorMap = {
   red: "border-red-500",
   orange: "border-orange-500",
   gray: "border-gray-300",
+  purple: "border-purple-500",
 };
 
 const backgroundColorMap = {
@@ -212,6 +218,7 @@ const backgroundColorMap = {
   red: "bg-red-500",
   orange: "bg-orange-500",
   gray: "bg-gray-300",
+  purple: "bg-purple-500",
 };
 
 type Color = keyof typeof borderColorMap;
