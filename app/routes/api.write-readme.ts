@@ -1,0 +1,53 @@
+import { DBService } from "@/services/db-service";
+import { layerLive } from "@/services/layer";
+import { FileSystem } from "@effect/platform";
+import { Effect, Schema } from "effect";
+import path from "node:path";
+import type { Route } from "./+types/api.write-readme";
+
+const writeReadmeSchema = Schema.Struct({
+  lessonId: Schema.String,
+  content: Schema.String,
+});
+
+export const action = async (args: Route.ActionArgs) => {
+  const body = await args.request.json();
+
+  return Effect.gen(function* () {
+    const db = yield* DBService;
+    const fs = yield* FileSystem.FileSystem;
+
+    const parsed = yield* Schema.decodeUnknown(writeReadmeSchema)(body);
+    const { lessonId, content } = parsed;
+
+    const lesson = yield* db.getLessonWithHierarchyById(lessonId);
+    const lessonFullPath = path.join(
+      lesson.section.repo.filePath,
+      lesson.section.path,
+      lesson.path
+    );
+
+    // Check for explainer folder first, then problem folder
+    const explainerPath = path.join(lessonFullPath, "explainer");
+    const problemPath = path.join(lessonFullPath, "problem");
+
+    const explainerExists = yield* fs.exists(explainerPath);
+    const problemExists = yield* fs.exists(problemPath);
+
+    let targetPath: string;
+    if (explainerExists) {
+      targetPath = path.join(explainerPath, "readme.md");
+    } else if (problemExists) {
+      targetPath = path.join(problemPath, "readme.md");
+    } else {
+      return Response.json(
+        { success: false, error: "No explainer or problem folder found" },
+        { status: 400 }
+      );
+    }
+
+    yield* fs.writeFileString(targetPath, content);
+
+    return Response.json({ success: true });
+  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+};

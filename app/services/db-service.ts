@@ -150,6 +150,32 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return lesson;
     });
 
+    const getLessonWithHierarchyById = Effect.fn("getLessonWithHierarchyById")(
+      function* (id: string) {
+        const lesson = yield* makeDbCall(() =>
+          db.query.lessons.findFirst({
+            where: eq(lessons.id, id),
+            with: {
+              section: {
+                with: {
+                  repo: true,
+                },
+              },
+            },
+          })
+        );
+
+        if (!lesson) {
+          return yield* new NotFoundError({
+            type: "getLessonWithHierarchyById",
+            params: { id },
+          });
+        }
+
+        return lesson;
+      }
+    );
+
     const getVideoDeepById = Effect.fn("getVideoById")(function* (id: string) {
       const video = yield* makeDbCall(() =>
         db.query.videos.findFirst({
@@ -263,6 +289,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getClipsByIds,
       updateClip,
       getLessonById,
+      getLessonWithHierarchyById,
       appendClips: Effect.fn("addClips")(function* (
         videoId: string,
         inputClips: readonly {

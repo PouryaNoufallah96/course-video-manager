@@ -165,6 +165,11 @@ export function InnerComponent(props: Route.ComponentProps) {
     return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
   });
 
+  // Check if explainer or problem folder exists
+  const hasExplainerOrProblem = files.some(
+    (f) => f.path.startsWith("explainer/") || f.path.startsWith("problem/")
+  );
+
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
     if (typeof localStorage !== "undefined") {
@@ -252,7 +257,11 @@ export function InnerComponent(props: Route.ComponentProps) {
 
                 return (
                   <AIMessage from={message.role} key={message.id}>
-                    <AIResponse imageBasePath={fullPath}>
+                    <AIResponse
+                      imageBasePath={fullPath}
+                      lessonId={lessonId}
+                      hasExplainerOrProblem={hasExplainerOrProblem}
+                    >
                       {partsToText(message.parts)}
                     </AIResponse>
                   </AIMessage>
