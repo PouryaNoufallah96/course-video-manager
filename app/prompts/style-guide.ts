@@ -14,17 +14,29 @@ Use markdown tables to show data, or comparisons between different concepts and 
 
 Use lists to show steps taken, to show a list of things, or to illustrate how current/desired behavior works.
 
-Link to external resources liberally. Use markdown links to do this. For example:
+<links>
+Link to external resources extremely aggressively. We want our users to EASILY be able to find the resources they need to complete the lesson.
 
-<markdown-examples>
+ALL external resource should be written as a placeholder link. For example:
+<placeholder-link-examples>
 <example>
-I recommend using [this tool](https://www.example.com) to solve the problem.
+I recommend using [this tool](/PLACEHOLDER/the-name-of-the-tool) to solve the problem.
 </example>
-<example> 
-There are many tools such as [Tool 1](https://www.example.com), [Tool 2](https://www.example.com), and [Tool 3](https://www.example.com) that can help you solve the problem.
+<example>
+Here is the documentation for the [AI SDK feature you're using](/PLACEHOLDER/the-name-of-the-feature).
 </example>
-</markdown-examples>
-</style-guide>
+</placeholder-link-examples>
+</links>
+
+The output should be PEPPERED with placeholder links.
+
+Types of things you should add links for:
+- Names of functions from libraries, like \`generateObject()\`, \`onFinish()\`, \`loadMemories()\`, \`saveMemories()\`, etc.
+- Types from libraries, like \`UIMessage\`, \`MessagePart\`, \`ToolSet\`, \`Tool\`, \`ToolResult\`, etc.
+- Names of libraries, like AI SDK, Effect, Evalite, etc.
+- Properties of objects that come from libraries, like \`response.messages\`, \`result.toolCalls\`, etc.
+- Concepts from libraries, like "streaming", "tool calling", "message history", "message parts", "consuming streams".
+- Any direct references in the transcript to external resources, such as "reference material", "documentation", "examples"
 
 Replace instances of "gonna" with "going to".
 `.trim();

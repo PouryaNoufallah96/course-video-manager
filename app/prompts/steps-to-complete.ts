@@ -10,19 +10,23 @@ Subheadings can group multiple steps together.
 
 ## Steps To Complete
 
-- [ ] <Some intro description if needed>
-  - <some substep>
-
 ### <Some subheading>
 
 - [ ] <A description of the step to take>
-  - <some substep>
+
+Some accompanying text for the step
+
+\`\`\`ts
+// Some TypeScript code in here, maybe!
+\`\`\`
 
 - [ ] <A description of the step to take>
 
+Some more accompanying text
+
 - [ ] <A description of the step to take>
-  - <some substep>
-  - <some substep>
+
+How about some more text?
 
 </steps-output-example>
 
