@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
 import { generateNKeysBetween } from "fractional-indexing";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{

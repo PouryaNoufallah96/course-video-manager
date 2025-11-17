@@ -45,12 +45,12 @@ import { Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
 import path from "path";
 import { FileSystem } from "@effect/platform";
+import { FileTree } from "@/components/FileTree";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
   DEFAULT_UNCHECKED_PATHS,
-} from "./videos.$videoId.completions";
-import { FileTree } from "@/components/FileTree";
+} from "@/services/text-writing-agent";
 
 const partsToText = (parts: UIMessage["parts"]) => {
   return parts
@@ -148,7 +148,11 @@ const Video = (props: { src: string }) => {
   return <video src={props.src} className="w-full" controls ref={ref} />;
 };
 
-type Mode = "article" | "project" | "skill-building" | "style-guide-skill-building";
+type Mode =
+  | "article"
+  | "project"
+  | "skill-building"
+  | "style-guide-skill-building";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const MODE_STORAGE_KEY = "article-writer-mode";

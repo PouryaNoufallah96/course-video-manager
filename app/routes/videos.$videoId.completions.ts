@@ -1,20 +1,11 @@
-import { getVideoTranscriptPath } from "@/lib/get-video";
-import { generateArticlePrompt } from "@/prompts/generate-article";
-import { generateStepsToCompleteForProjectPrompt } from "@/prompts/generate-steps-to-complete-for-project";
-import { generateStepsToCompleteForSkillBuildingProblemPrompt } from "@/prompts/generate-steps-to-complete-for-skill-building-problem";
-import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-building-with-style-guide";
-import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
-import { anthropic } from "@ai-sdk/anthropic";
-import { FileSystem } from "@effect/platform";
 import {
-  convertToModelMessages,
-  streamText,
-  type TextStreamPart,
-  type ToolSet,
-  type UIMessage,
-} from "ai";
-import { Array, Data, Effect, Schema } from "effect";
+  acquireTextWritingContext,
+  createModelMessagesForTextWritingAgent,
+  createTextWritingAgent,
+} from "@/services/text-writing-agent";
+import { type TextStreamPart, type ToolSet, type UIMessage } from "ai";
+import { Effect, Schema } from "effect";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Route } from "./+types/videos.$videoId.completions";
@@ -22,55 +13,13 @@ import type { Route } from "./+types/videos.$videoId.completions";
 const chatSchema = Schema.Struct({
   messages: Schema.Any,
   enabledFiles: Schema.Array(Schema.String),
-  mode: Schema.String,
-  model: Schema.String,
-});
-
-const NOT_A_FILE = Symbol("NOT_A_FILE");
-
-class CouldNotFindTranscript extends Data.TaggedError(
-  "CouldNotFindTranscript"
-)<{
-  readonly originalFootagePath: string;
-}> {}
-
-export const DEFAULT_CHECKED_EXTENSIONS = [
-  "ts",
-  "tsx",
-  "js",
-  "jsx",
-  "json",
-  "md",
-  "mdx",
-  "txt",
-  "csv",
-];
-
-export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
-
-export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "speaker-notes.md"];
-
-const transcriptSchema = Schema.Struct({
-  clips: Schema.Array(
-    Schema.Struct({
-      start: Schema.Number,
-      end: Schema.Number,
-      segments: Schema.Array(
-        Schema.Struct({
-          start: Schema.Number,
-          end: Schema.Number,
-          text: Schema.String,
-        })
-      ),
-      words: Schema.Array(
-        Schema.Struct({
-          start: Schema.Number,
-          end: Schema.Number,
-          text: Schema.String,
-        })
-      ),
-    })
+  mode: Schema.Union(
+    Schema.Literal("article"),
+    Schema.Literal("project"),
+    Schema.Literal("skill-building"),
+    Schema.Literal("style-guide-skill-building")
   ),
+  model: Schema.String,
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -78,187 +27,32 @@ export const action = async (args: Route.ActionArgs) => {
   const videoId = args.params.videoId;
 
   return Effect.gen(function* () {
-    const db = yield* DBService;
-    const fs = yield* FileSystem.FileSystem;
-
     const parsed = yield* Schema.decodeUnknown(chatSchema)(body);
     const messages: UIMessage[] = parsed.messages;
     const enabledFiles: string[] = [...parsed.enabledFiles];
-    const mode: string = parsed.mode;
+    const mode = parsed.mode;
     const model: string = parsed.model;
 
-    const video = yield* db.getVideoWithClipsById(videoId);
-
-    const repo = video.lesson.section.repo;
-    const section = video.lesson.section;
-    const lesson = video.lesson;
-
-    const lessonPath = path.join(repo.filePath, section.path, lesson.path);
-
-    const allFilesInDirectory = yield* fs
-      .readDirectory(lessonPath, {
-        recursive: true,
-      })
-      .pipe(
-        Effect.map((files) => files.map((file) => path.join(lessonPath, file)))
-      );
-
-    const filteredFiles = allFilesInDirectory.filter((filePath) => {
-      const relativePath = path.relative(lessonPath, filePath);
-      return (
-        !ALWAYS_EXCLUDED_DIRECTORIES.some((excludedDir) =>
-          filePath.includes(excludedDir)
-        ) && enabledFiles.includes(relativePath)
-      );
+    const videoContext = yield* acquireTextWritingContext({
+      videoId,
+      enabledFiles,
     });
 
-    const allFiles = yield* Effect.forEach(filteredFiles, (filePath) => {
-      return Effect.gen(function* () {
-        const stat = yield* fs.stat(filePath);
+    const modelMessages = createModelMessagesForTextWritingAgent({
+      messages,
+      imageFiles: videoContext.imageFiles,
+    });
 
-        if (stat.type !== "File") {
-          return NOT_A_FILE;
-        }
+    const agent = createTextWritingAgent({
+      model: model,
+      mode: mode,
+      transcript: videoContext.transcript,
+      code: videoContext.textFiles,
+      imageFiles: videoContext.imageFiles,
+    });
 
-        const relativePath = path.relative(lessonPath, filePath);
-        const imageExtensions = [
-          ".png",
-          ".jpg",
-          ".jpeg",
-          ".gif",
-          ".svg",
-          ".webp",
-          ".bmp",
-        ];
-        const isImage = imageExtensions.some((ext) => filePath.endsWith(ext));
-
-        if (isImage) {
-          const fileContent = yield* fs.readFile(filePath);
-          return {
-            type: "image" as const,
-            path: relativePath,
-            content: fileContent,
-          };
-        } else {
-          const fileContent = yield* fs.readFileString(filePath);
-          return {
-            type: "text" as const,
-            filePath,
-            fileContent,
-          };
-        }
-      });
-    }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
-
-    const textFiles = allFiles
-      .filter((f) => f.type === "text")
-      .map((f) => ({
-        filePath: f.filePath,
-        fileContent: f.fileContent,
-      }));
-
-    const imageFiles = allFiles
-      .filter((f) => f.type === "image")
-      .map((f) => ({
-        path: f.path,
-        content: f.content,
-      }));
-
-    let transcript = video.clips
-      .map((clip) => clip.text)
-      .join(" ")
-      .trim();
-
-    if (transcript.length === 0) {
-      const transcriptFile = yield* fs.readFileString(
-        getVideoTranscriptPath(video.originalFootagePath)
-      );
-      const transcriptFileData = yield* Schema.decodeUnknown(transcriptSchema)(
-        transcriptFile
-      );
-      transcript = transcriptFileData.clips
-        .map((clip) => clip.segments.map((segment) => segment.text).join(" "))
-        .join(" ");
-    }
-
-    if (transcript.length === 0) {
-      throw new CouldNotFindTranscript({
-        originalFootagePath: video.originalFootagePath,
-      });
-    }
-
-    const modelMessages = convertToModelMessages(messages);
-
-    if (imageFiles.length > 0) {
-      modelMessages.unshift({
-        role: "user",
-        content: imageFiles.flatMap((file) => {
-          return [
-            {
-              type: "text",
-              text: `The following image is at "${file.path}":`,
-            },
-            {
-              type: "image",
-              image: file.content,
-            },
-          ];
-        }),
-      });
-    }
-
-    const codeContext = textFiles.map((file) => ({
-      path: file.filePath,
-      content: file.fileContent,
-    }));
-
-    const imagePaths = imageFiles.map((file) => file.path);
-
-    const systemPrompt = (() => {
-      switch (mode) {
-        case "project":
-          return generateStepsToCompleteForProjectPrompt({
-            code: codeContext,
-            transcript,
-            images: imagePaths,
-          });
-        case "skill-building":
-          return generateStepsToCompleteForSkillBuildingProblemPrompt({
-            code: codeContext,
-            transcript,
-            images: imagePaths,
-          });
-        case "style-guide-skill-building":
-          return refineSkillBuildingWithStyleGuidePrompt({
-            code: codeContext,
-            transcript,
-            images: imagePaths,
-          });
-        case "article":
-        default:
-          return generateArticlePrompt({
-            code: codeContext,
-            transcript,
-            images: imagePaths,
-          });
-      }
-    })();
-
-    const result = streamText({
-      model: anthropic(model),
+    const result = agent.stream({
       messages: modelMessages,
-      system: systemPrompt,
-      // experimental_transform: xmlTagTransform({
-      //   name: "code-snippet",
-      //   attributes: ["path", "startText", "endText"],
-      //   transform: ({ attributes }) =>
-      //     parseCodeSnippet({
-      //       cwd: lessonPath,
-      //       path: attributes.path,
-      //       startText: attributes.startText,
-      //       endText: attributes.endText,
-      //     }),
-      // }),
     });
 
     return result.toUIMessageStreamResponse();
