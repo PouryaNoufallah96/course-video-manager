@@ -17,6 +17,7 @@ import {
 } from "components/ui/kibo-ui/ai/input";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { AIMessage, AIMessageContent } from "components/ui/kibo-ui/ai/message";
 import { AIResponse } from "components/ui/kibo-ui/ai/response";
 import {
@@ -24,7 +25,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import {
   Tooltip,
@@ -148,7 +148,7 @@ const Video = (props: { src: string }) => {
   return <video src={props.src} className="w-full" controls ref={ref} />;
 };
 
-type Mode = "article" | "project" | "skill-building";
+type Mode = "article" | "project" | "skill-building" | "style-guide-skill-building";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -205,7 +205,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
   };
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: `/videos/${videoId}/completions`,
     }),
@@ -301,6 +301,16 @@ export function InnerComponent(props: Route.ComponentProps) {
         <div className="w-3/4 flex flex-col">
           <AIConversation className="flex-1 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
             <AIConversationContent className="max-w-2xl mx-auto">
+              {error && (
+                <Card className="p-4 mb-4 border-red-500 bg-red-50 dark:bg-red-950">
+                  <div className="flex items-start gap-2">
+                    <div className="text-red-500 font-semibold">Error:</div>
+                    <div className="text-red-700 dark:text-red-300 flex-1">
+                      {error.message}
+                    </div>
+                  </div>
+                </Card>
+              )}
               {messages.map((message) => {
                 if (message.role === "system") {
                   return null;
@@ -339,7 +349,9 @@ export function InnerComponent(props: Route.ComponentProps) {
                       ? "Article"
                       : mode === "project"
                       ? "Project Steps"
-                      : "Skill Building Steps"}
+                      : mode === "skill-building"
+                      ? "Skill Building Steps"
+                      : "Style Guide Pass - Skill Building"}
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="article">
@@ -363,6 +375,14 @@ export function InnerComponent(props: Route.ComponentProps) {
                         <div>Steps - Skill Building</div>
                         <div className="text-xs text-muted-foreground">
                           Write steps for skill building problem
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="style-guide-skill-building">
+                      <div>
+                        <div>Style Guide Pass - Skill Building</div>
+                        <div className="text-xs text-muted-foreground">
+                          Refine existing skill-building steps with style guide
                         </div>
                       </div>
                     </SelectItem>

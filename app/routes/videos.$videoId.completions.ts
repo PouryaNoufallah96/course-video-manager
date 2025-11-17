@@ -2,6 +2,7 @@ import { getVideoTranscriptPath } from "@/lib/get-video";
 import { generateArticlePrompt } from "@/prompts/generate-article";
 import { generateStepsToCompleteForProjectPrompt } from "@/prompts/generate-steps-to-complete-for-project";
 import { generateStepsToCompleteForSkillBuildingProblemPrompt } from "@/prompts/generate-steps-to-complete-for-skill-building-problem";
+import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-building-with-style-guide";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -223,6 +224,12 @@ export const action = async (args: Route.ActionArgs) => {
           });
         case "skill-building":
           return generateStepsToCompleteForSkillBuildingProblemPrompt({
+            code: codeContext,
+            transcript,
+            images: imagePaths,
+          });
+        case "style-guide-skill-building":
+          return refineSkillBuildingWithStyleGuidePrompt({
             code: codeContext,
             transcript,
             images: imagePaths,
