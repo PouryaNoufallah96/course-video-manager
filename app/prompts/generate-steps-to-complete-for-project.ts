@@ -57,6 +57,8 @@ ${PROJECT_STEPS_SAMPLE}
 - Wrap solution code in <Spoiler> tags
 - Use checkbox format: - [ ] description
 - Be extremely concise
+- Include brief (1-2 sentence) explanations of WHY changes are made when reasoning isn't obvious from context
+- Annotate code changes with comments (ADDED, CHANGED, DELETED) on specific lines to describe syntactic changes (e.g., "ADDED: Sort by score", "CHANGED: Map from emailsWithScores instead of allEmails")
 - Focus on the diff to understand what changed
 - Use copious code samples
 </rules>

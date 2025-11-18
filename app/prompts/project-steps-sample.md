@@ -16,14 +16,15 @@ pnpm add okapibm25
 
 #### Creating the `searchWithBM25` function
 
-- [ ] Next, create a new file called `search.ts` in the `src/app` directory, with a `searchWithBM25` function that takes a list of keywords and a list of emails.
+- [ ] Create a new file called `search.ts` in the `src/app` directory, with a `searchWithBM25` function that takes a list of keywords and a list of emails. This keeps our search logic organized in one place.
 
 <Spoiler>
 
 ```typescript
 // src/app/search.ts
+// ADDED: New function to search emails using BM25 algorithm
 export async function searchWithBM25(keywords: string[], emails: Email[]) {
-  // Combine subject + body for richer text corpus
+  // Combine subject + body so BM25 searches across both fields
   const corpus = emails.map((email) => `${email.subject} ${email.body}`);
 
   // BM25 returns score array matching corpus order
@@ -40,23 +41,21 @@ export async function searchWithBM25(keywords: string[], emails: Email[]) {
 
 #### Colocating the Search Functionality
 
-- [ ] Let's take the existing `loadEmails` function, and the `Email` interface, and move them to the `search.ts` file.
+- [ ] Move the existing `loadEmails` function and `Email` interface to the `search.ts` file to keep all search-related code together.
 
 <Spoiler>
 
 ```typescript
 // src/app/search.ts
 
+// ADDED: Moved from search page for colocation
 export async function loadEmails(): Promise<Email[]> {
-  const filePath = path.join(
-    process.cwd(),
-    'data',
-    'emails.json',
-  );
-  const fileContent = await fs.readFile(filePath, 'utf-8');
+  const filePath = path.join(process.cwd(), "data", "emails.json");
+  const fileContent = await fs.readFile(filePath, "utf-8");
   return JSON.parse(fileContent);
 }
 
+// ADDED: Moved from search page for colocation
 interface Email {
   id: string;
   threadId: string;
@@ -83,19 +82,21 @@ interface Email {
 ```typescript
 // src/app/search/page.tsx
 
-import { loadEmails, searchWithBM25 } from '../search';
+// ADDED: Import new search functions
+import { loadEmails, searchWithBM25 } from "../search";
 ```
 
-- [ ] Next, let's update the search page to use the new `searchWithBM25` function. We'll need to call the function with the query and the list of emails.
+- [ ] Update the search page to use `searchWithBM25` instead of the old search logic. This switches to BM25 ranking algorithm.
 
 <Spoiler>
 
 ```typescript
 // src/app/search/page.tsx
 
+// CHANGED: Use BM25 search instead of previous filtering logic
 const emailsWithScores = await searchWithBM25(
-  query.toLowerCase().split(' '),
-  allEmails,
+  query.toLowerCase().split(" "),
+  allEmails
 );
 ```
 
@@ -106,17 +107,16 @@ const emailsWithScores = await searchWithBM25(
 <Spoiler>
 
 ```typescript
-const transformedEmails = emailsWithScores.map(
-  ({ email, score }) => ({
-    id: email.id,
-    from: email.from,
-    subject: email.subject,
-    preview: email.body.substring(0, 100) + '...',
-    content: email.body,
-    date: email.timestamp,
-    score: score,
-  }),
-);
+// CHANGED: Map from emailsWithScores instead of allEmails
+const transformedEmails = emailsWithScores.map(({ email, score }) => ({
+  id: email.id,
+  from: email.from,
+  subject: email.subject,
+  preview: email.body.substring(0, 100) + "...",
+  content: email.body,
+  date: email.timestamp,
+  score: score, // ADDED: Include BM25 score
+}));
 ```
 
 </Spoiler>
@@ -131,22 +131,23 @@ const transformedEmails = emailsWithScores
     id: email.id,
     from: email.from,
     subject: email.subject,
-    preview: email.body.substring(0, 100) + '...',
+    preview: email.body.substring(0, 100) + "...",
     content: email.body,
     date: email.timestamp,
     score: score,
   }))
-  // Sorted by score, descending
+  // CHANGED: Sort by BM25 score descending instead of date
   .sort((a, b) => b.score - a.score);
 ```
 
 </Spoiler>
 
-- [ ] Finally, we'll need to remove the existing filtering, and just filter on the score:
+- [ ] Remove the existing filtering and filter on score instead. This excludes emails with no relevance to the query.
 
 <Spoiler>
 
 ```typescript
+// CHANGED: Filter by BM25 score instead of string matching
 const filteredEmails = query
   ? transformedEmails.filter((email) => email.score > 0)
   : transformedEmails;
