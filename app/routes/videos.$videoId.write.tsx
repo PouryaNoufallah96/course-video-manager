@@ -32,13 +32,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Array as EffectArray, Effect } from "effect";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDown,
   CopyIcon,
   SaveIcon,
   CheckIcon,
+  PlusIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useFetcher } from "react-router";
@@ -256,9 +264,9 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
   };
 
-  const writeToReadme = () => {
+  const writeToReadme = (mode: "write" | "append") => {
     writeToReadmeFetcher.submit(
-      { lessonId, content: lastAssistantMessageText },
+      { lessonId, content: lastAssistantMessageText, mode },
       {
         method: "POST",
         action: "/api/write-readme",
@@ -455,37 +463,68 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </>
                   )}
                 </Button>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={writeToReadme}
-                          disabled={
-                            !hasExplainerOrProblem ||
-                            status === "streaming" ||
-                            writeToReadmeFetcher.state === "submitting" ||
-                            writeToReadmeFetcher.state === "loading" ||
-                            !lastAssistantMessageText
-                          }
-                        >
-                          <SaveIcon className="h-4 w-4 mr-1" />
-                          {writeToReadmeFetcher.state === "submitting" ||
-                          writeToReadmeFetcher.state === "loading"
-                            ? "Writing..."
-                            : "Readme"}
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {!hasExplainerOrProblem && (
-                      <TooltipContent>
-                        <p>No explainer or problem folder</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
+                <DropdownMenu>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={
+                                !hasExplainerOrProblem ||
+                                status === "streaming" ||
+                                writeToReadmeFetcher.state === "submitting" ||
+                                writeToReadmeFetcher.state === "loading" ||
+                                !lastAssistantMessageText
+                              }
+                            >
+                              {writeToReadmeFetcher.state === "submitting" ||
+                              writeToReadmeFetcher.state === "loading" ? (
+                                <>
+                                  <SaveIcon className="h-4 w-4 mr-1" />
+                                  Writing...
+                                </>
+                              ) : (
+                                <>
+                                  <SaveIcon className="h-4 w-4 mr-1" />
+                                  Readme
+                                  <ChevronDown className="h-4 w-4 ml-1" />
+                                </>
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </span>
+                      </TooltipTrigger>
+                      {!hasExplainerOrProblem && (
+                        <TooltipContent>
+                          <p>No explainer or problem folder</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => writeToReadme("write")}>
+                      <SaveIcon className="h-4 w-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Write to README</span>
+                        <span className="text-xs text-muted-foreground">
+                          Replace existing content
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => writeToReadme("append")}>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Append to README</span>
+                        <span className="text-xs text-muted-foreground">
+                          Add to end of existing content
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <AIInput onSubmit={handleSubmit}>
                 <AIInputTextarea
