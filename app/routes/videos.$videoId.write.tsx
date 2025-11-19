@@ -160,8 +160,17 @@ type Mode =
   | "article"
   | "project"
   | "skill-building"
-  | "style-guide-skill-building";
+  | "style-guide-skill-building"
+  | "style-guide-project";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
+
+const modeToLabel = {
+  article: "Article",
+  project: "Project Steps",
+  "skill-building": "Skill Building Steps",
+  "style-guide-skill-building": "Style Guide Pass - Skill Building",
+  "style-guide-project": "Style Guide Pass - Project",
+};
 
 const MODE_STORAGE_KEY = "article-writer-mode";
 const MODEL_STORAGE_KEY = "article-writer-model";
@@ -375,15 +384,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                   value={mode}
                   onValueChange={(value) => handleModeChange(value as Mode)}
                 >
-                  <SelectTrigger>
-                    {mode === "article"
-                      ? "Article"
-                      : mode === "project"
-                      ? "Project Steps"
-                      : mode === "skill-building"
-                      ? "Skill Building Steps"
-                      : "Style Guide Pass - Skill Building"}
-                  </SelectTrigger>
+                  <SelectTrigger>{modeToLabel[mode]}</SelectTrigger>
                   <SelectContent>
                     <SelectItem value="article">
                       <div>
@@ -414,6 +415,14 @@ export function InnerComponent(props: Route.ComponentProps) {
                         <div>Style Guide Pass - Skill Building</div>
                         <div className="text-xs text-muted-foreground">
                           Refine existing skill-building steps with style guide
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="style-guide-project">
+                      <div>
+                        <div>Style Guide Pass - Project</div>
+                        <div className="text-xs text-muted-foreground">
+                          Refine existing project steps with style guide
                         </div>
                       </div>
                     </SelectItem>

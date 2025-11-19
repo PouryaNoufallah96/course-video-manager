@@ -11,6 +11,7 @@ Let's start by adding BM25 search to the search page.
 - [ ] Add the `okapibm25` package to the project
 
 ```bash
+# Terminal
 pnpm add okapibm25
 ```
 
@@ -160,6 +161,7 @@ const filteredEmails = query
 - [ ] You should be able to test the search page by running the development server and searching for a query.
 
 ```bash
+# Terminal
 pnpm dev
 ```
 

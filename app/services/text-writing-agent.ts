@@ -2,6 +2,7 @@ import { generateArticlePrompt } from "@/prompts/generate-article";
 import { generateStepsToCompleteForProjectPrompt } from "@/prompts/generate-steps-to-complete-for-project";
 import { generateStepsToCompleteForSkillBuildingProblemPrompt } from "@/prompts/generate-steps-to-complete-for-skill-building-problem";
 import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-building-with-style-guide";
+import { refineProjectWithStyleGuidePrompt } from "@/prompts/refine-project-with-style-guide";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -20,6 +21,7 @@ export type TextWritingAgentMode =
   | "article"
   | "skill-building"
   | "style-guide-skill-building"
+  | "style-guide-project"
   | "project";
 
 export type TextWritingAgentCodeFile = {
@@ -55,6 +57,12 @@ export const createTextWritingAgent = (props: {
         });
       case "style-guide-skill-building":
         return refineSkillBuildingWithStyleGuidePrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "style-guide-project":
+        return refineProjectWithStyleGuidePrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),

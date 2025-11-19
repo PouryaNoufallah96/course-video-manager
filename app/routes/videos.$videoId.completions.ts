@@ -16,7 +16,8 @@ const chatSchema = Schema.Struct({
     Schema.Literal("article"),
     Schema.Literal("project"),
     Schema.Literal("skill-building"),
-    Schema.Literal("style-guide-skill-building")
+    Schema.Literal("style-guide-skill-building"),
+    Schema.Literal("style-guide-project")
   ),
   model: Schema.String,
 });

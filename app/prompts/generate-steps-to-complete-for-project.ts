@@ -49,6 +49,7 @@ ${PROJECT_STEPS_SAMPLE}
 
 <rules>
 - Extract the title from the commit message for the H2 heading
+- H2 titles MUST use continuous verb form (present participle): "Adding" not "Added", "Removing" not "Removed", "Implementing" not "Implemented" - titles describe ongoing work, not past actions
 - Add markdown comment <!-- VIDEO --> immediately after H2
 - Start directly with H2 (no intro section)
 - Use H3 for "Steps To Complete"
@@ -61,6 +62,15 @@ ${PROJECT_STEPS_SAMPLE}
 - Annotate code changes with comments (ADDED, CHANGED, DELETED) on specific lines to describe syntactic changes (e.g., "ADDED: Sort by score", "CHANGED: Map from emailsWithScores instead of allEmails")
 - Focus on the diff to understand what changed
 - Use copious code samples
+- Each code sample MUST have a comment at the top indicating the file path being changed
+
+Example:
+\`\`\`typescript
+// src/app/search.ts
+export function searchWithBM25() {
+  // ...
+}
+\`\`\`
 </rules>
 
 <the-ask>
