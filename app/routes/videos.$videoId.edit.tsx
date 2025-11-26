@@ -115,6 +115,18 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       onClipsRemoved={(clipIds) => {
         dispatch({ type: "clips-deleted", clipIds: clipIds });
       }}
+      onClipsRetranscribe={(clipIds) => {
+        const databaseIds = clipIds
+          .map((frontendId) => {
+            const clip = clipState.clips.find(
+              (c) => c.frontendId === frontendId
+            );
+            return clip?.type === "on-database" ? clip.databaseId : null;
+          })
+          .filter((id): id is string => id !== null);
+
+        dispatch({ type: "transcribe-clips", clipIds: databaseIds });
+      }}
       obsConnectorState={obsConnector.state}
       clips={clipState.clips.filter((clip) => {
         if (clip.type === "optimistically-added" && clip.shouldArchive) {

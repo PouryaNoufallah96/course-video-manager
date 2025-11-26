@@ -17,10 +17,15 @@ export namespace videoStateReducer {
     showLastFrameOfVideo: boolean;
   }
 
-  export type Effect = {
-    type: "archive-clips";
-    clipIds: FrontendId[];
-  };
+  export type Effect =
+    | {
+        type: "archive-clips";
+        clipIds: FrontendId[];
+      }
+    | {
+        type: "retranscribe-clips";
+        clipIds: FrontendId[];
+      };
 
   export type Action =
     | {
@@ -80,6 +85,14 @@ export namespace videoStateReducer {
       }
     | {
         type: "toggle-last-frame-of-video";
+      }
+    | {
+        type: "delete-clip";
+        clipId: FrontendId;
+      }
+    | {
+        type: "retranscribe-clip";
+        clipId: FrontendId;
       };
 }
 
@@ -421,6 +434,36 @@ export const makeVideoEditorReducer =
         } else {
           return state;
         }
+      }
+      case "delete-clip": {
+        exec({
+          type: "archive-clips",
+          clipIds: [action.clipId],
+        });
+
+        const deletedClipIndex = clipIds.findIndex(
+          (id) => id === action.clipId
+        );
+        const nextClip =
+          clipIds[deletedClipIndex + 1] ??
+          clipIds[deletedClipIndex - 1] ??
+          clipIds[0];
+
+        return preloadSelectedClips(clipIds, {
+          ...state,
+          selectedClipsSet: new Set(
+            [nextClip].filter((id) => id !== undefined)
+          ),
+          runningState:
+            state.currentClipId === action.clipId ? "paused" : state.runningState,
+        });
+      }
+      case "retranscribe-clip": {
+        exec({
+          type: "retranscribe-clips",
+          clipIds: [action.clipId],
+        });
+        return state;
       }
     }
     action satisfies never;

@@ -8,6 +8,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -40,6 +46,8 @@ import {
   MonitorIcon,
   PencilIcon,
   Plus,
+  RefreshCwIcon,
+  Trash2Icon,
   UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -79,6 +87,7 @@ export const VideoEditor = (props: {
   speechDetectorState: FrontendSpeechDetectorState;
   clipIdsBeingTranscribed: Set<FrontendId>;
   onClipsRemoved: (clipIds: FrontendId[]) => void;
+  onClipsRetranscribe: (clipIds: FrontendId[]) => void;
   hasExplainerFolder: boolean;
   videoCount: number;
 }) => {
@@ -104,6 +113,9 @@ export const VideoEditor = (props: {
     {
       "archive-clips": (_state, effect, _dispatch) => {
         props.onClipsRemoved(effect.clipIds);
+      },
+      "retranscribe-clips": (_state, effect, _dispatch) => {
+        props.onClipsRetranscribe(effect.clipIds);
       },
     }
   );
@@ -613,108 +625,139 @@ export const VideoEditor = (props: {
               (clip.profile === "TikTok" || clip.profile === "Portrait");
 
             return (
-              <button
-                key={clip.frontendId}
-                className={cn(
-                  "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
-                  state.selectedClipsSet.has(clip.frontendId) &&
-                    "outline-2 outline-gray-200 bg-gray-700",
-                  clip.frontendId === currentClipId && "bg-blue-900"
-                )}
-                onClick={(e) => {
-                  dispatch({
-                    type: "click-clip",
-                    clipId: clip.frontendId,
-                    ctrlKey: e.ctrlKey,
-                    shiftKey: e.shiftKey,
-                  });
-                }}
-              >
-                {/* Thumbnail image */}
-                {clip.type === "on-database" ? (
-                  <div className="flex-shrink-0 relative">
-                    <img
-                      src={`/clips/${clip.databaseId}/first-frame`}
-                      alt="First frame"
-                      className={cn(
-                        "rounded object-cover h-full object-center",
-                        isPortrait
-                          ? "w-24 aspect-[9/16]"
-                          : "w-32 aspect-[16/9]",
-                        props.clipIdsBeingTranscribed.has(clip.frontendId) &&
-                          "opacity-50 grayscale"
-                      )}
-                    />
-                    {/* Loading spinner overlay */}
-                    {props.clipIdsBeingTranscribed.has(clip.frontendId) && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-white" />
-                      </div>
+              <ContextMenu key={clip.frontendId}>
+                <ContextMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
+                      state.selectedClipsSet.has(clip.frontendId) &&
+                        "outline-2 outline-gray-200 bg-gray-700",
+                      clip.frontendId === currentClipId && "bg-blue-900"
                     )}
-                    {/* Timecode overlay on image */}
-                    <div
-                      className={cn(
-                        "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
-                        clip.frontendId === currentClipId && "text-blue-100",
-                        state.selectedClipsSet.has(clip.frontendId) &&
-                          "text-white"
-                      )}
-                    >
-                      {clip.timecode}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                  </div>
-                )}
-
-                {/* Content area */}
-                <div className="flex-1 flex flex-col min-w-0 relative p-3">
-                  {/* Progress bar overlay on text */}
-                  {clip.frontendId === currentClipId && (
-                    <div
-                      className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
-                      style={{
-                        width: `${percentComplete * 100}%`,
-                      }}
-                    />
-                  )}
-
-                  {/* Transcript text */}
-                  <div className="z-10 relative text-white text-sm leading-6">
-                    {props.clipIdsBeingTranscribed.has(clip.frontendId) ? (
-                      clip.type === "on-database" &&
-                      !clip.transcribedAt &&
-                      !clip.text && (
-                        <span className="text-gray-400">Transcribing...</span>
-                      )
-                    ) : clip.type === "on-database" ? (
-                      <>
-                        {clip.nextLevenshtein >
-                          DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
-                          <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
-                            <AlertTriangleIcon className="w-4 h-4 mr-2" />
-                            {clip.nextLevenshtein.toFixed(0)}%
-                          </span>
-                        )}
-                        <span
+                    onClick={(e) => {
+                      dispatch({
+                        type: "click-clip",
+                        clipId: clip.frontendId,
+                        ctrlKey: e.ctrlKey,
+                        shiftKey: e.shiftKey,
+                      });
+                    }}
+                  >
+                    {/* Thumbnail image */}
+                    {clip.type === "on-database" ? (
+                      <div className="flex-shrink-0 relative">
+                        <img
+                          src={`/clips/${clip.databaseId}/first-frame`}
+                          alt="First frame"
                           className={cn(
-                            "text-gray-100",
-                            clip.frontendId === currentClipId && "text-white"
+                            "rounded object-cover h-full object-center",
+                            isPortrait
+                              ? "w-24 aspect-[9/16]"
+                              : "w-32 aspect-[16/9]",
+                            props.clipIdsBeingTranscribed.has(
+                              clip.frontendId
+                            ) && "opacity-50 grayscale"
+                          )}
+                        />
+                        {/* Loading spinner overlay */}
+                        {props.clipIdsBeingTranscribed.has(clip.frontendId) && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 animate-spin text-white" />
+                          </div>
+                        )}
+                        {/* Timecode overlay on image */}
+                        <div
+                          className={cn(
+                            "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
+                            clip.frontendId === currentClipId &&
+                              "text-blue-100",
+                            state.selectedClipsSet.has(clip.frontendId) &&
+                              "text-white"
                           )}
                         >
-                          {clip.text}
-                        </span>
-                      </>
+                          {clip.timecode}
+                        </div>
+                      </div>
                     ) : (
-                      <span className="text-gray-400">
-                        Detecting silence...
-                      </span>
+                      <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                      </div>
                     )}
-                  </div>
-                </div>
-              </button>
+
+                    {/* Content area */}
+                    <div className="flex-1 flex flex-col min-w-0 relative p-3">
+                      {/* Progress bar overlay on text */}
+                      {clip.frontendId === currentClipId && (
+                        <div
+                          className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
+                          style={{
+                            width: `${percentComplete * 100}%`,
+                          }}
+                        />
+                      )}
+
+                      {/* Transcript text */}
+                      <div className="z-10 relative text-white text-sm leading-6">
+                        {props.clipIdsBeingTranscribed.has(clip.frontendId) ? (
+                          clip.type === "on-database" &&
+                          !clip.transcribedAt &&
+                          !clip.text && (
+                            <span className="text-gray-400">
+                              Transcribing...
+                            </span>
+                          )
+                        ) : clip.type === "on-database" ? (
+                          <>
+                            {clip.nextLevenshtein >
+                              DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
+                              <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
+                                <AlertTriangleIcon className="w-4 h-4 mr-2" />
+                                {clip.nextLevenshtein.toFixed(0)}%
+                              </span>
+                            )}
+                            <span
+                              className={cn(
+                                "text-gray-100",
+                                clip.frontendId === currentClipId &&
+                                  "text-white"
+                              )}
+                            >
+                              {clip.text}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">
+                            Detecting silence...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    disabled={clip.type !== "on-database"}
+                    onSelect={() => {
+                      dispatch({
+                        type: "retranscribe-clip",
+                        clipId: clip.frontendId,
+                      });
+                    }}
+                  >
+                    <RefreshCwIcon />
+                    Re-transcribe
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    variant="destructive"
+                    onSelect={() => {
+                      dispatch({ type: "delete-clip", clipId: clip.frontendId });
+                    }}
+                  >
+                    <Trash2Icon />
+                    Delete
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             );
           })}
         </div>
