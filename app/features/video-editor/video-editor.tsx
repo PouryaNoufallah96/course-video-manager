@@ -68,6 +68,7 @@ import {
   makeVideoEditorReducer,
   type videoStateReducer,
 } from "./video-state-reducer";
+import { INSERTION_POINT_ID } from "./constants";
 
 function calculateTextSimilarity(str1: string, str2: string): number {
   const distance = levenshtein(str1, str2);
@@ -820,7 +821,10 @@ export const VideoEditor = (props: {
 
 export const InsertionPointIndicator = () => {
   return (
-    <div className="flex items-center justify-center gap-4">
+    <div
+      id={INSERTION_POINT_ID}
+      className="flex items-center justify-center gap-4"
+    >
       <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
       <div className="flex items-center justify-center">
         <PlusIcon className="size-5 text-blue-200" />

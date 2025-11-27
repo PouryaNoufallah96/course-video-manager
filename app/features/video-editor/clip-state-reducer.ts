@@ -114,7 +114,7 @@ export namespace clipStateReducer {
         clipIds: DatabaseId[];
       }
     | {
-        type: "scroll-to-bottom";
+        type: "scroll-to-insertion-point";
       }
     | {
         type: "update-clips";
@@ -175,9 +175,8 @@ export const clipStateReducer: EffectReducer<
         };
       }
 
-      // TODO: Handle scrolling to the new clip
       exec({
-        type: "scroll-to-bottom",
+        type: "scroll-to-insertion-point",
       });
 
       return {
@@ -282,7 +281,7 @@ export const clipStateReducer: EffectReducer<
 
       if (shouldScrollToBottom) {
         exec({
-          type: "scroll-to-bottom",
+          type: "scroll-to-insertion-point",
         });
       }
 

@@ -133,7 +133,7 @@ describe("clipStateReducer", () => {
         type: "optimistically-added",
       });
       expect(reportEffect1).toHaveBeenCalledWith({
-        type: "scroll-to-bottom",
+        type: "scroll-to-insertion-point",
       });
 
       const reportEffect2 = createMockExec();
@@ -153,7 +153,7 @@ describe("clipStateReducer", () => {
         id: "123",
       });
       expect(reportEffect2).not.toHaveBeenCalledWith({
-        type: "scroll-to-bottom",
+        type: "scroll-to-insertion-point",
       });
       expect(reportEffect2).toHaveBeenCalledWith({
         type: "transcribe-clips",
@@ -243,7 +243,7 @@ describe("clipStateReducer", () => {
 
       expect(stateWithASingleDatabaseClip.clips.length).toBe(1);
       expect(reportEffect).toHaveBeenCalledWith({
-        type: "scroll-to-bottom",
+        type: "scroll-to-insertion-point",
       });
     });
   });

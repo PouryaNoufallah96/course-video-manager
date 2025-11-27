@@ -20,6 +20,7 @@ import { Effect } from "effect";
 import { useEffectReducer } from "use-effect-reducer";
 import type { Route } from "./+types/videos.$videoId.edit";
 import { useMemo } from "react";
+import { INSERTION_POINT_ID } from "@/features/video-editor/constants";
 
 // Core data model - flat array of clips
 
@@ -91,9 +92,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             });
           });
       },
-      "scroll-to-bottom": () => {
+      "scroll-to-insertion-point": () => {
         window.scrollTo({
-          top: document.body.scrollHeight,
+          top:
+            (document.getElementById(INSERTION_POINT_ID)?.offsetTop ?? 0) - 200,
           behavior: "smooth",
         });
       },
