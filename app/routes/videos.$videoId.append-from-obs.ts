@@ -4,10 +4,24 @@ import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { Console, Effect, Schema } from "effect";
 import type { Route } from "./+types/videos.$videoId.append-from-obs";
+import type { InsertionPoint } from "@/features/video-editor/clip-state-reducer";
+
+const InsertionPointSchema = Schema.Union(
+  Schema.Struct({
+    type: Schema.Literal("start"),
+  }),
+  Schema.Struct({
+    type: Schema.Literal("after-clip"),
+    clipId: Schema.String,
+  }),
+  Schema.Struct({
+    type: Schema.Literal("end"),
+  })
+);
 
 const appendFromOBSSchema = Schema.Struct({
   filePath: Schema.String.pipe(Schema.optional),
-  insertAfterId: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  insertionPoint: InsertionPointSchema,
 });
 
 function windowsToWSL(windowsPath: string) {
@@ -81,7 +95,7 @@ export const action = async (args: Route.ActionArgs) => {
 
     const clips = yield* db.appendClips(
       videoId,
-      result.insertAfterId ?? null,
+      result.insertionPoint as InsertionPoint,
       clipsToAdd
     );
 

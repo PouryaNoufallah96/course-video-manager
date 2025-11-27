@@ -1,13 +1,12 @@
 import type { DB } from "@/db/schema";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useCallback, useEffect, useState } from "react";
+import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
+import type { InsertionPoint } from "./clip-state-reducer";
 import {
   useSpeechDetector,
   useWatchForSpeechDetected,
 } from "./use-speech-detector";
-import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
-import type { DatabaseId } from "./clip-state-reducer";
-import { INSERTION_POINT_START } from "./constants";
 
 export type OBSConnectionState =
   | {
@@ -138,7 +137,10 @@ export const useConnectToOBSVirtualCamera = (props: {
             setMediaStream(obsStream);
             break;
           } catch (e) {
-            console.error("Error connecting to OBS Virtual Camera, retrying...", e);
+            console.error(
+              "Error connecting to OBS Virtual Camera, retrying...",
+              e
+            );
             await new Promise((resolve) => setTimeout(resolve, 250));
           }
         }
@@ -165,7 +167,7 @@ export const useConnectToOBSVirtualCamera = (props: {
 
 export const useRunOBSImportRepeatedly = (props: {
   videoId: string;
-  insertionPointDatabaseId: DatabaseId | null | typeof INSERTION_POINT_START;
+  insertionPoint: InsertionPoint;
   state:
     | {
         type: "should-run";
@@ -188,7 +190,7 @@ export const useRunOBSImportRepeatedly = (props: {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               filePath,
-              insertAfterId: props.insertionPointDatabaseId,
+              insertionPoint: props.insertionPoint,
             }),
           }).then(async (res) => {
             if (res.ok) {
@@ -205,7 +207,7 @@ export const useRunOBSImportRepeatedly = (props: {
         unmounted = true;
       };
     }
-  }, [JSON.stringify(props.state), props.insertionPointDatabaseId]);
+  }, [JSON.stringify(props.state), props.insertionPoint]);
 };
 
 export namespace useOBSConnector {
@@ -379,7 +381,7 @@ const obsConnectorReducer: EffectReducer<
 
 export const useOBSConnector = (props: {
   videoId: string;
-  insertionPointDatabaseId: DatabaseId | null | typeof INSERTION_POINT_START;
+  insertionPoint: InsertionPoint;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
   onNewClipOptimisticallyAdded: (opts: {
     scene: string;
@@ -497,7 +499,7 @@ export const useOBSConnector = (props: {
 
   useRunOBSImportRepeatedly({
     videoId: props.videoId,
-    insertionPointDatabaseId: props.insertionPointDatabaseId,
+    insertionPoint: props.insertionPoint,
     state:
       state.type === "obs-recording" && state.hasSpeechBeenDetected
         ? {

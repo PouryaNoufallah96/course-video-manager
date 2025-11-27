@@ -55,13 +55,12 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           type: "on-database",
           frontendId: createFrontendId(),
           databaseId: clip.id,
+          insertionOrder: null,
         })
       ),
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
-      insertionPointClipId: null,
-      insertionPointMode: "insert-after",
-      lastInsertedClipId: null,
-      insertionPointDatabaseId: null,
+      insertionOrder: 0,
+      insertionPoint: { type: "end" },
     },
     {
       "archive-clips": (_state, effect, _dispatch) => {
@@ -107,7 +106,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
 
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
-    insertionPointDatabaseId: clipState.insertionPointDatabaseId,
+    insertionPoint: clipState.insertionPoint,
     onNewDatabaseClips: (databaseClips) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
@@ -147,7 +146,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             });
           });
       }}
-      insertionPointClipId={clipState.insertionPointClipId}
+      insertionPoint={clipState.insertionPoint}
       onSetInsertionPoint={(mode, clipId) => {
         if (mode === "after") {
           dispatch({ type: "set-insertion-point-after", clipId });

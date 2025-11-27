@@ -1,9 +1,9 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
-import { INSERTION_POINT_START } from "@/features/video-editor/constants";
 import { generateNKeysBetween } from "fractional-indexing";
 import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
+import type { InsertionPoint } from "@/features/video-editor/clip-state-reducer";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
   type: string;
@@ -293,7 +293,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getLessonWithHierarchyById,
       appendClips: Effect.fn("addClips")(function* (
         videoId: string,
-        insertAfterId: string | null,
+        insertionPoint: InsertionPoint,
         inputClips: readonly {
           inputVideo: string;
           startTime: number;
@@ -303,7 +303,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         let afterOrder: string | null | undefined = null;
         let beforeOrder: string | null | undefined = null;
 
-        if (insertAfterId === INSERTION_POINT_START) {
+        if (insertionPoint.type === "start") {
           // Insert before all clips
           afterOrder = null;
           const firstClip = yield* makeDbCall(() =>
@@ -313,11 +313,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             })
           );
           beforeOrder = firstClip?.order;
-        } else if (insertAfterId) {
+        } else if (insertionPoint.type === "after-clip") {
           // Insert after specific clip
           const insertAfterClip = yield* makeDbCall(() =>
             db.query.clips.findFirst({
-              where: eq(clips.id, insertAfterId),
+              where: eq(clips.id, insertionPoint.clipId),
             })
           );
           afterOrder = insertAfterClip?.order;
