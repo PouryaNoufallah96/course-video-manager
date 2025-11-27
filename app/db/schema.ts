@@ -2,12 +2,23 @@ import type { DatabaseId } from "@/features/video-editor/clip-state-reducer";
 import { relations, sql, type InferSelectModel } from "drizzle-orm";
 import {
   boolean,
+  customType,
   doublePrecision,
   pgTableCreator,
   text,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+
+const varcharCollateC = customType<{
+  data: string;
+  notNull: boolean;
+  default: boolean;
+}>({
+  dataType() {
+    return "varchar(255) COLLATE \"C\"";
+  },
+});
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -101,7 +112,7 @@ export const clips = createTable("clip", {
     mode: "date",
     withTimezone: true,
   }),
-  order: varchar("order", { length: 255 }).notNull(),
+  order: varcharCollateC("order").notNull(),
   archived: boolean("archived").notNull().default(false),
   text: text("text").notNull(),
   transcribedAt: timestamp("transcribed_at", {

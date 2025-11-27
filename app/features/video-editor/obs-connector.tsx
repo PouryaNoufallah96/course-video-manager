@@ -2,11 +2,15 @@ import type { DB } from "@/db/schema";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useCallback, useEffect, useState } from "react";
 import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
-import type { InsertionPoint } from "./clip-state-reducer";
+import type {
+  DatabaseInsertionPoint,
+  FrontendInsertionPoint,
+} from "./clip-state-reducer";
 import {
   useSpeechDetector,
   useWatchForSpeechDetected,
 } from "./use-speech-detector";
+import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 
 export type OBSConnectionState =
   | {
@@ -167,7 +171,7 @@ export const useConnectToOBSVirtualCamera = (props: {
 
 export const useRunOBSImportRepeatedly = (props: {
   videoId: string;
-  insertionPoint: InsertionPoint;
+  insertionPoint: DatabaseInsertionPoint;
   state:
     | {
         type: "should-run";
@@ -191,7 +195,7 @@ export const useRunOBSImportRepeatedly = (props: {
             body: JSON.stringify({
               filePath,
               insertionPoint: props.insertionPoint,
-            }),
+            } satisfies AppendFromOBSSchema),
           }).then(async (res) => {
             if (res.ok) {
               const clips: DB.Clip[] = await res.json();
@@ -381,7 +385,7 @@ const obsConnectorReducer: EffectReducer<
 
 export const useOBSConnector = (props: {
   videoId: string;
-  insertionPoint: InsertionPoint;
+  insertionPoint: DatabaseInsertionPoint;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
   onNewClipOptimisticallyAdded: (opts: {
     scene: string;

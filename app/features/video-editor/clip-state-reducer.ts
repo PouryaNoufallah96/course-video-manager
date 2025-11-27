@@ -4,16 +4,25 @@ import type { Brand } from "./utils";
 
 export type DatabaseId = Brand<string, "DatabaseId">;
 export type FrontendId = Brand<string, "FrontendId">;
-export type InsertionPoint =
+export type FrontendInsertionPoint =
   | {
       type: "start";
     }
   | {
       type: "after-clip";
-      clipId: FrontendId;
+      frontendClipId: FrontendId;
     }
   | {
       type: "end";
+    };
+
+export type DatabaseInsertionPoint =
+  | {
+      type: "after-clip";
+      databaseClipId: DatabaseId;
+    }
+  | {
+      type: "start";
     };
 
 export type ClipOnDatabase = {
@@ -58,7 +67,7 @@ export namespace clipStateReducer {
   export type State = {
     clips: Clip[];
     clipIdsBeingTranscribed: Set<FrontendId>;
-    insertionPoint: InsertionPoint;
+    insertionPoint: FrontendInsertionPoint;
     insertionOrder: number;
   };
 
@@ -133,7 +142,7 @@ export const clipStateReducer: EffectReducer<
         insertionOrder: state.insertionOrder + 1,
       };
 
-      let newInsertionPoint: InsertionPoint = state.insertionPoint;
+      let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;
 
       let newClips: Clip[];
       if (state.insertionPoint.type === "end") {
@@ -144,10 +153,10 @@ export const clipStateReducer: EffectReducer<
         newClips = [newClip, ...state.clips];
         newInsertionPoint = {
           type: "after-clip",
-          clipId: newFrontendId,
+          frontendClipId: newFrontendId,
         };
       } else {
-        const targetClipId = state.insertionPoint.clipId;
+        const targetClipId = state.insertionPoint.frontendClipId;
         // Insert at insertion point
         const insertionPointIndex = state.clips.findIndex(
           (c) => c.frontendId === targetClipId
@@ -162,7 +171,7 @@ export const clipStateReducer: EffectReducer<
         ];
         newInsertionPoint = {
           type: "after-clip",
-          clipId: newFrontendId,
+          frontendClipId: newFrontendId,
         };
       }
 
@@ -191,7 +200,7 @@ export const clipStateReducer: EffectReducer<
         { scene: string; profile: string }
       >();
 
-      let newInsertionPoint: InsertionPoint = state.insertionPoint;
+      let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;
 
       const optimisticClipsSortedByInsertionOrder = newClipsState
         .filter((c) => c?.type === "optimistically-added")
@@ -353,7 +362,7 @@ export const clipStateReducer: EffectReducer<
         ...state,
         insertionPoint: {
           type: "after-clip",
-          clipId: action.clipId,
+          frontendClipId: action.clipId,
         },
       };
     }
@@ -369,7 +378,7 @@ export const clipStateReducer: EffectReducer<
         (c) => c.frontendId === action.clipId
       );
 
-      let insertionPoint: InsertionPoint;
+      let insertionPoint: FrontendInsertionPoint;
       if (clipIndex === 0) {
         // First clip - use magic constant
         insertionPoint = { type: "start" };
@@ -380,7 +389,7 @@ export const clipStateReducer: EffectReducer<
         if (previousClip) {
           insertionPoint = {
             type: "after-clip",
-            clipId: previousClip.frontendId,
+            frontendClipId: previousClip.frontendId,
           };
         } else {
           throw new Error("Previous clip not found when inserting before");
@@ -423,7 +432,7 @@ export const clipStateReducer: EffectReducer<
         };
       }
 
-      const clipIdToArchive = state.insertionPoint.clipId;
+      const clipIdToArchive = state.insertionPoint.frontendClipId;
 
       const archiveResult = archiveClips(
         state.clips,
@@ -451,9 +460,9 @@ export const clipStateReducer: EffectReducer<
 const insertClip = (
   clips: (Clip | undefined)[],
   newClip: Clip,
-  insertionPoint: InsertionPoint
+  insertionPoint: FrontendInsertionPoint
 ) => {
-  let newInsertionPoint: InsertionPoint = insertionPoint;
+  let newInsertionPoint: FrontendInsertionPoint = insertionPoint;
 
   let newClips: (Clip | undefined)[];
   if (insertionPoint.type === "end") {
@@ -464,10 +473,10 @@ const insertClip = (
     newClips = [newClip, ...clips];
     newInsertionPoint = {
       type: "after-clip",
-      clipId: newClip.frontendId,
+      frontendClipId: newClip.frontendId,
     };
   } else {
-    const targetClipId = insertionPoint.clipId;
+    const targetClipId = insertionPoint.frontendClipId;
     // Insert at insertion point
     const insertionPointIndex = clips.findIndex(
       (c) => c?.frontendId === targetClipId
@@ -482,7 +491,7 @@ const insertClip = (
     ];
     newInsertionPoint = {
       type: "after-clip",
-      clipId: targetClipId,
+      frontendClipId: targetClipId,
     };
   }
 
@@ -504,10 +513,10 @@ type ArchiveClipMode =
 const archiveClips = (
   allClips: Clip[],
   frontendIds: FrontendId[],
-  insertionPoint: InsertionPoint
+  insertionPoint: FrontendInsertionPoint
 ): {
   clips: Clip[];
-  insertionPoint: InsertionPoint;
+  insertionPoint: FrontendInsertionPoint;
   clipsToArchive: Set<DatabaseId>;
 } => {
   const clipsToArchive = new Set<DatabaseId>();
@@ -516,9 +525,9 @@ const archiveClips = (
 
   if (
     insertionPoint.type === "after-clip" &&
-    frontendIds.includes(insertionPoint.clipId)
+    frontendIds.includes(insertionPoint.frontendClipId)
   ) {
-    const clipId = insertionPoint.clipId;
+    const clipId = insertionPoint.frontendClipId;
     const prevClipIndex = allClips.findIndex((c) => c.frontendId === clipId);
     if (prevClipIndex === -1) {
       throw new Error("Previous clip not found when archiving");
@@ -556,12 +565,12 @@ const archiveClips = (
       (c) => c !== undefined
     );
 
-    let newInsertionPoint: InsertionPoint;
+    let newInsertionPoint: FrontendInsertionPoint;
 
     if (previousNonUndefinedClip) {
       newInsertionPoint = {
         type: "after-clip",
-        clipId: previousNonUndefinedClip.frontendId,
+        frontendClipId: previousNonUndefinedClip.frontendId,
       };
     } else {
       newInsertionPoint = {

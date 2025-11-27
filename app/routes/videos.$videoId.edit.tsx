@@ -1,8 +1,11 @@
 import type { DB } from "@/db/schema";
 import type {
+  Clip,
   ClipOnDatabase,
   DatabaseId,
+  DatabaseInsertionPoint,
   FrontendId,
+  FrontendInsertionPoint,
 } from "@/features/video-editor/clip-state-reducer";
 import {
   clipStateReducer,
@@ -16,6 +19,7 @@ import { FileSystem } from "@effect/platform";
 import { Effect } from "effect";
 import { useEffectReducer } from "use-effect-reducer";
 import type { Route } from "./+types/videos.$videoId.edit";
+import { useMemo } from "react";
 
 // Core data model - flat array of clips
 
@@ -104,9 +108,14 @@ export const ComponentInner = (props: Route.ComponentProps) => {
     }
   );
 
+  const databaseInsertionPoint = useMemo(
+    () => toDatabaseInsertionPoint(clipState.insertionPoint, clipState.clips),
+    [clipState.insertionPoint, clipState.clips]
+  );
+
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
-    insertionPoint: clipState.insertionPoint,
+    insertionPoint: databaseInsertionPoint,
     onNewDatabaseClips: (databaseClips) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
@@ -177,4 +186,43 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       videoCount={props.loaderData.videoCount}
     />
   );
+};
+
+const toDatabaseInsertionPoint = (
+  insertionPoint: FrontendInsertionPoint,
+  clips: Clip[]
+): DatabaseInsertionPoint => {
+  if (insertionPoint.type === "start") {
+    return { type: "start" };
+  }
+  if (insertionPoint.type === "after-clip") {
+    const frontendClipIndex = clips.findIndex(
+      (c) => c.frontendId === insertionPoint.frontendClipId
+    );
+    if (frontendClipIndex === -1) {
+      throw new Error("Clip not found");
+    }
+
+    const previousDatabaseClipId = clips
+      .slice(0, frontendClipIndex)
+      .findLast((c) => c.type === "on-database")?.databaseId;
+
+    if (!previousDatabaseClipId) {
+      return { type: "start" };
+    }
+
+    return { type: "after-clip", databaseClipId: previousDatabaseClipId };
+  }
+
+  if (insertionPoint.type === "end") {
+    const lastDatabaseClipId = clips.findLast(
+      (c) => c.type === "on-database"
+    )?.databaseId;
+    if (!lastDatabaseClipId) {
+      return { type: "start" };
+    }
+    return { type: "after-clip", databaseClipId: lastDatabaseClipId };
+  }
+
+  throw new Error("Invalid insertion point");
 };

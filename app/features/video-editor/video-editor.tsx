@@ -56,7 +56,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-deck-forwarder-types";
 import { useEffectReducer } from "use-effect-reducer";
-import type { Clip, FrontendId, InsertionPoint } from "./clip-state-reducer";
+import type {
+  Clip,
+  FrontendId,
+  FrontendInsertionPoint,
+} from "./clip-state-reducer";
 import { type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
@@ -92,7 +96,7 @@ export const VideoEditor = (props: {
   onClipsRetranscribe: (clipIds: FrontendId[]) => void;
   hasExplainerFolder: boolean;
   videoCount: number;
-  insertionPoint: InsertionPoint;
+  insertionPoint: FrontendInsertionPoint;
   onSetInsertionPoint: (mode: "after" | "before", clipId: FrontendId) => void;
   onDeleteLatestInsertedClip: () => void;
 }) => {
@@ -797,9 +801,8 @@ export const VideoEditor = (props: {
                       </ContextMenuContent>
                     </ContextMenu>
                     {props.insertionPoint.type === "after-clip" &&
-                      props.insertionPoint.clipId === clip.frontendId && (
-                        <InsertionPointIndicator />
-                      )}
+                      props.insertionPoint.frontendClipId ===
+                        clip.frontendId && <InsertionPointIndicator />}
                   </>
                 );
               })}

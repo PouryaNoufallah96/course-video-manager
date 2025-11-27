@@ -4,7 +4,6 @@ import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { Console, Effect, Schema } from "effect";
 import type { Route } from "./+types/videos.$videoId.append-from-obs";
-import type { InsertionPoint } from "@/features/video-editor/clip-state-reducer";
 
 const InsertionPointSchema = Schema.Union(
   Schema.Struct({
@@ -12,10 +11,7 @@ const InsertionPointSchema = Schema.Union(
   }),
   Schema.Struct({
     type: Schema.Literal("after-clip"),
-    clipId: Schema.String,
-  }),
-  Schema.Struct({
-    type: Schema.Literal("end"),
+    databaseClipId: Schema.String,
   })
 );
 
@@ -23,6 +19,10 @@ const appendFromOBSSchema = Schema.Struct({
   filePath: Schema.String.pipe(Schema.optional),
   insertionPoint: InsertionPointSchema,
 });
+
+export type AppendFromOBSSchema = Schema.Schema.Type<
+  typeof appendFromOBSSchema
+>;
 
 function windowsToWSL(windowsPath: string) {
   // Convert C:\Users\... to /mnt/c/Users/...
@@ -60,6 +60,8 @@ export const action = async (args: Route.ActionArgs) => {
 
     const lastClipWithThisInputVideo = clipsWithThisInputVideo[0];
 
+    // Resolve the start time to the end time of the last clip with this input video,
+    // minus 1 second to allow for the silence gap
     const resolvedStartTime =
       typeof lastClipWithThisInputVideo?.sourceEndTime === "number"
         ? Math.max(lastClipWithThisInputVideo.sourceEndTime - 1, 0)
@@ -95,7 +97,7 @@ export const action = async (args: Route.ActionArgs) => {
 
     const clips = yield* db.appendClips(
       videoId,
-      result.insertionPoint as InsertionPoint,
+      result.insertionPoint,
       clipsToAdd
     );
 

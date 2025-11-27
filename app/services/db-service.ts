@@ -3,11 +3,13 @@ import { clips, lessons, repos, sections, videos } from "@/db/schema";
 import { generateNKeysBetween } from "fractional-indexing";
 import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
-import type { InsertionPoint } from "@/features/video-editor/clip-state-reducer";
+import type { FrontendInsertionPoint } from "@/features/video-editor/clip-state-reducer";
+import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
   type: string;
   params: object;
+  message?: string;
 }> {}
 
 class UnknownDBServiceError extends Data.TaggedError("UnknownDBServiceError")<{
@@ -293,61 +295,54 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getLessonWithHierarchyById,
       appendClips: Effect.fn("addClips")(function* (
         videoId: string,
-        insertionPoint: InsertionPoint,
+        insertionPoint: AppendFromOBSSchema["insertionPoint"],
         inputClips: readonly {
           inputVideo: string;
           startTime: number;
           endTime: number;
         }[]
       ) {
-        let afterOrder: string | null | undefined = null;
-        let beforeOrder: string | null | undefined = null;
+        let prevClipOrder: string | null | undefined = null;
+        let nextClipOrder: string | null | undefined = null;
+
+        const allClips = yield* makeDbCall(() =>
+          db.query.clips.findMany({
+            where: and(eq(clips.videoId, videoId), eq(clips.archived, false)),
+            orderBy: asc(clips.order),
+          })
+        );
 
         if (insertionPoint.type === "start") {
           // Insert before all clips
-          afterOrder = null;
-          const firstClip = yield* makeDbCall(() =>
-            db.query.clips.findFirst({
-              where: eq(clips.videoId, videoId),
-              orderBy: asc(clips.order),
-            })
-          );
-          beforeOrder = firstClip?.order;
+          prevClipOrder = null;
+          const firstClip = allClips[0];
+          nextClipOrder = firstClip?.order;
         } else if (insertionPoint.type === "after-clip") {
           // Insert after specific clip
-          const insertAfterClip = yield* makeDbCall(() =>
-            db.query.clips.findFirst({
-              where: eq(clips.id, insertionPoint.clipId),
-            })
+          const insertAfterClipIndex = allClips.findIndex(
+            (c) => c.id === insertionPoint.databaseClipId
           );
-          afterOrder = insertAfterClip?.order;
 
-          const nextClip = yield* makeDbCall(() =>
-            db.query.clips.findFirst({
-              where: and(
-                eq(clips.videoId, videoId),
-                gt(clips.order, afterOrder!)
-              ),
-              orderBy: asc(clips.order),
-            })
-          );
-          beforeOrder = nextClip?.order;
-        } else {
-          // Append to end
-          const lastClip = yield* makeDbCall(() =>
-            db.query.clips.findFirst({
-              where: eq(clips.videoId, videoId),
-              orderBy: desc(clips.order),
-            })
-          );
-          afterOrder = lastClip?.order;
+          if (insertAfterClipIndex === -1) {
+            return yield* new NotFoundError({
+              type: "appendClips",
+              params: { videoId, insertionPoint },
+              message: `Could not find a clip to insert after`,
+            });
+          }
+
+          const insertAfterClip = allClips[insertAfterClipIndex];
+          prevClipOrder = insertAfterClip?.order;
+
+          const nextClip = allClips[insertAfterClipIndex + 1];
+
+          nextClipOrder = nextClip?.order;
         }
 
-        const order = generateNKeysBetween(
-          afterOrder ?? null,
-          beforeOrder ?? null,
-          inputClips.length,
-          digits
+        const orders = generateNKeysBetween(
+          prevClipOrder ?? null,
+          nextClipOrder ?? null,
+          inputClips.length
         );
 
         const clipsResult = yield* makeDbCall(() =>
@@ -360,7 +355,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                 videoFilename: clip.inputVideo,
                 sourceStartTime: clip.startTime,
                 sourceEndTime: clip.endTime,
-                order: order[index]!,
+                order: orders[index]!,
                 archived: false,
                 text: "",
               }))
@@ -659,5 +654,3 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
     };
   }),
 }) {}
-
-const digits = "0123456789abcdefghijklmnopqrstuvwxyz";
