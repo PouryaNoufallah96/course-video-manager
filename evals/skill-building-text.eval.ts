@@ -23,9 +23,9 @@ const lessons = [
   {
     videoId: "d197f403-abb4-447a-a38a-8b044635b93a",
   },
-  {
-    videoId: "57994701-0e93-4bf4-846c-dba3bfe6e2b3",
-  },
+  // {
+  //   videoId: "57994701-0e93-4bf4-846c-dba3bfe6e2b3",
+  // },
   // 03-retrieval-day-2
   {
     videoId: "76a50e00-e8c0-4b31-881e-323853bc0a1e",
