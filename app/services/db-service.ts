@@ -1000,6 +1000,40 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         return newVersion;
       }),
       /**
+       * Get all video IDs for a specific version.
+       */
+      getVideoIdsForVersion: Effect.fn("getVideoIdsForVersion")(function* (
+        versionId: string
+      ) {
+        const versionSections = yield* makeDbCall(() =>
+          db.query.sections.findMany({
+            where: eq(sections.repoVersionId, versionId),
+            with: {
+              lessons: {
+                with: {
+                  videos: {
+                    columns: {
+                      id: true,
+                    },
+                  },
+                },
+              },
+            },
+          })
+        );
+
+        const videoIds: string[] = [];
+        for (const section of versionSections) {
+          for (const lesson of section.lessons) {
+            for (const video of lesson.videos) {
+              videoIds.push(video.id);
+            }
+          }
+        }
+
+        return videoIds;
+      }),
+      /**
        * Get all versions for a repo with their full structure for changelog generation.
        * Returns versions in reverse chronological order (newest first).
        */

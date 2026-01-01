@@ -108,6 +108,23 @@ Disabled states:
 Changes:
 - app/routes/_index.tsx: Added Tooltip import, refactored Delete Version menu item to show disabled state with tooltip when conditions not met
 
+## 2026-01-01: Clear Video Files via Actions dropdown
+
+Implemented "Clear Video Files" feature accessible from Actions dropdown. Deletes all exported video files for the selected version from the file system, freeing up disk space. Database entries remain intact so videos can be re-exported later.
+
+Features:
+- Only deletes video files for the currently selected version
+- Video files for other versions remain on file system
+- Database entries remain intact (UI still shows video metadata)
+- Confirmation dialog warns user before deletion
+- Shows delete count in API response
+
+Changes:
+- app/services/db-service.ts: Added `getVideoIdsForVersion` method to get all video IDs for a version
+- app/routes/api.repos.$repoId.clear-video-files.ts: New API route for clearing video files
+- app/components/clear-video-files-modal.tsx: New confirmation modal component
+- app/routes/_index.tsx: Added Clear Video Files action to dropdown, integrated modal
+
 ## 2026-01-01: Changelog generation during export/publish
 
 Implemented automatic changelog generation when publishing a repo. The changelog includes all version history with change detection between versions.

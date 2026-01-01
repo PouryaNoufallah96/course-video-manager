@@ -2,6 +2,7 @@
 
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
+import { ClearVideoFilesModal } from "@/components/clear-video-files-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
 import { DeleteVersionModal } from "@/components/delete-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
@@ -223,6 +224,8 @@ export default function Component(props: Route.ComponentProps) {
     useState(false);
   const [isRenameRepoModalOpen, setIsRenameRepoModalOpen] = useState(false);
   const [isDeleteVersionModalOpen, setIsDeleteVersionModalOpen] =
+    useState(false);
+  const [isClearVideoFilesModalOpen, setIsClearVideoFilesModalOpen] =
     useState(false);
 
   const publishRepoFetcher = useFetcher();
@@ -514,6 +517,20 @@ export default function Component(props: Route.ComponentProps) {
 
                         return menuItem;
                       })()}
+                      {data.selectedVersion && (
+                        <DropdownMenuItem
+                          onSelect={() => setIsClearVideoFilesModalOpen(true)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <FileX className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Clear Video Files</span>
+                            <span className="text-xs text-muted-foreground">
+                              Delete exported videos from file system
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -839,6 +856,16 @@ export default function Component(props: Route.ComponentProps) {
           versionName={data.selectedVersion.name}
           open={isDeleteVersionModalOpen}
           onOpenChange={setIsDeleteVersionModalOpen}
+        />
+      )}
+
+      {currentRepo && data.selectedVersion && (
+        <ClearVideoFilesModal
+          repoId={currentRepo.id}
+          versionId={data.selectedVersion.id}
+          versionName={data.selectedVersion.name}
+          open={isClearVideoFilesModalOpen}
+          onOpenChange={setIsClearVideoFilesModalOpen}
         />
       )}
     </div>

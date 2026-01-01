@@ -53,6 +53,19 @@
   },
   {
     "category": "functional",
+    "description": "Create new version moves video files from previous version",
+    "steps": [
+      "Select a repo with exported video files on file system",
+      "Create a new version",
+      "Verify video files renamed/moved to new version's paths",
+      "Verify new version's video records point to moved files",
+      "Verify previous version's video records updated (files no longer present)",
+      "Verify no duplicate video files on file system"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
     "description": "Create Version option only visible when viewing latest version",
     "steps": [
       "Select a repo with multiple versions",
@@ -183,6 +196,18 @@
     "passes": true
   },
   {
+    "category": "ui",
+    "description": "Publish errors displayed via sonner toast",
+    "steps": [
+      "Install sonner package",
+      "Add Toaster component to app root",
+      "Trigger publish action that fails",
+      "Verify error toast appears with failure reason",
+      "Verify toast is dismissible"
+    ],
+    "passes": false
+  },
+  {
     "category": "functional",
     "description": "Latest version can be deleted via Actions dropdown",
     "steps": [
@@ -276,7 +301,7 @@
       "Verify database entries remain intact",
       "Verify UI still shows video metadata"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",
