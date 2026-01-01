@@ -771,10 +771,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return updated;
       }),
-      updateRepoName: Effect.fn("updateRepoName")(function* (
-        repoId: string,
-        name: string
-      ) {
+      updateRepoName: Effect.fn("updateRepoName")(function* (opts: {
+        repoId: string;
+        name: string;
+      }) {
+        const { repoId, name } = opts;
         const [updated] = yield* makeDbCall(() =>
           db
             .update(repos)
