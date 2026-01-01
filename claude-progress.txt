@@ -233,3 +233,11 @@ Moved error classes from db-service.ts to a new dedicated file for better code o
 Changes:
 - app/services/db-service-errors.ts: New file containing NotFoundError, UnknownDBServiceError, NotLatestVersionError, CannotDeleteOnlyVersionError, CannotDeleteNonLatestVersionError
 - app/services/db-service.ts: Updated to import errors from new file, removed Data import (no longer needed)
+
+## 2026-01-01: Convert updateRepoVersionName to object-based arguments
+
+Refactored updateRepoVersionName to use object-based arguments for consistency and readability.
+
+Changes:
+- app/services/db-service.ts: Changed signature from (versionId, name) to ({versionId, name})
+- app/routes/api.repos.$repoId.rename-version.ts: Updated caller to use object syntax

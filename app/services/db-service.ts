@@ -749,10 +749,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return version;
       }),
-      updateRepoVersionName: Effect.fn("updateRepoVersionName")(function* (
-        versionId: string,
-        name: string
-      ) {
+      updateRepoVersionName: Effect.fn("updateRepoVersionName")(function* (opts: {
+        versionId: string;
+        name: string;
+      }) {
+        const { versionId, name } = opts;
         const [updated] = yield* makeDbCall(() =>
           db
             .update(repoVersions)

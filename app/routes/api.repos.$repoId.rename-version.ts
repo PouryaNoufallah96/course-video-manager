@@ -22,7 +22,7 @@ export const action = async (args: Route.ActionArgs) => {
 
     const db = yield* DBService;
 
-    yield* db.updateRepoVersionName(versionId, name.trim());
+    yield* db.updateRepoVersionName({ versionId, name: name.trim() });
 
     return { success: true };
   }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
