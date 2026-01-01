@@ -96,3 +96,14 @@ Changes:
 - app/routes/api.repos.$repoId.delete-version.ts: New API route for version deletion with validation
 - app/components/delete-version-modal.tsx: New confirmation modal component
 - app/routes/_index.tsx: Added Delete Version action to dropdown (conditional visibility), integrated modal
+
+## 2026-01-01: Delete Version disabled states with tooltips
+
+Updated Delete Version dropdown item to always be visible when a version is selected, but disabled with tooltips explaining why it can't be used in certain conditions.
+
+Disabled states:
+- "Cannot delete only version" - shown when repo has only one version
+- "Can only delete latest version" - shown when viewing a non-latest version
+
+Changes:
+- app/routes/_index.tsx: Added Tooltip import, refactored Delete Version menu item to show disabled state with tooltip when conditions not met

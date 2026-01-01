@@ -21,6 +21,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { VideoModal } from "@/components/video-player";
@@ -470,11 +475,18 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      {data.selectedVersion &&
-                        data.isLatestVersion &&
-                        data.versions.length > 1 && (
+                      {data.selectedVersion && (() => {
+                        const canDelete = data.isLatestVersion && data.versions.length > 1;
+                        const disabledReason = data.versions.length <= 1
+                          ? "Cannot delete only version"
+                          : !data.isLatestVersion
+                            ? "Can only delete latest version"
+                            : null;
+
+                        const menuItem = (
                           <DropdownMenuItem
-                            onSelect={() => setIsDeleteVersionModalOpen(true)}
+                            onSelect={() => canDelete && setIsDeleteVersionModalOpen(true)}
+                            disabled={!canDelete}
                             className="text-destructive focus:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -485,7 +497,23 @@ export default function Component(props: Route.ComponentProps) {
                               </span>
                             </div>
                           </DropdownMenuItem>
-                        )}
+                        );
+
+                        if (disabledReason) {
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>{menuItem}</div>
+                              </TooltipTrigger>
+                              <TooltipContent side="left">
+                                {disabledReason}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        }
+
+                        return menuItem;
+                      })()}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

@@ -199,12 +199,13 @@
   },
   {
     "category": "functional",
-    "description": "Delete Version option hidden for non-latest versions",
+    "description": "Delete Version disabled for non-latest versions",
     "steps": [
       "Select a repo with multiple versions",
       "Select an older version (not latest)",
       "Open Actions dropdown",
-      "Verify 'Delete Version' option is NOT visible"
+      "Verify 'Delete Version' option is visible but greyed out",
+      "Verify tooltip/message explains 'Can only delete latest version'"
     ],
     "passes": true
   },
@@ -225,7 +226,8 @@
     "steps": [
       "Select a repo with only one version",
       "Open Actions dropdown",
-      "Verify 'Delete Version' option is NOT visible",
+      "Verify 'Delete Version' option is visible but greyed out",
+      "Verify tooltip/message explains 'Cannot delete only version'",
       "Verify backend rejects delete attempt for sole version"
     ],
     "passes": true
