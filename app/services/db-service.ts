@@ -1,38 +1,16 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
+import {
+  CannotDeleteNonLatestVersionError,
+  CannotDeleteOnlyVersionError,
+  NotFoundError,
+  NotLatestVersionError,
+  UnknownDBServiceError,
+} from "@/services/db-service-errors";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import { Data, Effect } from "effect";
+import { Effect } from "effect";
 import { generateNKeysBetween } from "fractional-indexing";
-
-class NotFoundError extends Data.TaggedError("NotFoundError")<{
-  type: string;
-  params: object;
-  message?: string;
-}> {}
-
-class UnknownDBServiceError extends Data.TaggedError("UnknownDBServiceError")<{
-  cause: unknown;
-}> {}
-
-class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
-  sourceVersionId: string;
-  latestVersionId: string;
-}> {}
-
-class CannotDeleteOnlyVersionError extends Data.TaggedError(
-  "CannotDeleteOnlyVersionError"
-)<{
-  versionId: string;
-  repoId: string;
-}> {}
-
-class CannotDeleteNonLatestVersionError extends Data.TaggedError(
-  "CannotDeleteNonLatestVersionError"
-)<{
-  versionId: string;
-  latestVersionId: string;
-}> {}
 
 const makeDbCall = <T>(fn: () => Promise<T>) => {
   return Effect.tryPromise({
