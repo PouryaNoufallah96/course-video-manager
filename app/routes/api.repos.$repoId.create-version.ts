@@ -1,8 +1,10 @@
 import { DBService } from "@/services/db-service";
 import { withDatabaseDump } from "@/services/dump-service";
 import { layerLive } from "@/services/layer";
-import { Console, Effect, Schema } from "effect";
+import { Config, Console, Effect, Schema } from "effect";
+import { FileSystem } from "@effect/platform";
 import type { Route } from "./+types/api.repos.$repoId.create-version";
+import path from "node:path";
 
 const createVersionSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
@@ -16,12 +18,38 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
   return await Effect.gen(function* () {
     const result = yield* Schema.decodeUnknown(createVersionSchema)(formDataObject);
     const db = yield* DBService;
+    const fs = yield* FileSystem.FileSystem;
+    const FINISHED_VIDEOS_DIRECTORY = yield* Config.string(
+      "FINISHED_VIDEOS_DIRECTORY"
+    );
 
-    const newVersion = yield* db.copyVersionStructure({
+    const { version: newVersion, videoIdMappings } = yield* db.copyVersionStructure({
       sourceVersionId: result.sourceVersionId,
       repoId: params.repoId,
       newVersionName: result.name,
     });
+
+    // Move video files from old version IDs to new version IDs
+    for (const mapping of videoIdMappings) {
+      const sourceVideoPath = path.join(
+        FINISHED_VIDEOS_DIRECTORY,
+        `${mapping.sourceVideoId}.mp4`
+      );
+      const newVideoPath = path.join(
+        FINISHED_VIDEOS_DIRECTORY,
+        `${mapping.newVideoId}.mp4`
+      );
+
+      // Check if source video file exists
+      const exists = yield* fs.exists(sourceVideoPath);
+      if (exists) {
+        // Rename/move the file to new video ID
+        yield* fs.rename(sourceVideoPath, newVideoPath);
+        yield* Console.log(
+          `Moved video file: ${mapping.sourceVideoId}.mp4 -> ${mapping.newVideoId}.mp4`
+        );
+      }
+    }
 
     return { id: newVersion.id, name: newVersion.name };
   }).pipe(

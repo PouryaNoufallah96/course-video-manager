@@ -62,7 +62,7 @@
       "Verify previous version's video records updated (files no longer present)",
       "Verify no duplicate video files on file system"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -252,11 +252,10 @@
     "steps": [
       "Select a repo with only one version",
       "Open Actions dropdown",
-      "Verify 'Delete Version' option is visible but greyed out",
-      "Verify tooltip/message explains 'Cannot delete only version'",
+      "Verify 'Delete Version' option is NOT visible",
       "Verify backend rejects delete attempt for sole version"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "functional",

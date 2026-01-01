@@ -934,6 +934,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           })
         );
 
+        // Track video ID mappings: sourceVideoId -> newVideoId
+        const videoIdMappings: Array<{ sourceVideoId: string; newVideoId: string }> = [];
+
         // Copy each section
         for (const sourceSection of sourceSections) {
           const [newSection] = yield* makeDbCall(() =>
@@ -973,6 +976,12 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
               if (!newVideo) continue;
 
+              // Track the video ID mapping
+              videoIdMappings.push({
+                sourceVideoId: sourceVideo.id,
+                newVideoId: newVideo.id,
+              });
+
               // Copy each non-archived clip in the video
               if (sourceVideo.clips.length > 0) {
                 yield* makeDbCall(() =>
@@ -997,7 +1006,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           }
         }
 
-        return newVersion;
+        return { version: newVersion, videoIdMappings };
       }),
       /**
        * Get all video IDs for a specific version.

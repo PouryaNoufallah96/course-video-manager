@@ -165,3 +165,17 @@ Changes:
 - app/components/ui/sonner.tsx: Simplified Toaster to use dark theme directly (removed next-themes dependency)
 - app/root.tsx: Added Toaster component to app layout
 - app/routes/_index.tsx: Added useEffect to handle publishRepoFetcher response and show toast
+
+## 2026-01-01: Create new version moves video files from previous version
+
+When creating a new version, exported video files are now automatically moved/renamed from the old version's video IDs to the new version's video IDs. This prevents duplicate files on disk and ensures the new version owns the latest video files.
+
+Features:
+- Video files renamed from {oldVideoId}.mp4 to {newVideoId}.mp4
+- Previous version's video files no longer present (moved, not copied)
+- New version's video records point to moved files
+- No duplicate video files on file system
+
+Changes:
+- app/services/db-service.ts: copyVersionStructure now returns { version, videoIdMappings } instead of just version
+- app/routes/api.repos.$repoId.create-version.ts: After copying structure, iterates through videoIdMappings and renames files in FINISHED_VIDEOS_DIRECTORY
