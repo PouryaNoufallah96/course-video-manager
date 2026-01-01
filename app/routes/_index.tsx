@@ -485,15 +485,12 @@ export default function Component(props: Route.ComponentProps) {
                         </div>
                       </DropdownMenuItem>
                       {data.selectedVersion &&
+                        data.versions.length > 1 &&
                         (() => {
-                          const canDelete =
-                            data.isLatestVersion && data.versions.length > 1;
-                          const disabledReason =
-                            data.versions.length <= 1
-                              ? "Cannot delete only version"
-                              : !data.isLatestVersion
-                              ? "Can only delete latest version"
-                              : null;
+                          const canDelete = data.isLatestVersion;
+                          const disabledReason = !data.isLatestVersion
+                            ? "Can only delete latest version"
+                            : null;
 
                           const menuItem = (
                             <DropdownMenuItem

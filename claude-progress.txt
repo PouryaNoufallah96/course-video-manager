@@ -166,6 +166,13 @@ Changes:
 - app/root.tsx: Added Toaster component to app layout
 - app/routes/_index.tsx: Added useEffect to handle publishRepoFetcher response and show toast
 
+## 2026-01-01: Hide Delete Version for repos with only one version
+
+Updated UI to completely hide the "Delete Version" dropdown option when a repo has only one version, rather than showing it as disabled. Backend already correctly rejects delete attempts for the sole version.
+
+Changes:
+- app/routes/_index.tsx: Added `data.versions.length > 1` condition to Delete Version menu item visibility
+
 ## 2026-01-01: Create new version moves video files from previous version
 
 When creating a new version, exported video files are now automatically moved/renamed from the old version's video IDs to the new version's video IDs. This prevents duplicate files on disk and ensures the new version owns the latest video files.

@@ -255,7 +255,7 @@
       "Verify 'Delete Version' option is NOT visible",
       "Verify backend rejects delete attempt for sole version"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
