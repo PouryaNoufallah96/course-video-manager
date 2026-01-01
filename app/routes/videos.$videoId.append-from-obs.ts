@@ -95,11 +95,11 @@ export const action = async (args: Route.ActionArgs) => {
       return [];
     }
 
-    const clips = yield* db.appendClips(
+    const clips = yield* db.appendClips({
       videoId,
-      result.insertionPoint,
-      clipsToAdd
-    );
+      insertionPoint: result.insertionPoint,
+      clips: clipsToAdd,
+    });
 
     return clips;
   }).pipe(

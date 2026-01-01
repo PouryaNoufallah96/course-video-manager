@@ -31,7 +31,7 @@
       "Update all callers of appendClips",
       "Run pnpm typecheck to verify no errors"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",

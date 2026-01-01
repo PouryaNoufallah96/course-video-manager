@@ -290,15 +290,16 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       updateClip,
       getLessonById,
       getLessonWithHierarchyById,
-      appendClips: Effect.fn("addClips")(function* (
-        videoId: string,
-        insertionPoint: AppendFromOBSSchema["insertionPoint"],
-        inputClips: readonly {
+      appendClips: Effect.fn("addClips")(function* (opts: {
+        videoId: string;
+        insertionPoint: AppendFromOBSSchema["insertionPoint"];
+        clips: readonly {
           inputVideo: string;
           startTime: number;
           endTime: number;
-        }[]
-      ) {
+        }[];
+      }) {
+        const { videoId, insertionPoint, clips: inputClips } = opts;
         let prevClipOrder: string | null | undefined = null;
         let nextClipOrder: string | null | undefined = null;
 

@@ -257,3 +257,11 @@ Refactored getRepoWithSectionsByVersion to use object-based arguments for consis
 Changes:
 - app/services/db-service.ts: Changed signature from (repoId, versionId) to ({repoId, versionId})
 - app/routes/api.repos.update.ts: Updated both callers to use object syntax
+
+## 2026-01-01: Convert appendClips to object-based arguments
+
+Refactored appendClips to use object-based arguments for consistency with other db-service methods.
+
+Changes:
+- app/services/db-service.ts: Changed signature from (videoId, insertionPoint, inputClips) to ({videoId, insertionPoint, clips})
+- app/routes/videos.$videoId.append-from-obs.ts: Updated caller to use object syntax
