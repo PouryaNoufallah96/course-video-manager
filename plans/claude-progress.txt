@@ -1,0 +1,34 @@
+# Versioning Feature Progress
+
+## 2026-01-01: Database Schema for Versioning
+
+### Work Done
+Added foundational database schema for course versioning:
+
+1. **New `repoVersions` table**
+   - id, repoId, name, createdAt
+   - Cascade delete from repos
+   - Relations to repos and sections
+
+2. **Updated `sections` table**
+   - Added optional `repoVersionId` field (for gradual migration)
+   - Added `previousVersionSectionId` for changelog tracking
+   - Kept `repoId` for backward compatibility during migration
+
+3. **Updated `lessons` table**
+   - Added `previousVersionLessonId` for changelog tracking
+
+4. **Added relations**
+   - repoVersionsRelations: repo <-> sections
+   - Updated reposRelations to include versions
+   - Updated sectionsRelations to include repoVersion
+
+### Next Steps
+- Create migration script to populate v1.0 for existing repos
+- Update sections to point to repoVersionId
+- Implement version selector UI
+- Implement "Create New Version" functionality
+
+### PRD Status
+All features still marked as `passes: false` - schema is foundation only.
+Most important next feature: "Migration creates v1.0 for existing repos"

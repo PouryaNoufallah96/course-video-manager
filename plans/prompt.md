@@ -1,0 +1,1 @@
+Take a look inside versioning-prd.json inside Plans. Find the most important feature to work on and work only on that feature. Make a git commit of that feature, once you're done and update the PRD. Also update a claude-progress.txt file with the work that was done. Output <promise>COMPLETE</promise> when done.
