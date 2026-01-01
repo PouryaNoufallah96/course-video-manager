@@ -2,8 +2,14 @@ import { Console, Effect, Schema } from "effect";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import type { Route } from "./+types/api.videos.$videoId.export";
-import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
-import { FINAL_VIDEO_PADDING } from "@/features/video-editor/constants";
+import {
+  TotalTypeScriptCLIService,
+  type BeatType,
+} from "@/services/tt-cli-service";
+import {
+  FINAL_VIDEO_PADDING,
+  BEAT_DURATION,
+} from "@/features/video-editor/constants";
 import { withDatabaseDump } from "@/services/dump-service";
 
 const exportVideoSchema = Schema.Struct({
@@ -39,6 +45,7 @@ export const action = async (args: Route.ActionArgs) => {
             clip.sourceEndTime -
             clip.sourceStartTime +
             (isFinalClip ? FINAL_VIDEO_PADDING : 0),
+          beatType: clip.beatType as BeatType,
         };
       }),
     });

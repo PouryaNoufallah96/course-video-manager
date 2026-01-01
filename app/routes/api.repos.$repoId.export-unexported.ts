@@ -3,8 +3,14 @@ import { FileSystem } from "@effect/platform";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import type { Route } from "./+types/api.repos.$repoId.export-unexported";
-import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
-import { FINAL_VIDEO_PADDING } from "@/features/video-editor/constants";
+import {
+  TotalTypeScriptCLIService,
+  type BeatType,
+} from "@/services/tt-cli-service";
+import {
+  FINAL_VIDEO_PADDING,
+  BEAT_DURATION,
+} from "@/features/video-editor/constants";
 import { withDatabaseDump } from "@/services/dump-service";
 import path from "node:path";
 
@@ -28,6 +34,7 @@ export const action = async (args: Route.ActionArgs) => {
         videoFilename: string;
         sourceStartTime: number;
         sourceEndTime: number;
+        beatType: string;
       }>;
     }> = [];
 
@@ -59,13 +66,16 @@ export const action = async (args: Route.ActionArgs) => {
         shortsDirectoryOutputName: undefined,
         clips: video.clips.map((clip, index, array) => {
           const isFinalClip = index === array.length - 1;
+          const beatDuration = clip.beatType === "long" ? BEAT_DURATION : 0;
           return {
             inputVideo: clip.videoFilename,
             startTime: clip.sourceStartTime,
             duration:
               clip.sourceEndTime -
               clip.sourceStartTime +
+              beatDuration +
               (isFinalClip ? FINAL_VIDEO_PADDING : 0),
+            beatType: clip.beatType as BeatType,
           };
         }),
       });

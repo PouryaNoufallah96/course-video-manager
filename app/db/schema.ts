@@ -121,6 +121,7 @@ export const clips = createTable("clip", {
   }),
   scene: varchar("scene", { length: 255 }),
   profile: varchar("profile", { length: 255 }),
+  beatType: varchar("beat_type", { length: 255 }).notNull().default("none"),
 });
 
 export namespace DB {

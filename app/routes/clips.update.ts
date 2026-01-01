@@ -11,6 +11,7 @@ const updateSceneSchema = Schema.Struct({
       Schema.Struct({
         scene: Schema.String,
         profile: Schema.String,
+        beatType: Schema.String,
       })
     )
   ),
@@ -23,10 +24,11 @@ export const action = async (args: Route.ActionArgs) => {
     const db = yield* DBService;
     const { clips } = yield* Schema.decodeUnknown(updateSceneSchema)(json);
 
-    yield* Effect.forEach(clips, (clip) => {
-      return db.updateClip(clip[0], {
-        scene: clip[1].scene,
-        profile: clip[1].profile,
+    yield* Effect.forEach(clips, ([id, { scene, profile, beatType }]) => {
+      return db.updateClip(id, {
+        scene,
+        profile,
+        beatType,
       });
     });
 

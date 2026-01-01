@@ -37,6 +37,10 @@ const httpServer = http.createServer((req, res) => {
     sendMessage({
       type: "toggle-last-frame-of-video",
     });
+  } else if (req.url === "/api/toggle-beat") {
+    sendMessage({
+      type: "toggle-beat",
+    });
   }
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("Hello, world!");

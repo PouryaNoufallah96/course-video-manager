@@ -1,4 +1,5 @@
 import type { DB } from "@/db/schema";
+import type { BeatType } from "@/services/tt-cli-service";
 import type { EffectReducer } from "use-effect-reducer";
 import type { Brand } from "./utils";
 
@@ -37,6 +38,7 @@ export type ClipOnDatabase = {
   scene: string | null;
   profile: string | null;
   insertionOrder: number | null;
+  beatType: BeatType;
 };
 
 export type ClipOptimisticallyAdded = {
@@ -55,6 +57,7 @@ export type ClipOptimisticallyAdded = {
    * the clip will be archived. Allows the user to delete the clip before it's transcribed.
    */
   shouldArchive?: boolean;
+  beatType: BeatType;
 };
 
 export const createFrontendId = (): FrontendId => {
@@ -102,6 +105,13 @@ export namespace clipStateReducer {
       }
     | {
         type: "delete-latest-inserted-clip";
+      }
+    | {
+        type: "toggle-beat-at-insertion-point";
+      }
+    | {
+        type: "toggle-beat-for-clip";
+        clipId: FrontendId;
       };
 
   export type Effect =
@@ -118,7 +128,12 @@ export namespace clipStateReducer {
       }
     | {
         type: "update-clips";
-        clips: [DatabaseId, { scene: string; profile: string }][];
+        clips: [DatabaseId, { scene: string; profile: string; beatType: BeatType }][];
+      }
+    | {
+        type: "update-beat";
+        clipId: DatabaseId;
+        beatType: BeatType;
       };
 }
 
@@ -140,6 +155,7 @@ export const clipStateReducer: EffectReducer<
         scene: action.scene,
         profile: action.profile,
         insertionOrder: state.insertionOrder + 1,
+        beatType: "none",
       };
 
       let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;
@@ -196,7 +212,7 @@ export const clipStateReducer: EffectReducer<
       const frontendClipIdsToTranscribe = new Set<FrontendId>();
       const clipsToUpdateScene = new Map<
         DatabaseId,
-        { scene: string; profile: string }
+        { scene: string; profile: string; beatType: BeatType }
       >();
 
       let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;
@@ -236,11 +252,13 @@ export const clipStateReducer: EffectReducer<
               scene: frontendClip.scene,
               profile: frontendClip.profile,
               insertionOrder: frontendClip.insertionOrder,
+              beatType: frontendClip.beatType,
             };
             newClipsState[index] = newDatabaseClip;
             clipsToUpdateScene.set(databaseClip.id, {
               scene: frontendClip.scene,
               profile: frontendClip.profile,
+              beatType: frontendClip.beatType,
             });
             frontendClipIdsToTranscribe.add(frontendClip.frontendId);
             databaseClipIdsToTranscribe.add(databaseClip.id);
@@ -254,6 +272,7 @@ export const clipStateReducer: EffectReducer<
             frontendId: newFrontendId,
             databaseId: databaseClip.id,
             insertionOrder: state.insertionOrder + 1,
+            beatType: databaseClip.beatType as BeatType,
           };
 
           const result = insertClip(
@@ -450,6 +469,79 @@ export const clipStateReducer: EffectReducer<
         ...state,
         clips: archiveResult.clips,
         insertionPoint: archiveResult.insertionPoint,
+      };
+    }
+    case "toggle-beat-at-insertion-point": {
+      // Find the clip at the insertion point (similar to delete-latest-inserted-clip)
+      let clipToToggle: Clip | undefined;
+
+      if (state.insertionPoint.type === "start") {
+        // No clip before start
+        return state;
+      }
+
+      if (state.insertionPoint.type === "end") {
+        clipToToggle = state.clips[state.clips.length - 1];
+      } else if (state.insertionPoint.type === "after-clip") {
+        const targetFrontendId = state.insertionPoint.frontendClipId;
+        clipToToggle = state.clips.find(
+          (c) => c.frontendId === targetFrontendId
+        );
+      }
+
+      if (!clipToToggle) {
+        return state;
+      }
+
+      const newBeatType: BeatType =
+        clipToToggle.beatType === "none" ? "long" : "none";
+
+      // If it's a database clip, fire an effect to update the DB
+      if (clipToToggle.type === "on-database") {
+        exec({
+          type: "update-beat",
+          clipId: clipToToggle.databaseId,
+          beatType: newBeatType,
+        });
+      }
+
+      return {
+        ...state,
+        clips: state.clips.map((clip) =>
+          clip.frontendId === clipToToggle!.frontendId
+            ? { ...clip, beatType: newBeatType }
+            : clip
+        ),
+      };
+    }
+    case "toggle-beat-for-clip": {
+      const clipToToggle = state.clips.find(
+        (c) => c.frontendId === action.clipId
+      );
+
+      if (!clipToToggle) {
+        return state;
+      }
+
+      const newBeatType: BeatType =
+        clipToToggle.beatType === "none" ? "long" : "none";
+
+      // If it's a database clip, fire an effect to update the DB
+      if (clipToToggle.type === "on-database") {
+        exec({
+          type: "update-beat",
+          clipId: clipToToggle.databaseId,
+          beatType: newBeatType,
+        });
+      }
+
+      return {
+        ...state,
+        clips: state.clips.map((clip) =>
+          clip.frontendId === action.clipId
+            ? { ...clip, beatType: newBeatType }
+            : clip
+        ),
       };
     }
   }

@@ -45,6 +45,7 @@ import {
   MicIcon,
   MicOffIcon,
   MonitorIcon,
+  PauseIcon,
   PencilIcon,
   Plus,
   PlusIcon,
@@ -101,6 +102,8 @@ export const VideoEditor = (props: {
   insertionPoint: FrontendInsertionPoint;
   onSetInsertionPoint: (mode: "after" | "before", clipId: FrontendId) => void;
   onDeleteLatestInsertedClip: () => void;
+  onToggleBeat: () => void;
+  onToggleBeatForClip: (clipId: FrontendId) => void;
 }) => {
   const [state, dispatch] = useEffectReducer<
     videoStateReducer.State,
@@ -204,6 +207,8 @@ export const VideoEditor = (props: {
         props.onDeleteLatestInsertedClip();
       } else if (data.type === "toggle-last-frame-of-video") {
         dispatch({ type: "toggle-last-frame-of-video" });
+      } else if (data.type === "toggle-beat") {
+        props.onToggleBeat();
       }
     });
     return () => {
@@ -693,13 +698,16 @@ export const VideoEditor = (props: {
                               {/* Timecode overlay on image */}
                               <div
                                 className={cn(
-                                  "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
+                                  "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100 flex items-center gap-1",
                                   clip.frontendId === currentClipId &&
                                     "text-blue-100",
                                   state.selectedClipsSet.has(clip.frontendId) &&
                                     "text-white"
                                 )}
                               >
+                                {clip.beatType === "long" && (
+                                  <PauseIcon className="w-3 h-3 text-yellow-400" />
+                                )}
                                 {clip.timecode}
                               </div>
                             </div>
@@ -780,6 +788,14 @@ export const VideoEditor = (props: {
                         >
                           <ChevronRightIcon />
                           Insert After
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          onSelect={() => {
+                            props.onToggleBeatForClip(clip.frontendId);
+                          }}
+                        >
+                          <PauseIcon />
+                          {clip.beatType === "long" ? "Remove Beat" : "Add Beat"}
                         </ContextMenuItem>
                         <ContextMenuItem
                           disabled={clip.type !== "on-database"}

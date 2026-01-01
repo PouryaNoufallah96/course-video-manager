@@ -5,6 +5,8 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { tmpdir } from "os";
 
+export type BeatType = "none" | "long";
+
 const getLatestOBSVideoClipsSchema = Schema.Struct({
   clips: Schema.Array(
     Schema.Struct({
@@ -85,6 +87,7 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
           inputVideo: string;
           startTime: number;
           duration: number;
+          beatType: BeatType;
         }[];
         shortsDirectoryOutputName: string | undefined;
       }) {

@@ -11,6 +11,7 @@ import {
   clipStateReducer,
   createFrontendId,
 } from "@/features/video-editor/clip-state-reducer";
+import type { BeatType } from "@/services/tt-cli-service";
 import { useOBSConnector } from "@/features/video-editor/obs-connector";
 import { VideoEditor } from "@/features/video-editor/video-editor";
 import { DBService } from "@/services/db-service";
@@ -61,6 +62,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           frontendId: createFrontendId(),
           databaseId: clip.id,
           insertionOrder: null,
+          beatType: clip.beatType as BeatType,
         })
       ),
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
@@ -103,6 +105,17 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         fetch("/clips/update", {
           method: "POST",
           body: JSON.stringify({ clips: effect.clips }),
+        }).then((res) => {
+          res.json();
+        });
+      },
+      "update-beat": (_state, effect, _dispatch) => {
+        fetch("/clips/update-beat", {
+          method: "POST",
+          body: JSON.stringify({
+            clipId: effect.clipId,
+            beatType: effect.beatType,
+          }),
         }).then((res) => {
           res.json();
         });
@@ -167,6 +180,12 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       }}
       onDeleteLatestInsertedClip={() => {
         dispatch({ type: "delete-latest-inserted-clip" });
+      }}
+      onToggleBeat={() => {
+        dispatch({ type: "toggle-beat-at-insertion-point" });
+      }}
+      onToggleBeatForClip={(clipId) => {
+        dispatch({ type: "toggle-beat-for-clip", clipId });
       }}
       obsConnectorState={obsConnector.state}
       clips={clipState.clips.filter((clip) => {

@@ -1,10 +1,9 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
-import { generateNKeysBetween } from "fractional-indexing";
-import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
-import { Data, Effect } from "effect";
-import type { FrontendInsertionPoint } from "@/features/video-editor/clip-state-reducer";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
+import { and, asc, eq, inArray } from "drizzle-orm";
+import { Data, Effect } from "effect";
+import { generateNKeysBetween } from "fractional-indexing";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
   type: string;
@@ -61,6 +60,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         scene?: string;
         profile?: string;
         transcribedAt?: Date;
+        beatType?: string;
       }
     ) {
       const [clip] = yield* makeDbCall(() =>
