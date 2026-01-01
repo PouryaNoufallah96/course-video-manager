@@ -1,12 +1,13 @@
 [
   {
     "category": "functional",
-    "description": "Version selector displays in sidebar when repo is selected",
+    "description": "Version displays in top bar next to course title",
     "steps": [
       "Select a repo from the sidebar",
-      "Verify version selector dropdown appears below repo list",
-      "Check dropdown shows current version name and date",
-      "Verify dropdown lists all versions for the repo"
+      "Verify version appears in brackets next to course title in top bar",
+      "Click the version text",
+      "Verify modal opens with version selector",
+      "Verify modal lists all versions for the repo"
     ],
     "passes": true
   },
@@ -16,8 +17,9 @@
     "steps": [
       "Select a repo with multiple versions",
       "Note the current sections/lessons displayed",
-      "Select a different version from dropdown",
-      "Verify URL updates with versionId param",
+      "Click version in top bar to open modal",
+      "Select a different version from modal",
+      "Verify modal closes and URL updates with versionId param",
       "Verify displayed sections/lessons match selected version"
     ],
     "passes": true
@@ -176,7 +178,7 @@
       "Verify no delete option exists in UI",
       "Verify no delete endpoint exists"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",
@@ -215,12 +217,22 @@
   },
   {
     "category": "ui",
-    "description": "Version selector shows versions ordered by date descending",
+    "description": "Version selector modal shows versions ordered by date descending",
     "steps": [
       "Create multiple versions with different dates",
-      "Open version selector dropdown",
-      "Verify most recent version appears first",
+      "Click version in top bar to open modal",
+      "Verify most recent version appears first in modal",
       "Verify versions are ordered newest to oldest"
+    ],
+    "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Version selector is NOT displayed in sidebar",
+    "steps": [
+      "Select a repo from the sidebar",
+      "Verify no version dropdown/selector in sidebar",
+      "Verify sidebar only shows repo list"
     ],
     "passes": true
   },
@@ -240,7 +252,7 @@
     "category": "ui",
     "description": "URL reflects selected version",
     "steps": [
-      "Select a repo and version",
+      "Select a repo and change version via top bar modal",
       "Verify URL contains repoId and versionId params",
       "Copy URL and open in new tab",
       "Verify same repo and version are selected"
@@ -253,7 +265,7 @@
     "steps": [
       "Navigate to URL with repoId but no versionId",
       "Verify latest version is automatically selected",
-      "Verify version selector shows latest version"
+      "Verify top bar shows latest version in brackets"
     ],
     "passes": true
   }

@@ -4,6 +4,7 @@ import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
+import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -18,13 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { VideoModal } from "@/components/video-player";
 import { getVideoPath } from "@/lib/get-video";
@@ -215,6 +209,8 @@ export default function Component(props: Route.ComponentProps) {
   });
   const [isCreateVersionModalOpen, setIsCreateVersionModalOpen] =
     useState(false);
+  const [isVersionSelectorModalOpen, setIsVersionSelectorModalOpen] =
+    useState(false);
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
@@ -334,34 +330,6 @@ export default function Component(props: Route.ComponentProps) {
               ))}
             </div>
           </ScrollArea>
-          {selectedRepoId && data.versions.length > 0 && (
-            <>
-              <Separator className="mb-4" />
-              <div className="mb-4">
-                <label className="text-sm text-muted-foreground mb-2 block">
-                  Version
-                </label>
-                <Select
-                  value={data.selectedVersion?.id ?? ""}
-                  onValueChange={(versionId) => {
-                    setSearchParams({ repoId: selectedRepoId, versionId });
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select version" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {data.versions.map((version) => (
-                      <SelectItem key={version.id} value={version.id}>
-                        {version.name} (
-                        {new Date(version.createdAt).toLocaleDateString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
           <Separator className="mb-4" />
           <AddRepoModal
             isOpen={isAddRepoModalOpen}
@@ -377,8 +345,16 @@ export default function Component(props: Route.ComponentProps) {
             <>
               <div className="flex gap-6">
                 <div>
-                  <h1 className="text-2xl font-bold mb-2">
+                  <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
                     {currentRepo.name}
+                    {data.selectedVersion && (
+                      <button
+                        onClick={() => setIsVersionSelectorModalOpen(true)}
+                        className="text-muted-foreground hover:text-foreground transition-colors text-lg font-normal"
+                      >
+                        [{data.selectedVersion.name}]
+                      </button>
+                    )}
                   </h1>
                   <div className="flex items-center gap-2 mb-8">
                     <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
@@ -746,6 +722,18 @@ export default function Component(props: Route.ComponentProps) {
           sourceVersionId={data.selectedVersion.id}
           isOpen={isCreateVersionModalOpen}
           onOpenChange={setIsCreateVersionModalOpen}
+        />
+      )}
+
+      {selectedRepoId && data.versions.length > 0 && (
+        <VersionSelectorModal
+          versions={data.versions}
+          selectedVersionId={data.selectedVersion?.id}
+          isOpen={isVersionSelectorModalOpen}
+          onOpenChange={setIsVersionSelectorModalOpen}
+          onSelectVersion={(versionId) => {
+            setSearchParams({ repoId: selectedRepoId, versionId });
+          }}
         />
       )}
     </div>

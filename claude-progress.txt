@@ -38,3 +38,20 @@ Changes:
 Confirmed that clip editing works across all versions. Clip update/archive endpoints operate on clip IDs directly with no version restrictions. Each version has its own independent copy of clips (via section → lesson → video → clip hierarchy), so edits in one version don't affect other versions.
 
 No code changes needed - functionality already implemented correctly.
+
+## 2026-01-01: Version selector moved to top bar
+
+Moved version display and selection from sidebar to top bar next to course title. Version now shows in brackets after course name and clicking opens a modal to select versions.
+
+Changes:
+- app/components/version-selector-modal.tsx: New modal component listing all versions with checkmark for selected
+- app/routes/_index.tsx: Added clickable version badge in h1, added VersionSelectorModal, removed sidebar version dropdown
+
+Tests now passing:
+- Version displays in top bar next to course title
+- Switching versions updates displayed content
+- Version selector modal shows versions ordered by date descending
+- Version selector is NOT displayed in sidebar
+- URL reflects selected version
+- Default to latest version when no versionId in URL
+- Versions cannot be deleted (no delete UI/endpoint exists)
