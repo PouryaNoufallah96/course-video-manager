@@ -30,7 +30,10 @@ export const action = async ({ request }: Route.ActionArgs) => {
       name: result.name,
     });
 
-    const sections = yield* db.createSections(repo.id, parsedSections);
+    const sections = yield* db.createSections({
+      repoId: repo.id,
+      sections: parsedSections,
+    });
 
     yield* Effect.forEach(sections, (section, index) =>
       Effect.forEach(parsedSections[index]!.lessons, (lesson) =>

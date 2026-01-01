@@ -265,3 +265,12 @@ Refactored appendClips to use object-based arguments for consistency with other 
 Changes:
 - app/services/db-service.ts: Changed signature from (videoId, insertionPoint, inputClips) to ({videoId, insertionPoint, clips})
 - app/routes/videos.$videoId.append-from-obs.ts: Updated caller to use object syntax
+
+## 2026-01-01: Convert createSections to object-based arguments
+
+Refactored createSections to use object-based arguments for consistency with other db-service methods.
+
+Changes:
+- app/services/db-service.ts: Changed signature from (repoId, newSections, repoVersionId?) to ({repoId, sections, repoVersionId?})
+- app/routes/api.repos.add.ts: Updated caller to use object syntax
+- app/routes/api.repos.update.ts: Updated caller to use object syntax

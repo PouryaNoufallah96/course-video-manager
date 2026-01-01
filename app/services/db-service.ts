@@ -452,14 +452,18 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return repo;
       }),
-      createSections: Effect.fn("createSections")(function* (
-        repoId: string,
-        newSections: {
+      createSections: Effect.fn("createSections")(function* ({
+        repoId,
+        sections: newSections,
+        repoVersionId,
+      }: {
+        repoId: string;
+        sections: {
           sectionPathWithNumber: string;
           sectionNumber: number;
-        }[],
-        repoVersionId?: string
-      ) {
+        }[];
+        repoVersionId?: string;
+      }) {
         const sectionResult = yield* makeDbCall(() =>
           db
             .insert(sections)
