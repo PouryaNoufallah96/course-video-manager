@@ -55,7 +55,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useFetcher, useSearchParams } from "react-router";
-import { toast } from "sonner";
+import { useFetcherToast } from "@/hooks/use-fetcher-toast";
 import type { Route } from "./+types/_index";
 
 export const meta: Route.MetaFunction = ({ data }) => {
@@ -232,38 +232,10 @@ export default function Component(props: Route.ComponentProps) {
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
 
-  // Handle publish response with toast notifications
-  useEffect(() => {
-    if (publishRepoFetcher.state !== "idle" || !publishRepoFetcher.data) {
-      return;
-    }
-
-    const response = publishRepoFetcher.data;
-
-    // Check if it's an error Response
-    if (response instanceof Response) {
-      response
-        .clone()
-        .json()
-        .then((json: { message?: string }) => {
-          toast.error(json.message || "Publish failed");
-        })
-        .catch(() => {
-          response
-            .clone()
-            .text()
-            .then((text: string) => {
-              toast.error(text || "Publish failed");
-            });
-        });
-    } else if (
-      typeof response === "object" &&
-      Object.keys(response).length === 0
-    ) {
-      // Empty object {} means success
-      toast.success("Published successfully");
-    }
-  }, [publishRepoFetcher.state, publishRepoFetcher.data]);
+  useFetcherToast(publishRepoFetcher, {
+    successMessage: "Published successfully",
+    errorMessage: "Publish failed",
+  });
 
   const poller = useFetcher<typeof props.loaderData>();
 
