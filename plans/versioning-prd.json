@@ -162,7 +162,7 @@
       "Verify version name is 'v1.0'",
       "Verify sections point to repoVersionId instead of repoId"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",

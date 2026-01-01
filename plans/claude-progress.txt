@@ -24,11 +24,40 @@ Added foundational database schema for course versioning:
    - Updated sectionsRelations to include repoVersion
 
 ### Next Steps
-- Create migration script to populate v1.0 for existing repos
-- Update sections to point to repoVersionId
 - Implement version selector UI
 - Implement "Create New Version" functionality
 
 ### PRD Status
 All features still marked as `passes: false` - schema is foundation only.
 Most important next feature: "Migration creates v1.0 for existing repos"
+
+---
+
+## 2026-01-01: Migration Endpoint and DBService Version Methods
+
+### Work Done
+Added migration endpoint and version management methods:
+
+1. **New migration endpoint: POST /api/repos/migrate-to-versions**
+   - Gets all repos without versions
+   - Creates v1.0 repoVersion for each
+   - Updates all sections to point to repoVersionId
+   - Returns count of migrated/skipped repos
+
+2. **DBService version methods**
+   - `getRepoVersions(repoId)` - list all versions for repo, ordered by date desc
+   - `getLatestRepoVersion(repoId)` - get most recent version
+   - `getRepoVersionById(versionId)` - get specific version
+   - `createRepoVersion({repoId, name})` - create new version
+
+3. **Updated createSections**
+   - Now accepts optional `repoVersionId` parameter
+   - Sections can be created with version association
+
+### PRD Status
+1 of 19 features passing:
+- ✅ "Migration creates v1.0 for existing repos"
+
+### Next Steps
+- Implement version selector UI in sidebar
+- Implement "Create New Version" functionality
