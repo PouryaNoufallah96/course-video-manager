@@ -1,14 +1,14 @@
 [
   {
     "category": "refactor",
-    "description": "Rename api.repos.publish.ts to api.repos.publishToDropbox.ts",
+    "description": "Rename api.repos.publish.ts to api.repos.publish-to-dropbox.ts",
     "steps": [
-      "Rename app/routes/api.repos.publish.ts to app/routes/api.repos.publishToDropbox.ts",
-      "Update action reference in _index.tsx from /api/repos/publish to /api/repos/publishToDropbox",
+      "Rename app/routes/api.repos.publish.ts to app/routes/api.repos.publish-to-dropbox.ts",
+      "Update action reference in _index.tsx from /api/repos/publish to /api/repos/publish-to-dropbox",
       "Run pnpm typecheck to verify no errors",
       "Verify Dropbox publishing still works by triggering publish action"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",
@@ -21,7 +21,7 @@
       "Update any other files importing these errors from db-service.ts",
       "Run pnpm typecheck to verify no errors"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",

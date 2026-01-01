@@ -434,7 +434,7 @@ export default function Component(props: Route.ComponentProps) {
                               { repoId: currentRepo.id },
                               {
                                 method: "post",
-                                action: "/api/repos/publish",
+                                action: "/api/repos/publish-to-dropbox",
                               }
                             )
                             .catch((e) => {

@@ -217,3 +217,19 @@ Removed the next-themes package which was no longer used in the codebase. The To
 
 Changes:
 - package.json: Removed next-themes dependency via pnpm remove
+
+## 2026-01-01: Rename publish route to publish-to-dropbox
+
+Renamed the publish API route to make its purpose explicit - it publishes to Dropbox specifically.
+
+Changes:
+- app/routes/api.repos.publish.ts → app/routes/api.repos.publish-to-dropbox.ts
+- app/routes/_index.tsx: Updated action reference from /api/repos/publish to /api/repos/publish-to-dropbox
+
+## 2026-01-01: Extract db-service errors to separate file
+
+Moved error classes from db-service.ts to a new dedicated file for better code organization and reusability.
+
+Changes:
+- app/services/db-service-errors.ts: New file containing NotFoundError, UnknownDBServiceError, NotLatestVersionError, CannotDeleteOnlyVersionError, CannotDeleteNonLatestVersionError
+- app/services/db-service.ts: Updated to import errors from new file, removed Data import (no longer needed)
