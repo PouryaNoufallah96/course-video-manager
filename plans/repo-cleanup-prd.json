@@ -81,19 +81,58 @@
       "Verify no imports of next-themes exist in codebase",
       "Run pnpm typecheck to verify no errors"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",
-    "description": "Add/standardize error handling in all Effect-based routes",
+    "description": "Update existing error handling to Effect.die(data(...)) pattern",
     "steps": [
-      "Pattern: use Effect.catchTags for known errors, Effect.catchAll as fallback",
       "Pattern: use Effect.die(data(..., { status: xxx })) instead of Effect.succeed(new Response(...))",
       "Import { data } from 'react-router' in each route",
-      "Routes WITH error handling (update to new pattern): api.repos.add, api.repos.update, api.repos.publish, api.repos.$repoId.create-version, api.repos.$repoId.clear-video-files, api.repos.migrate-to-versions",
-      "Routes MISSING error handling (add it): api.repos.$repoId.delete-version, api.repos.$repoId.rename-version, api.repos.$repoId.rename-repo, api.repos.$repoId.export-all, api.repos.$repoId.export-unexported, api.videos.delete, api.videos.$videoId.export, api.videos.edit-latest-obs-video, api.lessons.delete, api.lessons.$lessonId.add-video, api.lessons.$lessonId.update-name, api.write-readme, _index.tsx, videos.$videoId.edit.tsx, videos.$videoId.ts, videos.$videoId.write.tsx, videos.$videoId.append-from-obs, videos.$videoId.completions, videos.$videoId.export-to-davinci-resolve, clips.$clipId.first-frame.ts, clips.$clipId.last-frame.ts, clips.update.ts, clips.update-beat.ts, clips.transcribe.ts, clips.archive.ts",
+      "Update api.repos.add.ts",
+      "Update api.repos.update.ts",
+      "Update api.repos.publish.ts",
+      "Update api.repos.$repoId.create-version.ts",
+      "Update api.repos.$repoId.delete-version.ts",
+      "Update api.repos.$repoId.clear-video-files.ts",
+      "Update api.repos.migrate-to-versions.ts",
       "Run pnpm typecheck to verify no errors"
     ],
     "passes": true
+  },
+  {
+    "category": "refactor",
+    "description": "Add error handling to routes missing it (24 files)",
+    "steps": [
+      "Pattern: use Effect.catchTags for known errors, Effect.catchAll as fallback",
+      "Pattern: use Effect.die(data(..., { status: xxx }))",
+      "Import { data } from 'react-router' in each route",
+      "Add to: _index.tsx",
+      "Add to: api.repos.$repoId.rename-repo.ts",
+      "Add to: api.repos.$repoId.rename-version.ts",
+      "Add to: api.repos.$repoId.export-all.ts",
+      "Add to: api.repos.$repoId.export-unexported.ts",
+      "Add to: api.videos.$videoId.export.ts",
+      "Add to: api.videos.delete.ts",
+      "Add to: api.videos.edit-latest-obs-video.ts",
+      "Add to: api.lessons.delete.ts",
+      "Add to: api.lessons.$lessonId.add-video.ts",
+      "Add to: api.lessons.$lessonId.update-name.ts",
+      "Add to: api.write-readme.ts",
+      "Add to: videos.$videoId.edit.tsx",
+      "Add to: videos.$videoId.ts",
+      "Add to: videos.$videoId.write.tsx",
+      "Add to: videos.$videoId.append-from-obs.ts",
+      "Add to: videos.$videoId.completions.ts",
+      "Add to: videos.$videoId.export-to-davinci-resolve.ts",
+      "Add to: clips.$clipId.first-frame.ts",
+      "Add to: clips.$clipId.last-frame.ts",
+      "Add to: clips.update.ts",
+      "Add to: clips.update-beat.ts",
+      "Add to: clips.transcribe.ts",
+      "Add to: clips.archive.ts",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
   }
 ]

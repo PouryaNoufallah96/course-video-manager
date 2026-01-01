@@ -210,3 +210,10 @@ Changes:
 - app/routes/api.repos.$repoId.create-version.ts: Import data from react-router, convert catchTag handlers to use Effect.die(data(...))
 - app/routes/api.repos.migrate-to-versions.ts: Import data from react-router, convert catchAll to use Effect.die(data(...))
 - app/routes/_index.tsx: Import data from react-router, convert NotFoundError handler to use Effect.die(data(...))
+
+## 2026-01-01: Remove unused next-themes dependency
+
+Removed the next-themes package which was no longer used in the codebase. The Toaster component had previously been simplified to use dark theme directly without next-themes integration.
+
+Changes:
+- package.json: Removed next-themes dependency via pnpm remove
