@@ -708,6 +708,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return version;
       }),
+      deleteRepo: Effect.fn("deleteRepo")(function* (repoId: string) {
+        yield* makeDbCall(() => db.delete(repos).where(eq(repos.id, repoId)));
+      }),
     };
   }),
 }) {}

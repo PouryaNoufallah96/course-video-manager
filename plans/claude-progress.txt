@@ -61,3 +61,34 @@ Added migration endpoint and version management methods:
 ### Next Steps
 - Implement version selector UI in sidebar
 - Implement "Create New Version" functionality
+
+---
+
+## 2026-01-01: Cascade Deletion Through Version Hierarchy
+
+### Work Done
+Verified and tested cascade deletion works through the version hierarchy:
+
+1. **Added `deleteRepo` method to DBService**
+   - Deletes a repo by ID
+   - Cascade configured at schema level handles all child entities
+
+2. **Schema cascade configuration verified**
+   - `repoVersions`: CASCADE from `repos`
+   - `sections`: CASCADE from both `repos` and `repoVersions`
+   - `lessons`: CASCADE from `sections`
+   - `videos`: CASCADE from `lessons`
+   - `clips`: CASCADE from `videos`
+
+3. **Added integration test**
+   - `db-service.test.ts` verifies full cascade: repo -> versions -> sections -> lessons -> videos -> clips
+   - Test requires DATABASE_URL to be set
+
+### PRD Status
+2 of 19 features passing:
+- ✅ "Migration creates v1.0 for existing repos"
+- ✅ "Cascade deletion works through version hierarchy"
+
+### Next Steps
+- Implement version selector UI in sidebar
+- Implement "Create New Version" functionality
