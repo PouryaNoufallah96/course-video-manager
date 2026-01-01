@@ -999,6 +999,95 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return newVersion;
       }),
+      /**
+       * Get all versions for a repo with their full structure for changelog generation.
+       * Returns versions in reverse chronological order (newest first).
+       */
+      getAllVersionsWithStructure: Effect.fn("getAllVersionsWithStructure")(
+        function* (repoId: string) {
+          const versions = yield* makeDbCall(() =>
+            db.query.repoVersions.findMany({
+              where: eq(repoVersions.repoId, repoId),
+              orderBy: desc(repoVersions.createdAt),
+            })
+          );
+
+          const versionsWithStructure: Array<{
+            id: string;
+            name: string;
+            createdAt: Date;
+            sections: Array<{
+              id: string;
+              path: string;
+              previousVersionSectionId: string | null;
+              lessons: Array<{
+                id: string;
+                path: string;
+                previousVersionLessonId: string | null;
+                videos: Array<{
+                  id: string;
+                  path: string;
+                  clips: Array<{
+                    id: string;
+                    text: string;
+                  }>;
+                }>;
+              }>;
+            }>;
+          }> = [];
+
+          for (const version of versions) {
+            const versionSections = yield* makeDbCall(() =>
+              db.query.sections.findMany({
+                where: eq(sections.repoVersionId, version.id),
+                orderBy: asc(sections.order),
+                with: {
+                  lessons: {
+                    orderBy: asc(lessons.order),
+                    with: {
+                      videos: {
+                        orderBy: asc(videos.path),
+                        with: {
+                          clips: {
+                            orderBy: asc(clips.order),
+                            where: eq(clips.archived, false),
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              })
+            );
+
+            versionsWithStructure.push({
+              id: version.id,
+              name: version.name,
+              createdAt: version.createdAt,
+              sections: versionSections.map((s) => ({
+                id: s.id,
+                path: s.path,
+                previousVersionSectionId: s.previousVersionSectionId,
+                lessons: s.lessons.map((l) => ({
+                  id: l.id,
+                  path: l.path,
+                  previousVersionLessonId: l.previousVersionLessonId,
+                  videos: l.videos.map((v) => ({
+                    id: v.id,
+                    path: v.path,
+                    clips: v.clips.map((c) => ({
+                      id: c.id,
+                      text: c.text,
+                    })),
+                  })),
+                })),
+              })),
+            });
+          }
+
+          return versionsWithStructure;
+        }
+      ),
     };
   }),
 }) {}

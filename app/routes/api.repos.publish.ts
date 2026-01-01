@@ -16,6 +16,7 @@ import { Command, FileSystem } from "@effect/platform";
 import path from "node:path";
 import { makeSemaphore } from "effect/Effect";
 import { NodeRuntime } from "@effect/platform-node";
+import { generateChangelog } from "@/services/changelog-service";
 
 const publishRepoSchema = Schema.Struct({
   repoId: Schema.String,
@@ -285,6 +286,12 @@ export const action = async ({ request }: Route.ActionArgs) => {
     );
 
     yield* Effect.forEach(filesToDelete, (file) => fs.remove(file));
+
+    // Generate and write changelog
+    const allVersions = yield* db.getAllVersionsWithStructure(result.repoId);
+    const changelogContent = generateChangelog(allVersions);
+    const changelogPath = path.join(dropboxRepoDirectory, "changelog.md");
+    yield* fs.writeFileString(changelogPath, changelogContent);
 
     const exitCode = yield* Command.make(
       `find`,

@@ -124,7 +124,7 @@
       "Verify changelog shows v1.5 changes below",
       "Verify changelog shows v1.0 as 'Initial version' at bottom"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -136,7 +136,7 @@
       "Verify newest version appears first",
       "Verify oldest version appears last"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -147,7 +147,7 @@
       "Export",
       "Verify new lesson listed under v2.0's '### New Lessons'"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -158,7 +158,7 @@
       "Export",
       "Verify rename listed under v2.0's '### Renamed' with old → new format"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -169,7 +169,7 @@
       "Export",
       "Verify lesson listed under v2.0's '### Content Changes'"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -180,7 +180,7 @@
       "Export",
       "Verify v1.0 section shows 'Initial version' without change details"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

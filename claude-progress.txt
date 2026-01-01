@@ -107,3 +107,30 @@ Disabled states:
 
 Changes:
 - app/routes/_index.tsx: Added Tooltip import, refactored Delete Version menu item to show disabled state with tooltip when conditions not met
+
+## 2026-01-01: Changelog generation during export/publish
+
+Implemented automatic changelog generation when publishing a repo. The changelog includes all version history with change detection between versions.
+
+Features:
+- Generates changelog.md in Dropbox folder during publish
+- Shows versions in reverse chronological order (newest first)
+- First/oldest version shows "Initial version."
+- Detects new lessons (no previousVersionLessonId)
+- Detects renamed sections (path differs from previousVersionSectionId)
+- Detects renamed lessons (path differs from previousVersionLessonId)
+- Detects content changes via transcript comparison (combined clip text)
+- Sections: ### New Lessons, ### Renamed, ### Content Changes
+
+Changes:
+- app/services/changelog-service.ts: New service with generateChangelog function
+- app/services/db-service.ts: Added getAllVersionsWithStructure method for fetching all versions with full hierarchy
+- app/routes/api.repos.publish.ts: Added changelog generation and writing to Dropbox
+
+Tests now passing:
+- Export generates full changelog with all version history
+- Changelog shows version sections in reverse chronological order
+- Changelog detects new lessons per version
+- Changelog detects renamed sections/lessons per version
+- Changelog detects content changes via transcript comparison
+- Initial version shows as 'Initial version' in changelog
