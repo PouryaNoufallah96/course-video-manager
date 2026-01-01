@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
-import { clips, lessons, repos, sections, videos } from "@/db/schema";
+import { clips, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 import { generateNKeysBetween } from "fractional-indexing";
 
@@ -459,7 +459,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         newSections: {
           sectionPathWithNumber: string;
           sectionNumber: number;
-        }[]
+        }[],
+        repoVersionId?: string
       ) {
         const sectionResult = yield* makeDbCall(() =>
           db
@@ -467,6 +468,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             .values(
               newSections.map((section) => ({
                 repoId,
+                repoVersionId,
                 path: section.sectionPathWithNumber,
                 order: section.sectionNumber,
               }))
@@ -650,6 +652,61 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }
 
         return null;
+      }),
+      // Version-related methods
+      getRepoVersions: Effect.fn("getRepoVersions")(function* (repoId: string) {
+        const versions = yield* makeDbCall(() =>
+          db.query.repoVersions.findMany({
+            where: eq(repoVersions.repoId, repoId),
+            orderBy: desc(repoVersions.createdAt),
+          })
+        );
+        return versions;
+      }),
+      getLatestRepoVersion: Effect.fn("getLatestRepoVersion")(function* (
+        repoId: string
+      ) {
+        const version = yield* makeDbCall(() =>
+          db.query.repoVersions.findFirst({
+            where: eq(repoVersions.repoId, repoId),
+            orderBy: desc(repoVersions.createdAt),
+          })
+        );
+        return version;
+      }),
+      getRepoVersionById: Effect.fn("getRepoVersionById")(function* (
+        versionId: string
+      ) {
+        const version = yield* makeDbCall(() =>
+          db.query.repoVersions.findFirst({
+            where: eq(repoVersions.id, versionId),
+          })
+        );
+
+        if (!version) {
+          return yield* new NotFoundError({
+            type: "getRepoVersionById",
+            params: { versionId },
+          });
+        }
+
+        return version;
+      }),
+      createRepoVersion: Effect.fn("createRepoVersion")(function* (input: {
+        repoId: string;
+        name: string;
+      }) {
+        const [version] = yield* makeDbCall(() =>
+          db.insert(repoVersions).values(input).returning()
+        );
+
+        if (!version) {
+          return yield* new UnknownDBServiceError({
+            cause: "No version was returned from the database",
+          });
+        }
+
+        return version;
       }),
     };
   }),
