@@ -12,6 +12,18 @@
     "passes": true
   },
   {
+    "category": "ui",
+    "description": "Version only visible in UI when multiple versions exist",
+    "steps": [
+      "Select a repo with only one version",
+      "Verify version is NOT shown in top bar",
+      "Create a second version for the repo",
+      "Verify version now appears in top bar",
+      "Verify clicking version opens modal"
+    ],
+    "passes": true
+  },
+  {
     "category": "functional",
     "description": "Switching versions updates displayed content",
     "steps": [
@@ -179,6 +191,20 @@
       "Verify no delete endpoint exists"
     ],
     "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Update version name via Actions dropdown",
+    "steps": [
+      "Select a repo with a version",
+      "Open Actions dropdown",
+      "Click 'Rename Version'",
+      "Verify modal opens with current version name",
+      "Enter new version name",
+      "Submit and verify name updated in top bar",
+      "Verify name persisted after page refresh"
+    ],
+    "passes": false
   },
   {
     "category": "data",

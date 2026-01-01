@@ -347,7 +347,7 @@ export default function Component(props: Route.ComponentProps) {
                 <div>
                   <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
                     {currentRepo.name}
-                    {data.selectedVersion && (
+                    {data.selectedVersion && data.versions.length > 1 && (
                       <button
                         onClick={() => setIsVersionSelectorModalOpen(true)}
                         className="text-muted-foreground hover:text-foreground transition-colors text-lg font-normal"

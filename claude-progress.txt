@@ -55,3 +55,10 @@ Tests now passing:
 - URL reflects selected version
 - Default to latest version when no versionId in URL
 - Versions cannot be deleted (no delete UI/endpoint exists)
+
+## 2026-01-01: Version only visible when multiple versions exist
+
+Added conditional check to only show version badge in top bar when repo has more than one version. Single-version repos no longer show the version indicator, reducing UI clutter.
+
+Changes:
+- app/routes/_index.tsx: Added `data.versions.length > 1` check to version badge render condition
