@@ -4,6 +4,7 @@ import { Console, Effect, Schema } from "effect";
 import { layerLive } from "@/services/layer";
 import { DBService } from "@/services/db-service";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 const addRepoSchema = Schema.Struct({
   name: Schema.String,
@@ -45,18 +46,14 @@ export const action = async ({ request }: Route.ActionArgs) => {
     Effect.tapErrorCause((e) => {
       return Console.dir(e, { depth: null });
     }),
-    Effect.catchTag("ParseError", (_e) => {
-      return Effect.succeed(new Response("Invalid request", { status: 400 }));
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
     }),
-    Effect.catchTag("RepoDoesNotExistError", (_e) => {
-      return Effect.succeed(
-        new Response("Repo path does not exist locally", { status: 404 })
-      );
+    Effect.catchTag("RepoDoesNotExistError", () => {
+      return Effect.die(data("Repo path does not exist locally", { status: 404 }));
     }),
-    Effect.catchAll((_e) => {
-      return Effect.succeed(
-        new Response("Internal server error", { status: 500 })
-      );
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
     Effect.provide(layerLive),
     Effect.runPromise

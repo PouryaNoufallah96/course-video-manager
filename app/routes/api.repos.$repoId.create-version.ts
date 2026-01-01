@@ -5,6 +5,7 @@ import { Config, Console, Effect, Schema } from "effect";
 import { FileSystem } from "@effect/platform";
 import type { Route } from "./+types/api.repos.$repoId.create-version";
 import path from "node:path";
+import { data } from "react-router";
 
 const createVersionSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
@@ -56,13 +57,13 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
     withDatabaseDump,
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
     Effect.catchTag("ParseError", () =>
-      Effect.succeed(new Response("Invalid request - version name required", { status: 400 }))
+      Effect.die(data("Invalid request - version name required", { status: 400 }))
     ),
     Effect.catchTag("NotLatestVersionError", () =>
-      Effect.succeed(new Response("Can only create new version from latest version", { status: 400 }))
+      Effect.die(data("Can only create new version from latest version", { status: 400 }))
     ),
     Effect.catchAll(() =>
-      Effect.succeed(new Response("Internal server error", { status: 500 }))
+      Effect.die(data("Internal server error", { status: 500 }))
     ),
     Effect.provide(layerLive),
     Effect.runPromise

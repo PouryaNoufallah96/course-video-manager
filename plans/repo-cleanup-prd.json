@@ -85,30 +85,15 @@
   },
   {
     "category": "refactor",
-    "description": "Migrate all API route actions AND loaders to Effect.die(data(...)) pattern",
+    "description": "Add/standardize error handling in all Effect-based routes",
     "steps": [
-      "Pattern: replace Effect.succeed(new Response(...)) with Effect.die(data(..., { status: xxx }))",
+      "Pattern: use Effect.catchTags for known errors, Effect.catchAll as fallback",
+      "Pattern: use Effect.die(data(..., { status: xxx })) instead of Effect.succeed(new Response(...))",
       "Import { data } from 'react-router' in each route",
-      "Update api.repos.add.ts",
-      "Update api.repos.$repoId.create-version.ts",
-      "Update api.repos.$repoId.delete-version.ts",
-      "Update api.repos.$repoId.rename-version.ts",
-      "Update api.repos.$repoId.rename-repo.ts",
-      "Update api.repos.$repoId.export-all.ts",
-      "Update api.repos.$repoId.export-unexported.ts",
-      "Update api.repos.$repoId.clear-video-files.ts",
-      "Update api.repos.update.ts",
-      "Update api.repos.migrate-to-versions.ts",
-      "Update api.videos.delete.ts",
-      "Update api.videos.$videoId.export.ts",
-      "Update api.videos.edit-latest-obs-video.ts",
-      "Update api.lessons.delete.ts",
-      "Update api.lessons.$lessonId.add-video.ts",
-      "Update api.lessons.$lessonId.update-name.ts",
-      "Update api.write-readme.ts",
-      "Update _index.tsx loader error handling",
+      "Routes WITH error handling (update to new pattern): api.repos.add, api.repos.update, api.repos.publish, api.repos.$repoId.create-version, api.repos.$repoId.clear-video-files, api.repos.migrate-to-versions",
+      "Routes MISSING error handling (add it): api.repos.$repoId.delete-version, api.repos.$repoId.rename-version, api.repos.$repoId.rename-repo, api.repos.$repoId.export-all, api.repos.$repoId.export-unexported, api.videos.delete, api.videos.$videoId.export, api.videos.edit-latest-obs-video, api.lessons.delete, api.lessons.$lessonId.add-video, api.lessons.$lessonId.update-name, api.write-readme, _index.tsx, videos.$videoId.edit.tsx, videos.$videoId.ts, videos.$videoId.write.tsx, videos.$videoId.append-from-obs, videos.$videoId.completions, videos.$videoId.export-to-davinci-resolve, clips.$clipId.first-frame.ts, clips.$clipId.last-frame.ts, clips.update.ts, clips.update-beat.ts, clips.transcribe.ts, clips.archive.ts",
       "Run pnpm typecheck to verify no errors"
     ],
-    "passes": false
+    "passes": true
   }
 ]

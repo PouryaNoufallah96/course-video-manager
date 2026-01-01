@@ -57,7 +57,7 @@ import {
   VideotapeIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link, useFetcher, useNavigate, useSearchParams } from "react-router";
+import { data, Link, useFetcher, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
 import { toast } from "sonner";
 
@@ -195,8 +195,8 @@ export const loader = async (args: Route.LoaderArgs) => {
       hasExplainerFolderMap,
     };
   }).pipe(
-    Effect.catchTag("NotFoundError", (_e) => {
-      return Effect.succeed(new Response("Not Found", { status: 404 }));
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Not Found", { status: 404 }));
     }),
     Effect.provide(layerLive),
     Effect.runPromise

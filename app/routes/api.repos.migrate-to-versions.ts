@@ -5,6 +5,7 @@ import { layerLive } from "@/services/layer";
 import { eq } from "drizzle-orm";
 import { ConfigProvider, Console, Effect } from "effect";
 import type { Route } from "./+types/api.repos.migrate-to-versions";
+import { data } from "react-router";
 
 /**
  * Migration endpoint to create v1.0 for existing repos that don't have versions.
@@ -77,14 +78,9 @@ export const action = async (_args: Route.ActionArgs) => {
       return Console.error(cause);
     }),
     Effect.catchAll((e) => {
-      return Effect.succeed(
-        new Response(JSON.stringify({ error: String(e) }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        })
-      );
+      return Effect.die(data({ error: String(e) }, { status: 500 }));
     }),
-    Effect.ensureErrorType<never>(),
+    Effect.provide(layerLive),
     Effect.runPromise
   );
 };

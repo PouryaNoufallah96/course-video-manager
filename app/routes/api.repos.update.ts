@@ -7,6 +7,7 @@ import {
   notFound,
 } from "@/services/repo-parser";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
   message: string;
@@ -279,12 +280,10 @@ export const action = async (args: Route.ActionArgs) => {
     Effect.tapErrorCause((cause) => {
       return Console.error(cause);
     }),
-    Effect.catchAll((_e) => {
-      return Effect.succeed(
-        new Response("Internal server error", { status: 500 })
-      );
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
-    Effect.ensureErrorType<never>(),
+    Effect.provide(layerLive),
     Effect.runPromise
   );
 };

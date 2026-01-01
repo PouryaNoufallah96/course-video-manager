@@ -199,3 +199,14 @@ Sections:
 
 Changes:
 - app/routes/_index.tsx: Added DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator imports; reorganized menu items into labeled groups with separators between them
+
+## 2026-01-01: Migrate error handling to Effect.die(data(...)) pattern
+
+Standardized error handling across API routes to use `Effect.die(data(..., { status: xxx }))` instead of `Effect.succeed(new Response(...))`. This pattern properly throws errors with react-router's data helper for consistent HTTP response handling.
+
+Changes:
+- app/routes/api.repos.add.ts: Import data from react-router, convert catchTag handlers to use Effect.die(data(...))
+- app/routes/api.repos.update.ts: Import data from react-router, convert catchAll to use Effect.die(data(...))
+- app/routes/api.repos.$repoId.create-version.ts: Import data from react-router, convert catchTag handlers to use Effect.die(data(...))
+- app/routes/api.repos.migrate-to-versions.ts: Import data from react-router, convert catchAll to use Effect.die(data(...))
+- app/routes/_index.tsx: Import data from react-router, convert NotFoundError handler to use Effect.die(data(...))
