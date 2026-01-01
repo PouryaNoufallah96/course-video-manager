@@ -1,8 +1,9 @@
 import { withDatabaseDump } from "@/services/dump-service";
-import { Effect, Schema } from "effect";
+import { Console, Effect, Schema } from "effect";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import type { Route } from "./+types/clips.update-beat";
+import { data } from "react-router";
 
 const updateBeatSchema = Schema.Struct({
   clipId: Schema.String,
@@ -23,5 +24,16 @@ export const action = async (args: Route.ActionArgs) => {
     });
 
     return { success: true };
-  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    withDatabaseDump,
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

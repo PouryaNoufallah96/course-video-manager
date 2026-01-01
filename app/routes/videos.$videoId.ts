@@ -2,9 +2,10 @@ import { getVideoPath } from "@/lib/get-video";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
-import { Effect } from "effect";
+import { Console, Effect } from "effect";
 import { createReadStream, statSync } from "fs";
 import type { Route } from "./+types/videos.$videoId";
+import { data } from "react-router";
 
 export const loader = async (args: Route.LoaderArgs) => {
   const { videoId } = args.params;
@@ -81,5 +82,15 @@ export const action = async (args: Route.ActionArgs) => {
     yield* fs.remove(videoPath);
 
     return { success: true, deletedPath: videoPath };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

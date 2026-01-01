@@ -4,6 +4,7 @@ import { DBService } from "@/services/db-service";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { layerLive } from "@/services/layer";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 export const action = async (args: Route.ActionArgs) => {
   return Effect.gen(function* () {
@@ -39,8 +40,12 @@ export const action = async (args: Route.ActionArgs) => {
     };
   }).pipe(
     withDatabaseDump,
-    Effect.tapErrorCause((e) => {
-      return Console.log(e);
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
     Effect.provide(layerLive),
     Effect.runPromise

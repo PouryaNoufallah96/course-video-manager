@@ -5,9 +5,10 @@ import {
   createTextWritingAgent,
 } from "@/services/text-writing-agent";
 import { type UIMessage } from "ai";
-import { Effect, Schema } from "effect";
+import { Console, Effect, Schema } from "effect";
 import type { Route } from "./+types/videos.$videoId.completions";
 import { anthropic } from "@ai-sdk/anthropic";
+import { data } from "react-router";
 
 const chatSchema = Schema.Struct({
   messages: Schema.Any,
@@ -56,5 +57,15 @@ export const action = async (args: Route.ActionArgs) => {
     });
 
     return result.toUIMessageStreamResponse();
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

@@ -39,7 +39,7 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { formatSecondsToTimeCode } from "@/services/utils";
 import { FileSystem } from "@effect/platform";
-import { Effect } from "effect";
+import { Console, Effect } from "effect";
 import {
   ChevronDown,
   Copy,
@@ -195,8 +195,12 @@ export const loader = async (args: Route.LoaderArgs) => {
       hasExplainerFolderMap,
     };
   }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
     Effect.catchTag("NotFoundError", () => {
       return Effect.die(data("Not Found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
     Effect.provide(layerLive),
     Effect.runPromise

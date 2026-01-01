@@ -17,11 +17,12 @@ import { VideoEditor } from "@/features/video-editor/video-editor";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
-import { Effect } from "effect";
+import { Console, Effect } from "effect";
 import { useEffectReducer } from "use-effect-reducer";
 import type { Route } from "./+types/videos.$videoId.edit";
 import { useMemo } from "react";
 import { INSERTION_POINT_ID } from "@/features/video-editor/constants";
+import { data } from "react-router";
 
 // Core data model - flat array of clips
 
@@ -44,7 +45,17 @@ export const loader = async (args: Route.LoaderArgs) => {
       hasExplainerFolder,
       videoCount: video.lesson.videos.length,
     };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };
 
 export default function Component(props: Route.ComponentProps) {

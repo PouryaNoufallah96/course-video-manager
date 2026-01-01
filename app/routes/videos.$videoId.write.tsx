@@ -38,7 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Array as EffectArray, Effect } from "effect";
+import { Array as EffectArray, Console, Effect } from "effect";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -49,7 +49,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useFetcher } from "react-router";
+import { data, Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
 import path from "path";
 import { FileSystem } from "@effect/platform";
@@ -141,7 +141,17 @@ export const loader = async (args: Route.LoaderArgs) => {
       nextVideoId,
       previousVideoId,
     };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };
 
 const Video = (props: { src: string }) => {

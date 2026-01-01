@@ -1,9 +1,10 @@
 import { DBService } from "@/services/db-service";
-import { Effect } from "effect";
+import { Console, Effect } from "effect";
 import type { Route } from "./+types/clips.$clipId.first-frame";
 import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { createReadStream } from "fs";
+import { data } from "react-router";
 
 export const loader = async (args: Route.LoaderArgs) => {
   const { clipId } = args.params;
@@ -26,5 +27,15 @@ export const loader = async (args: Route.LoaderArgs) => {
         "Content-Type": "image/png",
       },
     });
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Clip not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

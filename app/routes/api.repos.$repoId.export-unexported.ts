@@ -13,6 +13,7 @@ import {
 } from "@/features/video-editor/constants";
 import { withDatabaseDump } from "@/services/dump-service";
 import path from "node:path";
+import { data } from "react-router";
 
 export const action = async (args: Route.ActionArgs) => {
   const { repoId } = args.params;
@@ -86,5 +87,16 @@ export const action = async (args: Route.ActionArgs) => {
     }
 
     return { success: true, exportedCount: videosToExport.length };
-  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    withDatabaseDump,
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Repo not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

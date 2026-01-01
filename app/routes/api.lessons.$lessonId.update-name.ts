@@ -1,8 +1,9 @@
-import { Data, Effect, Schema } from "effect";
+import { Console, Data, Effect, Schema } from "effect";
 import type { Route } from "./+types/api.lessons.$lessonId.update-name";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 const updateLessonNameSchema = Schema.Struct({
   path: Schema.String.pipe(
@@ -51,5 +52,22 @@ export const action = async (args: Route.ActionArgs) => {
     });
 
     return { success: true };
-  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    withDatabaseDump,
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchTag("InvalidOrderError", () => {
+      return Effect.die(data("Invalid order in path", { status: 400 }));
+    }),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Lesson not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

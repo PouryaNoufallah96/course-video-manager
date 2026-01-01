@@ -8,6 +8,7 @@ import {
 } from "@/services/tt-cli-service";
 import { FINAL_VIDEO_PADDING } from "@/features/video-editor/constants";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 const exportVideoSchema = Schema.Struct({
   shortsDirectoryOutputName: Schema.optional(Schema.String),
@@ -50,5 +51,19 @@ export const action = async (args: Route.ActionArgs) => {
     yield* Console.log(result);
 
     return { success: true };
-  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    withDatabaseDump,
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

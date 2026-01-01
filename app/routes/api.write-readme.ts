@@ -1,9 +1,10 @@
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
-import { Effect, Schema } from "effect";
+import { Console, Effect, Schema } from "effect";
 import path from "node:path";
 import type { Route } from "./+types/api.write-readme";
+import { data } from "react-router";
 
 const writeReadmeSchema = Schema.Struct({
   lessonId: Schema.String,
@@ -65,5 +66,18 @@ export const action = async (args: Route.ActionArgs) => {
     }
 
     return Response.json({ success: true });
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Lesson not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };

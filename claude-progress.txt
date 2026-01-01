@@ -274,3 +274,40 @@ Changes:
 - app/services/db-service.ts: Changed signature from (repoId, newSections, repoVersionId?) to ({repoId, sections, repoVersionId?})
 - app/routes/api.repos.add.ts: Updated caller to use object syntax
 - app/routes/api.repos.update.ts: Updated caller to use object syntax
+
+## 2026-01-01: Add error handling to all routes
+
+Added standardized error handling to 24 route files using Effect.die(data(...)) pattern with Effect.catchTag for known errors and Effect.catchAll as fallback.
+
+Pattern applied:
+- Effect.tapErrorCause for logging
+- Effect.catchTag("ParseError", ...) for validation errors (400)
+- Effect.catchTag("NotFoundError", ...) for not found (404)
+- Effect.catchAll(...) for internal errors (500)
+- Import { data } from 'react-router'
+
+Files updated:
+- app/routes/_index.tsx
+- app/routes/api.repos.$repoId.rename-repo.ts
+- app/routes/api.repos.$repoId.rename-version.ts
+- app/routes/api.repos.$repoId.export-all.ts
+- app/routes/api.repos.$repoId.export-unexported.ts
+- app/routes/api.videos.$videoId.export.ts
+- app/routes/api.videos.delete.ts
+- app/routes/api.videos.edit-latest-obs-video.ts
+- app/routes/api.lessons.delete.ts
+- app/routes/api.lessons.$lessonId.add-video.ts
+- app/routes/api.lessons.$lessonId.update-name.ts
+- app/routes/api.write-readme.ts
+- app/routes/videos.$videoId.edit.tsx
+- app/routes/videos.$videoId.ts
+- app/routes/videos.$videoId.write.tsx
+- app/routes/videos.$videoId.append-from-obs.ts
+- app/routes/videos.$videoId.completions.ts
+- app/routes/videos.$videoId.export-to-davinci-resolve.ts
+- app/routes/clips.$clipId.first-frame.ts
+- app/routes/clips.$clipId.last-frame.ts
+- app/routes/clips.update.ts
+- app/routes/clips.update-beat.ts
+- app/routes/clips.transcribe.ts
+- app/routes/clips.archive.ts

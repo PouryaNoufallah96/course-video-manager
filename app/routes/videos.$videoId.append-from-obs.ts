@@ -4,6 +4,7 @@ import { layerLive } from "@/services/layer";
 import { TotalTypeScriptCLIService } from "@/services/tt-cli-service";
 import { Console, Effect, Schema } from "effect";
 import type { Route } from "./+types/videos.$videoId.append-from-obs";
+import { data } from "react-router";
 
 const InsertionPointSchema = Schema.Union(
   Schema.Struct({
@@ -104,8 +105,15 @@ export const action = async (args: Route.ActionArgs) => {
     return clips;
   }).pipe(
     withDatabaseDump,
-    Effect.tapErrorCause((e) => {
-      return Console.log(e);
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchTag("NotFoundError", () => {
+      return Effect.die(data("Video not found", { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
     Effect.provide(layerLive),
     Effect.runPromise

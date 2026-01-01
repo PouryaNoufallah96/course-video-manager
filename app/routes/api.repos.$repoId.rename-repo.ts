@@ -1,8 +1,9 @@
-import { Effect, Schema } from "effect";
+import { Console, Effect, Schema } from "effect";
 import type { Route } from "./+types/api.repos.$repoId.rename-repo";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { withDatabaseDump } from "@/services/dump-service";
+import { data } from "react-router";
 
 const renameRepoSchema = Schema.Struct({
   name: Schema.String.pipe(
@@ -25,5 +26,16 @@ export const action = async (args: Route.ActionArgs) => {
     yield* db.updateRepoName({ repoId, name: name.trim() });
 
     return { success: true };
-  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    withDatabaseDump,
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("ParseError", () => {
+      return Effect.die(data("Invalid request", { status: 400 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };
