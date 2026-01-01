@@ -32,3 +32,9 @@ Added `isLatestVersion` flag to loader that compares selected version ID with th
 
 Changes:
 - app/routes/_index.tsx: Added isLatestVersion calculation in loader, conditional render of Create New Version menu item
+
+## 2026-01-01: Verified all versions remain editable
+
+Confirmed that clip editing works across all versions. Clip update/archive endpoints operate on clip IDs directly with no version restrictions. Each version has its own independent copy of clips (via section → lesson → video → clip hierarchy), so edits in one version don't affect other versions.
+
+No code changes needed - functionality already implemented correctly.

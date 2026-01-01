@@ -95,7 +95,7 @@
       "Switch to latest version",
       "Verify latest version clips unchanged"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
