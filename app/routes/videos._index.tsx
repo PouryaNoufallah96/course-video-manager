@@ -1,3 +1,4 @@
+import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { Button } from "@/components/ui/button";
 import { useFocusRevalidate } from "@/hooks/use-focus-revalidate";
 import { getVideoPath } from "@/lib/get-video";
@@ -6,7 +7,8 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
-import { ArrowLeft, VideoIcon, VideoOffIcon } from "lucide-react";
+import { ArrowLeft, Plus, VideoIcon, VideoOffIcon } from "lucide-react";
+import { useState } from "react";
 import { data, Link } from "react-router";
 import type { Route } from "./+types/videos._index";
 
@@ -46,6 +48,7 @@ export const loader = async () => {
 
 export default function Component(props: Route.ComponentProps) {
   const { videos, hasExportedVideoMap } = props.loaderData;
+  const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
 
   useFocusRevalidate({ enabled: true });
 
@@ -66,7 +69,16 @@ export default function Component(props: Route.ComponentProps) {
             <VideoIcon className="w-6 h-6" />
             Standalone Videos
           </h1>
+          <Button onClick={() => setIsAddVideoOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Video
+          </Button>
         </div>
+
+        <AddStandaloneVideoModal
+          open={isAddVideoOpen}
+          onOpenChange={setIsAddVideoOpen}
+        />
 
         {videos.length === 0 ? (
           <div className="text-center py-12">

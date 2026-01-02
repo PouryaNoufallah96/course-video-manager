@@ -405,6 +405,26 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return videoResult;
       }),
+      createStandaloneVideo: Effect.fn("createStandaloneVideo")(function* (video: {
+        path: string;
+      }) {
+        const videoResults = yield* makeDbCall(() =>
+          db
+            .insert(videos)
+            .values({ path: video.path, originalFootagePath: "", lessonId: null })
+            .returning()
+        );
+
+        const videoResult = videoResults[0];
+
+        if (!videoResult) {
+          return yield* new UnknownDBServiceError({
+            cause: "No video was returned from the database",
+          });
+        }
+
+        return videoResult;
+      }),
       hasOriginalFootagePathAlreadyBeenUsed: Effect.fn(
         "hasOriginalFootagePathAlreadyBeenUsed"
       )(function* (originalFootagePath: string) {

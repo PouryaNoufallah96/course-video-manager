@@ -59,7 +59,7 @@
       "Navigate to videos list page",
       "Verify 'New Video' button is visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -70,7 +70,7 @@
       "Verify dialog opens",
       "Verify name/path input field is present"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -82,7 +82,7 @@
       "Verify video is created in database",
       "Verify lessonId is null in database"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

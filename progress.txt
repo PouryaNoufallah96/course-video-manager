@@ -159,3 +159,16 @@ Implemented PRD items #1-5: Videos link and list page
 - Typecheck passes
 
 Next: Add "New Video" button and creation flow for standalone videos.
+
+---
+
+Implemented PRD items #6-8: New Video button and creation flow
+
+- Added `createStandaloneVideo` method to `DBService` - creates video with null lessonId
+- Created `app/routes/api.videos.create.ts` - API route for standalone video creation
+- Created `app/components/add-standalone-video-modal.tsx` - dialog with name input
+- Added "New Video" button to videos list page header
+- Button opens dialog, form submits to API, redirects to video editor
+- Typecheck passes
+
+Next: Remaining PRD items #9-11 (editor/export verification, delete functionality).
