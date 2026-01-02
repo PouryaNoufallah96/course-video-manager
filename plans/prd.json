@@ -42,7 +42,7 @@
       "Verify 'Renamed' listed within each section",
       "Verify 'Deleted' listed within each section"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

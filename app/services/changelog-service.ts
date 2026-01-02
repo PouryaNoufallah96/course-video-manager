@@ -208,8 +208,84 @@ function formatPath(path: string): string {
 }
 
 /**
+ * Organize changes by section for hierarchical display.
+ */
+type SectionChanges = {
+  newLessons: string[];
+  renamedLessons: Array<{ oldPath: string; newPath: string }>;
+  deletedLessons: string[];
+  sectionRenamed?: { oldPath: string; newPath: string };
+};
+
+function organizeChangesBySection(
+  changes: VersionChanges,
+  currentVersion: VersionWithStructure
+): Map<string, SectionChanges> {
+  const sectionMap = new Map<string, SectionChanges>();
+
+  // Helper to get or create section entry
+  const getSection = (sectionPath: string): SectionChanges => {
+    if (!sectionMap.has(sectionPath)) {
+      sectionMap.set(sectionPath, {
+        newLessons: [],
+        renamedLessons: [],
+        deletedLessons: [],
+      });
+    }
+    return sectionMap.get(sectionPath)!;
+  };
+
+  // Add new lessons
+  for (const lesson of changes.newLessons) {
+    getSection(lesson.sectionPath).newLessons.push(lesson.lessonPath);
+  }
+
+  // Add renamed lessons
+  for (const lesson of changes.renamedLessons) {
+    getSection(lesson.sectionPath).renamedLessons.push({
+      oldPath: lesson.oldPath,
+      newPath: lesson.newPath,
+    });
+  }
+
+  // Add deleted lessons
+  for (const lesson of changes.deletedLessons) {
+    getSection(lesson.sectionPath).deletedLessons.push(lesson.lessonPath);
+  }
+
+  // Add section renames
+  for (const section of changes.renamedSections) {
+    const sectionEntry = getSection(section.newPath);
+    sectionEntry.sectionRenamed = {
+      oldPath: section.oldPath,
+      newPath: section.newPath,
+    };
+  }
+
+  // Include sections from current version that have changes to preserve order
+  const orderedSections: Array<[string, SectionChanges]> = [];
+  for (const section of currentVersion.sections) {
+    if (sectionMap.has(section.path)) {
+      orderedSections.push([section.path, sectionMap.get(section.path)!]);
+    }
+  }
+  // Add deleted sections (by their old path) at the end
+  for (const deleted of changes.deletedSections) {
+    if (!orderedSections.some(([path]) => path === deleted.sectionPath)) {
+      orderedSections.push([
+        deleted.sectionPath,
+        { newLessons: [], renamedLessons: [], deletedLessons: [] },
+      ]);
+    }
+  }
+
+  return new Map(orderedSections);
+}
+
+/**
  * Generate a changelog markdown string from all versions.
  * Versions should be in reverse chronological order (newest first).
+ * Organized by section hierarchy: Version > Section > (New/Renamed/Deleted)
  */
 export function generateChangelog(
   versions: VersionWithStructure[]
@@ -256,60 +332,80 @@ export function generateChangelog(
       continue;
     }
 
-    // New Lessons
-    if (changes.newLessons.length > 0) {
-      lines.push("### New Lessons");
-      lines.push("");
-      for (const lesson of changes.newLessons) {
-        lines.push(
-          `- ${formatPath(lesson.sectionPath)} / ${formatPath(lesson.lessonPath)}`
-        );
-      }
-      lines.push("");
-    }
+    // Organize by section hierarchy
+    const sectionChanges = organizeChangesBySection(changes, currentVersion);
 
-    // Renamed (sections and lessons combined)
-    if (changes.renamedSections.length > 0 || changes.renamedLessons.length > 0) {
-      lines.push("### Renamed");
-      lines.push("");
-      for (const section of changes.renamedSections) {
-        lines.push(
-          `- ${formatPath(section.oldPath)} → ${formatPath(section.newPath)}`
-        );
-      }
-      for (const lesson of changes.renamedLessons) {
-        lines.push(
-          `- ${formatPath(lesson.sectionPath)} / ${formatPath(lesson.oldPath)} → ${formatPath(lesson.newPath)}`
-        );
-      }
-      lines.push("");
-    }
-
-    // Content Changes
-    if (changes.contentChanges.length > 0) {
-      lines.push("### Content Changes");
-      lines.push("");
-      for (const change of changes.contentChanges) {
-        lines.push(
-          `- ${formatPath(change.sectionPath)} / ${formatPath(change.lessonPath)}`
-        );
-      }
-      lines.push("");
-    }
-
-    // Deleted
-    if (changes.deletedSections.length > 0 || changes.deletedLessons.length > 0) {
-      lines.push("### Deleted");
+    // Deleted sections (entire section removed)
+    if (changes.deletedSections.length > 0) {
+      lines.push("### Deleted Sections");
       lines.push("");
       for (const section of changes.deletedSections) {
-        lines.push(`- ${formatPath(section.sectionPath)} (entire section)`);
-      }
-      for (const lesson of changes.deletedLessons) {
-        lines.push(
-          `- ${formatPath(lesson.sectionPath)} / ${formatPath(lesson.lessonPath)}`
-        );
+        lines.push(`- ${formatPath(section.sectionPath)}`);
       }
       lines.push("");
+    }
+
+    // Each section with changes
+    for (const [sectionPath, sectionChange] of sectionChanges) {
+      // Skip if this section was entirely deleted
+      if (changes.deletedSections.some((s) => s.sectionPath === sectionPath)) {
+        continue;
+      }
+
+      const hasLessonChanges =
+        sectionChange.newLessons.length > 0 ||
+        sectionChange.renamedLessons.length > 0 ||
+        sectionChange.deletedLessons.length > 0 ||
+        sectionChange.sectionRenamed;
+
+      if (!hasLessonChanges) continue;
+
+      // Section heading (use new name if renamed)
+      const displayPath = sectionChange.sectionRenamed
+        ? sectionChange.sectionRenamed.newPath
+        : sectionPath;
+      lines.push(`### ${formatPath(displayPath)}`);
+      lines.push("");
+
+      // Section rename note
+      if (sectionChange.sectionRenamed) {
+        lines.push(
+          `*Renamed from "${formatPath(sectionChange.sectionRenamed.oldPath)}"*`
+        );
+        lines.push("");
+      }
+
+      // New Lessons within section
+      if (sectionChange.newLessons.length > 0) {
+        lines.push("#### New Lessons");
+        lines.push("");
+        for (const lessonPath of sectionChange.newLessons) {
+          lines.push(`- ${formatPath(lessonPath)}`);
+        }
+        lines.push("");
+      }
+
+      // Renamed Lessons within section
+      if (sectionChange.renamedLessons.length > 0) {
+        lines.push("#### Renamed");
+        lines.push("");
+        for (const lesson of sectionChange.renamedLessons) {
+          lines.push(
+            `- ${formatPath(lesson.oldPath)} → ${formatPath(lesson.newPath)}`
+          );
+        }
+        lines.push("");
+      }
+
+      // Deleted Lessons within section
+      if (sectionChange.deletedLessons.length > 0) {
+        lines.push("#### Deleted");
+        lines.push("");
+        for (const lessonPath of sectionChange.deletedLessons) {
+          lines.push(`- ${formatPath(lessonPath)}`);
+        }
+        lines.push("");
+      }
     }
   }
 

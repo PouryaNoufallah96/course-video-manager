@@ -95,3 +95,15 @@ Fixed PRD item #4: Changelog content matches Dropbox changelog format
 - Typecheck passes
 
 PRD complete - all 14 items passing.
+
+---
+
+Fixed PRD item #4: Changelog organized by section hierarchy
+
+- Refactored `generateChangelog` in `changelog-service.ts`
+- Added `organizeChangesBySection` helper to group changes by section
+- Changelog now shows: Version (h2) > Section (h3) > New Lessons/Renamed/Deleted (h4)
+- Deleted sections shown separately at top as "Deleted Sections"
+- Section renames shown as italic note under section heading
+- Preserves section order from current version
+- Typecheck passes
