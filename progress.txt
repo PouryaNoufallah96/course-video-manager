@@ -206,3 +206,18 @@ Fixed failing tests in clip-state-reducer.test.ts
 - Added `beatType: "none"` to `update-clips` effect assertions
 - Tests now match actual reducer implementation
 - All 22 tests pass, typecheck passes
+
+---
+
+Implemented PRD items #14-15: Sidebar restructured with three main items
+
+- Refactored sidebar in `_index.tsx` to use collapsible sections
+- Three main items: Repos (collapsible), Videos (collapsible), Diagram Playground (link)
+- Repos section: ChevronRight rotates on expand, shows repo list, has plus button to add repo
+- Videos section: expands to show "View All Videos" link to /videos
+- Diagram Playground: direct link (not collapsible)
+- Added Collapsible/ChevronRight/LayoutTemplate imports
+- Removed unused ScrollArea import
+- Typecheck passes, all tests pass
+
+Next: PRD item #16 (Videos sidebar with add button) partially done - needs video list and add button like Repos.

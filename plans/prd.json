@@ -176,7 +176,7 @@
       "Verify sidebar shows 'Diagram Playground' item",
       "Verify no other main navigation items exist"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -188,7 +188,7 @@
       "Click plus button",
       "Verify add repo dialog/flow opens"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -222,6 +222,20 @@
       "Verify repo selection UI is visible",
       "Click on a repo",
       "Verify repo is selected and details shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Delete video shows confirmation dialog before deleting",
+    "steps": [
+      "Navigate to a video",
+      "Click delete button",
+      "Verify 'Are you sure?' confirmation dialog appears",
+      "Click cancel",
+      "Verify video is not deleted",
+      "Click delete again and confirm",
+      "Verify video is deleted"
     ],
     "passes": false
   }
