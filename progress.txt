@@ -234,3 +234,15 @@ Implemented PRD item #16: Videos sidebar item expands to show video list with ad
 - Typecheck passes, all tests pass
 
 Next: PRD items #17-19 remaining (home page recent videos, repo selection, delete confirmation).
+
+---
+
+Implemented PRD item #19: Delete video shows confirmation dialog
+
+- Created `app/components/delete-video-modal.tsx` - confirmation dialog for video deletion
+- Pattern matches existing DeleteVersionModal: shows video path, cancel/delete buttons, loading state
+- Updated `app/routes/videos._index.tsx` to use confirmation modal instead of direct delete
+- Context menu "Delete" now opens modal, modal submits to `/api/videos/delete` on confirm
+- Typecheck passes, all tests pass
+
+Next: PRD items #17-18 remaining (home page recent videos, repo selection).

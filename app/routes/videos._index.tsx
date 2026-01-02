@@ -1,4 +1,5 @@
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
+import { DeleteVideoModal } from "@/components/delete-video-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -15,7 +16,7 @@ import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
 import { ArrowLeft, Plus, Trash2, VideoIcon, VideoOffIcon } from "lucide-react";
 import { useState } from "react";
-import { data, Link, useFetcher } from "react-router";
+import { data, Link } from "react-router";
 import type { Route } from "./+types/videos._index";
 
 export const meta: Route.MetaFunction = () => {
@@ -55,7 +56,10 @@ export const loader = async () => {
 export default function Component(props: Route.ComponentProps) {
   const { videos, hasExportedVideoMap } = props.loaderData;
   const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
-  const deleteVideoFetcher = useFetcher();
+  const [videoToDelete, setVideoToDelete] = useState<{
+    id: string;
+    path: string;
+  } | null>(null);
 
   useFocusRevalidate({ enabled: true });
 
@@ -86,6 +90,17 @@ export default function Component(props: Route.ComponentProps) {
           open={isAddVideoOpen}
           onOpenChange={setIsAddVideoOpen}
         />
+
+        {videoToDelete && (
+          <DeleteVideoModal
+            videoId={videoToDelete.id}
+            videoPath={videoToDelete.path}
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) setVideoToDelete(null);
+            }}
+          />
+        )}
 
         {videos.length === 0 ? (
           <div className="text-center py-12">
@@ -126,13 +141,7 @@ export default function Component(props: Route.ComponentProps) {
                     <ContextMenuItem
                       variant="destructive"
                       onSelect={() => {
-                        deleteVideoFetcher.submit(
-                          { videoId: video.id },
-                          {
-                            method: "post",
-                            action: "/api/videos/delete",
-                          }
-                        );
+                        setVideoToDelete({ id: video.id, path: video.path });
                       }}
                     >
                       <Trash2 className="w-4 h-4" />
