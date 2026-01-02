@@ -1,0 +1,12 @@
+# Progress Log
+
+## 2026-01-02
+
+Implemented PRD item #8: Focus refresh uses shared hook with main page
+
+- Created `app/hooks/use-focus-revalidate.ts` - reusable hook for focus-based revalidation
+- Hook uses `useRevalidator` from react-router, supports optional interval polling
+- Refactored `_index.tsx` to use the new hook instead of inline fetcher logic
+- Simplified main page: removed manual poller fetcher, now uses `useFocusRevalidate({ enabled: !!selectedRepoId, intervalMs: 5000 })`
+
+Next: Changelog preview page needs to be created and should use this same hook for focus revalidation.

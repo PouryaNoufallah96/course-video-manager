@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { VideoModal } from "@/components/video-player";
+import { useFocusRevalidate } from "@/hooks/use-focus-revalidate";
 import { getVideoPath } from "@/lib/get-video";
 import { cn } from "@/lib/utils";
 import { DBService } from "@/services/db-service";
@@ -56,7 +57,7 @@ import {
   VideoOffIcon,
   VideotapeIcon,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { data, Link, useFetcher, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
 import { toast } from "sonner";
@@ -240,54 +241,13 @@ export default function Component(props: Route.ComponentProps) {
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
 
-  const poller = useFetcher<typeof props.loaderData>();
-
-  useEffect(() => {
-    if (!selectedRepoId) {
-      return;
-    }
-
-    const abortController = new AbortController();
-
-    const submit = () => {
-      poller.submit(
-        {
-          repoId: selectedRepoId,
-        },
-        {
-          method: "GET",
-          preventScrollReset: true,
-        }
-      );
-    };
-
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        if (document.visibilityState === "visible") {
-          submit();
-        }
-      },
-      {
-        signal: abortController.signal,
-      }
-    );
-
-    const interval = setInterval(() => {
-      submit();
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      abortController.abort();
-    };
-  }, [selectedRepoId]);
+  useFocusRevalidate({ enabled: !!selectedRepoId, intervalMs: 5000 });
 
   const deleteVideoFetcher = useFetcher();
   const deleteVideoFileFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
 
-  const data = poller.data ?? props.loaderData;
+  const data = props.loaderData;
 
   const repos = data.repos;
 

@@ -86,6 +86,6 @@
       "Verify changelog preview page uses the same shared hook",
       "Confirm both pages refresh on focus using identical logic"
     ],
-    "passes": false
+    "passes": true
   }
 ]
