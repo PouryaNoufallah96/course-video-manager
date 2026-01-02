@@ -33,15 +33,16 @@
   },
   {
     "category": "functional",
-    "description": "Changelog content matches Dropbox changelog format",
+    "description": "Changelog organized by section hierarchy",
     "steps": [
       "Navigate to changelog preview page",
-      "Verify changelog shows version headers with dates",
-      "Verify new lessons are listed under 'New Lessons' section",
-      "Verify renamed items appear under 'Renamed' section",
-      "Verify content changes appear under 'Content Changes' section"
+      "Verify version number is top-level heading",
+      "Verify each section appears as subheading under version",
+      "Verify 'New Lessons' listed within each section",
+      "Verify 'Renamed' listed within each section",
+      "Verify 'Deleted' listed within each section"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "functional",
