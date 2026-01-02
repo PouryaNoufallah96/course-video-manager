@@ -223,7 +223,7 @@
       "Click on a repo",
       "Verify repo is selected and details shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

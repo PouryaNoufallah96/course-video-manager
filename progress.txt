@@ -259,3 +259,16 @@ Implemented PRD item #17: Home page shows most recent three unattached videos
 - Typecheck passes, all tests pass
 
 Next: PRD item #18 remaining (home page repo selection).
+
+---
+
+Verified PRD item #18: Home page allows selecting a repository
+
+- Feature already implemented in `_index.tsx` lines 903-918
+- Home page shows grid of repo cards when no repo selected
+- Each card is a `<Link to={\`?repoId=${repo.id}\`}>` navigating to select repo
+- Clicking repo updates URL params, triggers loader, shows repo details
+- Marked PRD item #18 as passes: true
+- Typecheck passes, all tests pass
+
+PRD complete - all 21 items passing.
