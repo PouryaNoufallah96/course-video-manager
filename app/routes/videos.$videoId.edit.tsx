@@ -33,17 +33,20 @@ export const loader = async (args: Route.LoaderArgs) => {
     const fs = yield* FileSystem.FileSystem;
     const video = yield* db.getVideoWithClipsById(videoId);
 
-    // Check if lesson has explainer folder
-    const lessonFullPath = `${video.lesson.section.repo.filePath}/${video.lesson.section.path}/${video.lesson.path}`;
-    const explainerPath = `${lessonFullPath}/explainer`;
-    const hasExplainerFolder = yield* fs.exists(explainerPath);
+    // Check if lesson has explainer folder (only for lesson-attached videos)
+    const lesson = video.lesson;
+    const hasExplainerFolder = lesson
+      ? yield* fs.exists(
+          `${lesson.section.repo.filePath}/${lesson.section.path}/${lesson.path}/explainer`
+        )
+      : false;
 
     return {
       video,
       clips: video.clips as DB.Clip[],
       waveformData: undefined,
       hasExplainerFolder,
-      videoCount: video.lesson.videos.length,
+      videoCount: lesson?.videos.length ?? 1,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -205,11 +208,11 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         }
         return true;
       })}
-      repoId={props.loaderData.video.lesson.section.repo.id}
-      lessonId={props.loaderData.video.lesson.id}
+      repoId={props.loaderData.video.lesson?.section.repo.id}
+      lessonId={props.loaderData.video.lesson?.id}
       videoPath={props.loaderData.video.path}
-      lessonPath={props.loaderData.video.lesson.path}
-      repoName={props.loaderData.video.lesson.section.repo.name}
+      lessonPath={props.loaderData.video.lesson?.path}
+      repoName={props.loaderData.video.lesson?.section.repo.name}
       videoId={props.loaderData.video.id}
       liveMediaStream={obsConnector.mediaStream}
       speechDetectorState={obsConnector.speechDetectorState}

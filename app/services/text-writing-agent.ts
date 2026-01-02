@@ -133,9 +133,12 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
 
     const video = yield* db.getVideoWithClipsById(props.videoId);
 
-    const repo = video.lesson.section.repo;
-    const section = video.lesson.section;
     const lesson = video.lesson;
+    if (!lesson) {
+      throw new Error("Cannot write for standalone videos");
+    }
+    const repo = lesson.section.repo;
+    const section = lesson.section;
 
     const lessonPath = path.join(repo.filePath, section.path, lesson.path);
 

@@ -87,10 +87,10 @@ export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
   clips: Clip[];
   videoPath: string;
-  lessonPath: string;
-  repoName: string;
-  repoId: string;
-  lessonId: string;
+  lessonPath?: string;
+  repoName?: string;
+  repoId?: string;
+  lessonId?: string;
   videoId: string;
   liveMediaStream: MediaStream | null;
   speechDetectorState: FrontendSpeechDetectorState;

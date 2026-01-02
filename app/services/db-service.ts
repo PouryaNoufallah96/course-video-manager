@@ -544,6 +544,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       ) {
         const currentVideo = yield* getVideoWithClipsById(currentVideoId);
         const currentLesson = currentVideo.lesson;
+        if (!currentLesson) return null; // Standalone videos have no next/prev
         const currentSection = currentLesson.section;
         const repo = currentSection.repo;
 
@@ -601,6 +602,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       ) {
         const currentVideo = yield* getVideoWithClipsById(currentVideoId);
         const currentLesson = currentVideo.lesson;
+        if (!currentLesson) return null; // Standalone videos have no next/prev
         const currentSection = currentLesson.section;
         const repo = currentSection.repo;
 

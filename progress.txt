@@ -129,3 +129,20 @@ Implemented PRD item #6: Changelog items use code font with numbered format
 - Typecheck passes
 
 PRD complete - all 15 items passing.
+
+---
+
+Implemented PRD item #12 (standalone-videos): Database schema allows null lessonId
+
+- Made `lessonId` nullable in videos table schema (`app/db/schema.ts`)
+- Fixed type errors in routes/services that assumed lesson always exists:
+  - `videos.$videoId.edit.tsx`: Handle optional lesson for explainer folder check
+  - `videos.$videoId.export-to-davinci-resolve.ts`: Use video.path for standalone video names
+  - `videos.$videoId.write.tsx`: Return 400 error for standalone videos (writing requires lesson context)
+  - `db-service.ts`: getNextVideoId/getPreviousVideoId return null for standalone videos
+  - `text-writing-agent.ts`: Throw error for standalone videos
+- Made VideoEditor props optional: lessonPath, repoName, repoId, lessonId
+- AddVideoModal returns null when lessonId undefined (standalone videos use different flow)
+- Typecheck passes
+
+Next: Need to create standalone videos list page and new video creation flow.

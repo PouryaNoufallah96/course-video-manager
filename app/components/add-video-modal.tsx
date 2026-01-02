@@ -12,13 +12,16 @@ import { Loader2 } from "lucide-react";
 import { useFetcher } from "react-router";
 
 export function AddVideoModal(props: {
-  lessonId: string;
+  lessonId?: string;
   videoCount: number;
   hasExplainerFolder: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const addVideoFetcher = useFetcher();
+
+  // Don't render if no lessonId (standalone videos use different flow)
+  if (!props.lessonId) return null;
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>

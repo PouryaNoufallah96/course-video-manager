@@ -79,9 +79,14 @@ export const loader = async (args: Route.LoaderArgs) => {
     const fs = yield* FileSystem.FileSystem;
     const video = yield* db.getVideoById(videoId);
 
-    const repo = video.lesson.section.repo;
-    const section = video.lesson.section;
     const lesson = video.lesson;
+    if (!lesson) {
+      return yield* Effect.die(
+        data("Cannot write for standalone videos", { status: 400 })
+      );
+    }
+    const repo = lesson.section.repo;
+    const section = lesson.section;
 
     const lessonPath = path.join(repo.filePath, section.path, lesson.path);
 
@@ -134,8 +139,8 @@ export const loader = async (args: Route.LoaderArgs) => {
       videoPath: video.path,
       lessonPath: lesson.path,
       sectionPath: section.path,
-      repoId: video.lesson.section.repoId,
-      lessonId: video.lesson.id,
+      repoId: section.repoId,
+      lessonId: lesson.id,
       fullPath: lessonPath,
       files: filesWithMetadata,
       nextVideoId,

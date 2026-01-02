@@ -113,9 +113,10 @@ export const videos = createTable("video", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  lessonId: varchar("lesson_id", { length: 255 })
-    .references(() => lessons.id, { onDelete: "cascade" })
-    .notNull(),
+  lessonId: varchar("lesson_id", { length: 255 }).references(
+    () => lessons.id,
+    { onDelete: "cascade" }
+  ),
   path: text("path").notNull(),
   originalFootagePath: text("original_footage_path").notNull(),
   createdAt: timestamp("created_at", {

@@ -16,11 +16,9 @@ export const action = async (args: Route.ActionArgs) => {
       withArchived: false,
     });
 
-    const videoName = [
-      video.lesson.section.path,
-      video.lesson.path,
-      video.path,
-    ].join(" - ");
+    const videoName = video.lesson
+      ? [video.lesson.section.path, video.lesson.path, video.path].join(" - ")
+      : video.path;
 
     const clips = video.clips;
 
