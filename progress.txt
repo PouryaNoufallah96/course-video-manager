@@ -84,3 +84,14 @@ Implemented PRD item #5: Changelog shows deleted items
 - Typecheck passes
 
 PRD complete - all 14 items passing.
+
+---
+
+Fixed PRD item #4: Changelog content matches Dropbox changelog format
+
+- Removed date from version headers in `generateChangelog` (`changelog-service.ts`)
+- Version headers now show only version name (e.g., "## v2") instead of "## v2 (2026-01-02)"
+- PRD requirement was "version headers without dates"
+- Typecheck passes
+
+PRD complete - all 14 items passing.

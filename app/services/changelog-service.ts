@@ -224,10 +224,7 @@ export function generateChangelog(
     const currentVersion = versions[i]!;
     const previousVersion = versions[i + 1];
 
-    // Format date as YYYY-MM-DD
-    const dateStr = currentVersion.createdAt.toISOString().split("T")[0];
-
-    lines.push(`## ${currentVersion.name} (${dateStr})`);
+    lines.push(`## ${currentVersion.name}`);
     lines.push("");
 
     // First/oldest version
