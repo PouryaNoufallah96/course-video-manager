@@ -88,5 +88,60 @@
       "Confirm both pages refresh on focus using identical logic"
     ],
     "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Rewrite repo path action available in Actions dropdown",
+    "steps": [
+      "Select a repo",
+      "Click the Actions dropdown",
+      "Verify 'Rewrite Repo Path' action is visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rewrite repo path opens dialog with current path",
+    "steps": [
+      "Click 'Rewrite Repo Path' action",
+      "Verify dialog opens with text input",
+      "Verify current repo path is pre-filled in input"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Submitting new path updates repo in database",
+    "steps": [
+      "Open rewrite repo path dialog",
+      "Enter new valid path",
+      "Click submit/save",
+      "Verify repo path updates in UI",
+      "Verify database reflects new path"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Invalid path shows error message",
+    "steps": [
+      "Open rewrite repo path dialog",
+      "Enter path that doesn't exist on filesystem",
+      "Click submit/save",
+      "Verify error message is displayed",
+      "Verify repo path remains unchanged"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Repo update fails if multiple repos share same path",
+    "steps": [
+      "Have multiple repos with identical paths in database",
+      "Attempt to update repo via api.repos.update",
+      "Verify error is thrown indicating ambiguous update",
+      "Verify no repos are modified"
+    ],
+    "passes": false
   }
 ]
