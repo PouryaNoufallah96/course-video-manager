@@ -323,11 +323,13 @@ export const VideoEditor = (props: {
                   </span>
                 )}
               </h1>
-              <h2 className="text-sm font-medium mb-1">
-                {props.repoName}
-                {" - "}
-                {props.lessonPath}
-              </h2>
+              {props.repoName && props.lessonPath && (
+                <h2 className="text-sm font-medium mb-1">
+                  {props.repoName}
+                  {" - "}
+                  {props.lessonPath}
+                </h2>
+              )}
             </div>
 
             {props.liveMediaStream && (
@@ -403,7 +405,13 @@ export const VideoEditor = (props: {
                       disabled={!allClipsHaveSilenceDetected}
                     >
                       {allClipsHaveSilenceDetected ? (
-                        <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
+                        <Link
+                          to={
+                            props.repoId && props.lessonId
+                              ? `/?repoId=${props.repoId}#${props.lessonId}`
+                              : "/videos"
+                          }
+                        >
                           <ChevronLeftIcon className="w-4 h-4" />
                         </Link>
                       ) : (
@@ -573,19 +581,21 @@ export const VideoEditor = (props: {
                       </div>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        setIsAddVideoModalOpen(true);
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">Add New Video</span>
-                        <span className="text-xs text-muted-foreground">
-                          Add another video to this lesson
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
+                    {props.lessonId && (
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setIsAddVideoModalOpen(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Add New Video</span>
+                          <span className="text-xs text-muted-foreground">
+                            Add another video to this lesson
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TooltipProvider>

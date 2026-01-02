@@ -184,3 +184,16 @@ Implemented PRD item #11: Can delete standalone video
 - Typecheck passes
 
 Next: PRD items #9-10 are verification items (editor/export work same as lesson videos).
+
+---
+
+Fixed PRD items #9-10: Standalone video editor/export functionality
+
+- Fixed video-editor.tsx to properly handle standalone videos (null lessonId)
+- Go Back button now navigates to `/videos` for standalone videos (instead of malformed `/?repoId=undefined#undefined`)
+- Repo name / lesson path subtitle hidden when not available
+- "Add New Video" action hidden for standalone videos (not applicable)
+- Editor and export flow already worked; UI just needed adjustments for missing lesson context
+- Typecheck passes
+
+PRD complete - all 12 items passing.

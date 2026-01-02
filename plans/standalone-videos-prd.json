@@ -92,7 +92,7 @@
       "Verify all editing features are available (clips, OBS connector, etc.)",
       "Verify editing functionality works the same as lesson videos"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -104,7 +104,7 @@
       "Verify export dialog appears",
       "Verify video exports successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
