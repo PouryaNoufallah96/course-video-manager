@@ -246,3 +246,16 @@ Implemented PRD item #19: Delete video shows confirmation dialog
 - Typecheck passes, all tests pass
 
 Next: PRD items #17-18 remaining (home page recent videos, repo selection).
+
+---
+
+Implemented PRD item #17: Home page shows most recent three unattached videos
+
+- Added "Recent Unattached Videos" section to home page (`_index.tsx`)
+- Shows when no repo is selected and standalone videos exist
+- Displays maximum 3 videos using `.slice(0, 3)` on already-sorted data
+- Each video card shows path and duration, links to video editor
+- Uses existing `standaloneVideos` data already loaded in loader
+- Typecheck passes, all tests pass
+
+Next: PRD item #18 remaining (home page repo selection).

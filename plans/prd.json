@@ -212,7 +212,7 @@
       "Verify only videos without lessonId are shown",
       "Verify videos ordered by most recent first"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

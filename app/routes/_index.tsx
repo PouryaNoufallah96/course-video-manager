@@ -865,6 +865,41 @@ export default function Component(props: Route.ComponentProps) {
                 </p>
               </div>
 
+              {/* Recent Unattached Videos */}
+              {data.standaloneVideos.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold mb-4">
+                    Recent Unattached Videos
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {data.standaloneVideos.slice(0, 3).map((video) => {
+                      const totalDuration = video.clips.reduce(
+                        (acc, clip) =>
+                          acc + (clip.sourceEndTime - clip.sourceStartTime),
+                        0
+                      );
+                      return (
+                        <Link
+                          key={video.id}
+                          to={`/videos/${video.id}/edit`}
+                          className="block border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <VideoIcon className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium truncate">
+                              {video.path}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {formatSecondsToTimeCode(totalDuration)}
+                          </p>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {repos.map((repo) => (
                   <Link
