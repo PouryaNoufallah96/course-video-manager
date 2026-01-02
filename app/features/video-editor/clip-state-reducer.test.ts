@@ -195,7 +195,7 @@ describe("clipStateReducer", () => {
 
       expect(reportEffect2).toHaveBeenCalledWith({
         type: "update-clips",
-        clips: [["1", { scene: "Camera", profile: "Landscape" }]],
+        clips: [["1", { scene: "Camera", profile: "Landscape", beatType: "none" }]],
       });
 
       expect(stateWithOneDatabaseClip.clips.length).toBe(2);
@@ -216,7 +216,7 @@ describe("clipStateReducer", () => {
 
       expect(reportEffect3).toHaveBeenCalledWith({
         type: "update-clips",
-        clips: [["2", { scene: "No Face", profile: "Portrait" }]],
+        clips: [["2", { scene: "No Face", profile: "Portrait", beatType: "none" }]],
       });
 
       expect(stateWithTwoDatabaseClips.clips.length).toBe(2);
@@ -498,7 +498,7 @@ describe("clipStateReducer", () => {
 
       expect(stateWithEndInsertionPoint.insertionPoint).toEqual({
         type: "after-clip",
-        clipId: stateWithClips.clips[0]!.frontendId,
+        frontendClipId: stateWithClips.clips[0]!.frontendId,
       });
 
       const stateWithOneMoreClip = tester
@@ -651,7 +651,7 @@ describe("clipStateReducer", () => {
       // The insertion point should be after the first clip
       expect(stateWithLatestInsertedClipDeleted.insertionPoint).toEqual({
         type: "after-clip",
-        clipId: stateWithClips.clips[0]!.frontendId,
+        frontendClipId: stateWithClips.clips[0]!.frontendId,
       });
     });
   });
