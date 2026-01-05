@@ -241,15 +241,19 @@
   },
   {
     "category": "ui",
-    "description": "Prerecording checklist shows 75% volume indicator with dots",
+    "description": "Prerecording checklist shows voice level indicator with colored dots",
     "steps": [
       "Navigate to video editor prerecording checklist",
       "Verify microphone volume indicator shows 8 dots",
-      "Verify 6 leftmost dots are filled in",
-      "Verify 2 rightmost dots are not filled in",
-      "Verify visual indicates 75% volume target (not 100%)"
+      "Verify all 8 dots visible in light grey when inactive",
+      "Speak into microphone at low volume",
+      "Verify first 3 dots light up green",
+      "Speak at medium volume",
+      "Verify 4th dot lights up orange",
+      "Speak at high volume",
+      "Verify dots 5-8 light up red"
     ],
-    "passes": true
+    "passes": false
   },
   {
     "category": "functional",
@@ -273,5 +277,48 @@
       "Verify beat duration is added to total clip playback time"
     ],
     "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Beats display as three orange ellipsis dots below clip",
+    "steps": [
+      "Add a beat to a clip",
+      "Verify three orange dots appear below the clip",
+      "Verify dots are orange colored",
+      "Verify dots form an ellipsis pattern"
+    ],
+    "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Beat dots create visual gap between clips",
+    "steps": [
+      "Add a beat to a clip that has a following clip",
+      "Verify dots create slight visual gap between clip and next clip",
+      "Verify gap indicates the pause duration"
+    ],
+    "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Beat dots appear before insertion point when both present",
+    "steps": [
+      "Add a beat to a clip",
+      "Position insertion point below the same clip",
+      "Verify order from top: clip, beat dots, insertion point"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Beats display on both optimistic and database clips",
+    "steps": [
+      "Add a new clip (optimistically added)",
+      "Add a beat to the optimistic clip",
+      "Verify beat dots display",
+      "Wait for clip to sync to database",
+      "Verify beat dots still display on database clip"
+    ],
+    "passes": true
   }
 ]

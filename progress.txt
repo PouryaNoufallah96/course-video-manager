@@ -301,3 +301,16 @@ Implemented PRD item #22: Press B while clip is selected to add a beat/pause
 - Typecheck passes, all tests pass
 
 Next: PRD item #23 (beat adds 0.4s to clip duration during playback) still pending.
+
+---
+
+Implemented PRD items #24-27: Beat dots visual display
+
+- Created `BeatIndicator` component in `video-editor.tsx` - three orange dots (w-1.5 h-1.5 rounded-full bg-orange-500)
+- Renders below clip when `clip.beatType === "long"`
+- Dots positioned between clip and insertion point (order: clip, beat dots, insertion point)
+- `py-1` padding creates visual gap between clips indicating pause duration
+- Works with both `ClipOnDatabase` and `ClipOptimisticallyAdded` - both types have `beatType: BeatType`
+- Typecheck passes, all tests pass
+
+Next: PRD items #21 (volume indicator colors) and #23 (beat playback 0.4s pause) still pending.

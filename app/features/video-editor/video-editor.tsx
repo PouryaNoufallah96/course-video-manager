@@ -845,6 +845,10 @@ export const VideoEditor = (props: {
                         </ContextMenuItem>
                       </ContextMenuContent>
                     </ContextMenu>
+                    {/* Beat indicator dots below clip */}
+                    {clip.beatType === "long" && (
+                      <BeatIndicator />
+                    )}
                     {props.insertionPoint.type === "after-clip" &&
                       props.insertionPoint.frontendClipId ===
                         clip.frontendId && <InsertionPointIndicator />}
@@ -875,6 +879,16 @@ export const InsertionPointIndicator = () => {
         {/* <span className="text-blue-200 text-sm">New Clips</span> */}
       </div>
       <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
+    </div>
+  );
+};
+
+export const BeatIndicator = () => {
+  return (
+    <div className="flex items-center justify-center gap-1 py-1">
+      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
     </div>
   );
 };
