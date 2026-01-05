@@ -272,3 +272,18 @@ Verified PRD item #18: Home page allows selecting a repository
 - Typecheck passes, all tests pass
 
 PRD complete - all 21 items passing.
+
+---
+
+Implemented PRD item #21: Prerecording checklist shows 75% volume indicator with dots
+
+- Created `app/features/video-editor/use-volume-level.ts` - hook for real-time audio volume monitoring
+- Uses Web Audio API AnalyserNode to get frequency data, normalizes to 0-1 range
+- Created `app/features/video-editor/volume-indicator.tsx` - 8-dot indicator component
+- 6 leftmost dots represent 75% target (green when filled), 2 rightmost are overflow (red when filled)
+- Unfilled target dots show gray-600, overflow dots show gray-700
+- Updated microphone checklist item text to "Turn the microphone to 75%"
+- Added VolumeIndicator below the text, fed by liveMediaStream
+- Typecheck passes, all tests pass
+
+PRD complete - all 22 items passing.

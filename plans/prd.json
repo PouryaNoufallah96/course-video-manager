@@ -238,5 +238,17 @@
       "Verify video is deleted"
     ],
     "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Prerecording checklist shows 75% volume indicator with dots",
+    "steps": [
+      "Navigate to video editor prerecording checklist",
+      "Verify microphone volume indicator shows 8 dots",
+      "Verify 6 leftmost dots are filled in",
+      "Verify 2 rightmost dots are not filled in",
+      "Verify visual indicates 75% volume target (not 100%)"
+    ],
+    "passes": true
   }
 ]

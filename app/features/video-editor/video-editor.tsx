@@ -71,6 +71,8 @@ import {
   type videoStateReducer,
 } from "./video-state-reducer";
 import { INSERTION_POINT_ID } from "./constants";
+import { useVolumeLevel } from "./use-volume-level";
+import { VolumeIndicator } from "./volume-indicator";
 
 function calculateTextSimilarity(str1: string, str2: string): number {
   const distance = levenshtein(str1, str2);
@@ -133,6 +135,8 @@ export const VideoEditor = (props: {
       },
     }
   );
+
+  const volumeLevel = useVolumeLevel({ mediaStream: props.liveMediaStream });
 
   const currentClipIndex = props.clips.findIndex(
     (clip) => clip.frontendId === state.currentClipId
@@ -624,7 +628,10 @@ export const VideoEditor = (props: {
               <ol className="space-y-3 text-base">
                 <li className="flex items-center gap-3">
                   <MicIcon className="size-5 flex-shrink-0 text-gray-300" />
-                  <span>Turn the microphone all the way up</span>
+                  <div className="flex flex-col gap-1">
+                    <span>Turn the microphone to 75%</span>
+                    <VolumeIndicator volumeLevel={volumeLevel} />
+                  </div>
                 </li>
                 <li className="flex items-center gap-3">
                   <MonitorIcon className="size-5 flex-shrink-0 text-gray-300" />
