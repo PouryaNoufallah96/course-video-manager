@@ -58,6 +58,11 @@ export type ClipOptimisticallyAdded = {
    */
   shouldArchive?: boolean;
   beatType: BeatType;
+  /**
+   * Unique ID for the sound detection that triggered this clip.
+   * Used for deduplication - prevents duplicate clips from React StrictMode double-firing.
+   */
+  soundDetectionId: string;
 };
 
 export const createFrontendId = (): FrontendId => {
@@ -79,6 +84,7 @@ export namespace clipStateReducer {
         type: "new-optimistic-clip-detected";
         scene: string;
         profile: string;
+        soundDetectionId: string;
       }
     | {
         type: "new-database-clips";
@@ -148,6 +154,16 @@ export const clipStateReducer: EffectReducer<
 ): clipStateReducer.State => {
   switch (action.type) {
     case "new-optimistic-clip-detected": {
+      // Check if clip with same soundDetectionId already exists (deduplication for React StrictMode)
+      const existingClip = state.clips.find(
+        (c) =>
+          c.type === "optimistically-added" &&
+          c.soundDetectionId === action.soundDetectionId
+      );
+      if (existingClip) {
+        return state;
+      }
+
       const newFrontendId = createFrontendId();
       const newClip: ClipOptimisticallyAdded = {
         type: "optimistically-added",
@@ -156,6 +172,7 @@ export const clipStateReducer: EffectReducer<
         profile: action.profile,
         insertionOrder: state.insertionOrder + 1,
         beatType: "none",
+        soundDetectionId: action.soundDetectionId,
       };
 
       let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;

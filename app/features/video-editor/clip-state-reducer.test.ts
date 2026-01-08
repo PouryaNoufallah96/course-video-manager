@@ -65,6 +65,7 @@ describe("clipStateReducer", () => {
         createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
+          soundDetectionId: "sound-1",
         }),
         reportEffect
       );
@@ -125,6 +126,7 @@ describe("clipStateReducer", () => {
         createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
+          soundDetectionId: "sound-1",
         }),
         reportEffect1
       );
@@ -169,6 +171,7 @@ describe("clipStateReducer", () => {
           type: "new-optimistic-clip-detected",
           scene: "Camera",
           profile: "Landscape",
+          soundDetectionId: "sound-1",
         }),
         reportEffect1
       );
@@ -179,6 +182,7 @@ describe("clipStateReducer", () => {
           type: "new-optimistic-clip-detected",
           scene: "No Face",
           profile: "Portrait",
+          soundDetectionId: "sound-2",
         }),
         reportEffect1
       );
@@ -255,6 +259,7 @@ describe("clipStateReducer", () => {
         createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
+          soundDetectionId: "sound-1",
         }),
         reportEffect
       );
@@ -282,6 +287,7 @@ describe("clipStateReducer", () => {
         createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
+          soundDetectionId: "sound-1",
         }),
         mockExec1
       );
@@ -361,12 +367,14 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 1",
+            soundDetectionId: "sound-1",
           })
         )
         .send(
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 2",
+            soundDetectionId: "sound-2",
           })
         )
         .getState();
@@ -389,6 +397,7 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 3",
+            soundDetectionId: "sound-3",
           })
         )
         .getState();
@@ -410,6 +419,7 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 4",
+            soundDetectionId: "sound-4",
           })
         )
         .getState();
@@ -477,12 +487,14 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 1",
+            soundDetectionId: "sound-1",
           })
         )
         .send(
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 2",
+            soundDetectionId: "sound-2",
           })
         )
         .getState();
@@ -506,6 +518,7 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 3",
+            soundDetectionId: "sound-3",
           })
         )
         .getState();
@@ -557,12 +570,14 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 1",
+            soundDetectionId: "sound-1",
           })
         )
         .send(
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 2",
+            soundDetectionId: "sound-2",
           })
         )
         .getState();
@@ -609,12 +624,14 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 1",
+            soundDetectionId: "sound-1",
           })
         )
         .send(
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 2",
+            soundDetectionId: "sound-2",
           })
         )
         .getState();
@@ -628,6 +645,7 @@ describe("clipStateReducer", () => {
           fromPartial({
             type: "new-optimistic-clip-detected",
             scene: "Scene 3",
+            soundDetectionId: "sound-3",
           })
         )
         .send({

@@ -148,8 +148,8 @@ export const ComponentInner = (props: Route.ComponentProps) => {
     onNewDatabaseClips: (databaseClips) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
-    onNewClipOptimisticallyAdded: ({ scene, profile }) => {
-      dispatch({ type: "new-optimistic-clip-detected", scene, profile });
+    onNewClipOptimisticallyAdded: ({ scene, profile, soundDetectionId }) => {
+      dispatch({ type: "new-optimistic-clip-detected", scene, profile, soundDetectionId });
     },
   });
 

@@ -6,6 +6,7 @@ export type SpeechDetectorState =
       silenceStartTime: number;
       lastLongEnoughSilenceEndTime: number | null;
       isLongEnoughSpeech: boolean;
+      soundDetectionId: string | null;
     }
   | {
       type: "long-enough-silence-detected";
@@ -15,12 +16,13 @@ export type SpeechDetectorState =
       type: "no-silence-detected";
       lastLongEnoughSilenceEndTime: number | null;
       isLongEnoughSpeech: boolean;
+      soundDetectionId: string | null;
     };
 
 export type FrontendSpeechDetectorState =
   | { type: "warming-up" }
   | { type: "speaking-detected" }
-  | { type: "long-enough-speaking-for-clip-detected" }
+  | { type: "long-enough-speaking-for-clip-detected"; soundDetectionId: string }
   | { type: "silence" };
 
 const SPEAKING_THRESHOLD = -33;
@@ -37,9 +39,10 @@ const resolveFrontendSpeechDetectorState = (
     if (state.lastLongEnoughSilenceEndTime === null) {
       return { type: "warming-up" };
     }
-    if (state.isLongEnoughSpeech) {
+    if (state.isLongEnoughSpeech && state.soundDetectionId) {
       return {
         type: "long-enough-speaking-for-clip-detected",
+        soundDetectionId: state.soundDetectionId,
       };
     }
     return {
@@ -64,6 +67,7 @@ export const useSpeechDetector = (opts: {
     type: "no-silence-detected",
     lastLongEnoughSilenceEndTime: null,
     isLongEnoughSpeech: false,
+    soundDetectionId: null,
   });
 
   const recordingStartTime = useRef<number | null>(null);
@@ -75,6 +79,7 @@ export const useSpeechDetector = (opts: {
         type: "no-silence-detected",
         lastLongEnoughSilenceEndTime: null,
         isLongEnoughSpeech: false,
+        soundDetectionId: null,
       });
     }
   }, [opts.isRecording]);
@@ -111,6 +116,7 @@ export const useSpeechDetector = (opts: {
               silenceStartTime: e.timeStamp,
               lastLongEnoughSilenceEndTime: state.lastLongEnoughSilenceEndTime,
               isLongEnoughSpeech: state.isLongEnoughSpeech,
+              soundDetectionId: state.soundDetectionId,
             });
           } else if (
             typeof state.lastLongEnoughSilenceEndTime === "number" &&
@@ -122,6 +128,7 @@ export const useSpeechDetector = (opts: {
               setState({
                 ...state,
                 isLongEnoughSpeech: true,
+                soundDetectionId: crypto.randomUUID(),
               });
             }
           }
@@ -134,6 +141,7 @@ export const useSpeechDetector = (opts: {
               type: "no-silence-detected",
               lastLongEnoughSilenceEndTime: state.lastLongEnoughSilenceEndTime,
               isLongEnoughSpeech: state.isLongEnoughSpeech,
+              soundDetectionId: state.soundDetectionId,
             });
           } else if (
             e.timeStamp - state.silenceStartTime >
@@ -153,6 +161,7 @@ export const useSpeechDetector = (opts: {
               setState({
                 ...state,
                 isLongEnoughSpeech: true,
+                soundDetectionId: crypto.randomUUID(),
               });
             }
           }
@@ -165,6 +174,7 @@ export const useSpeechDetector = (opts: {
               type: "no-silence-detected",
               lastLongEnoughSilenceEndTime: e.timeStamp,
               isLongEnoughSpeech: false,
+              soundDetectionId: null,
             });
           }
           break;
@@ -185,7 +195,7 @@ export const useSpeechDetector = (opts: {
 export const useWatchForSpeechDetected = (opts: {
   state: FrontendSpeechDetectorState;
   onSpeechPartEnded: () => void;
-  onSpeechPartStarted: () => void;
+  onSpeechPartStarted: (soundDetectionId: string) => void;
 }) => {
   const prevState = useRef<FrontendSpeechDetectorState>(opts.state);
   useEffect(() => {
@@ -199,7 +209,7 @@ export const useWatchForSpeechDetected = (opts: {
       prevState.current.type === "speaking-detected" &&
       opts.state.type === "long-enough-speaking-for-clip-detected"
     ) {
-      opts.onSpeechPartStarted();
+      opts.onSpeechPartStarted(opts.state.soundDetectionId);
     }
     prevState.current = opts.state;
   }, [opts.state, opts.onSpeechPartEnded]);

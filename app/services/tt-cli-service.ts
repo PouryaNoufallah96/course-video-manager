@@ -81,7 +81,9 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         }
       );
 
-      const exportVideoClips = Effect.fn("exportVideoClips")(function* (opts: {
+      const addVideoClipsToExportQueue = Effect.fn(
+        "addVideoClipsToExportQueue"
+      )(function* (opts: {
         videoId: string;
         clips: {
           inputVideo: string;
@@ -225,7 +227,7 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
 
       return {
         getLatestOBSVideoClips,
-        exportVideoClips,
+        exportVideoClips: addVideoClipsToExportQueue,
         transcribeClips,
         getLastFrame,
         getFirstFrame,

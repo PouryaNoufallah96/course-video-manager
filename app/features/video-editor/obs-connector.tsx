@@ -387,6 +387,7 @@ export const useOBSConnector = (props: {
   onNewClipOptimisticallyAdded: (opts: {
     scene: string;
     profile: string;
+    soundDetectionId: string;
   }) => void;
 }) => {
   const [websocket] = useState(() => new OBSWebSocket());
@@ -530,11 +531,12 @@ export const useOBSConnector = (props: {
         });
       }
     },
-    onSpeechPartStarted: () => {
+    onSpeechPartStarted: (soundDetectionId) => {
       if (state.type === "obs-recording") {
         props.onNewClipOptimisticallyAdded({
           scene: state.scene,
           profile: state.profile,
+          soundDetectionId,
         });
       }
     },
