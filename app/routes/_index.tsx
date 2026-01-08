@@ -52,6 +52,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  Film,
   FileText,
   FileX,
   FolderGit2,
@@ -557,6 +558,21 @@ export default function Component(props: Route.ComponentProps) {
                                   Change version name
                                 </span>
                               </div>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                to={`/repos/${currentRepo.id}/versions/${data.selectedVersion.id}/media-files`}
+                              >
+                                <Film className="w-4 h-4 mr-2" />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    View Media Files
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    List source footage for clips
+                                  </span>
+                                </div>
+                              </Link>
                             </DropdownMenuItem>
                             {data.versions.length > 1 && (
                               <DropdownMenuItem asChild>
