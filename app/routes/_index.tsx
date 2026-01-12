@@ -263,6 +263,7 @@ export default function Component(props: Route.ComponentProps) {
   const deleteVideoFetcher = useFetcher();
   const deleteVideoFileFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
+  const exportVideoFetcher = useFetcher();
 
   const data = props.loaderData;
 
@@ -829,6 +830,17 @@ export default function Component(props: Route.ComponentProps) {
                                       >
                                         <Play className="w-4 h-4" />
                                         Play Video
+                                      </ContextMenuItem>
+                                      <ContextMenuItem
+                                        onSelect={() => {
+                                          exportVideoFetcher.submit(null, {
+                                            method: "POST",
+                                            action: `/api/videos/${video.id}/export`,
+                                          });
+                                        }}
+                                      >
+                                        <Download className="w-4 h-4" />
+                                        Export
                                       </ContextMenuItem>
                                       <ContextMenuItem
                                         variant="destructive"

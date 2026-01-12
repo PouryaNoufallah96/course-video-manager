@@ -27,3 +27,10 @@
 - Updated lesson rename detection to use `hasNameChanged()` instead of path inequality
 - Now only detects renames when the actual name portion changes (e.g., `streaming-objects` → `generating-objects-via-output`)
 - File: app/services/changelog-service.ts:203-218, 123, 146
+
+## Issue #3 - Export video from course page context menu
+- Added "Export" option to video right-click context menu on course page
+- Added `exportVideoFetcher` using React Router's `useFetcher` hook
+- Export menu item posts to existing `/api/videos/$videoId/export` endpoint
+- Uses Download icon to indicate export action
+- File: app/routes/_index.tsx:266, 834-844
