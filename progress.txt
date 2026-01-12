@@ -41,3 +41,11 @@
 - Then use `getRepoWithSectionsByVersion` to fetch only sections from the latest version
 - This ensures only the latest version's sections are published to Dropbox
 - File: app/routes/api.repos.publish-to-dropbox.ts:93-107
+
+## Issue #9 - Add glossary to changelog
+- Added a glossary section at the top of the changelog explaining what each term means
+- New Lessons: Newly added content
+- Renamed: The lesson or section name has changed
+- Updated: The video has been updated and the readme needs to be rewritten
+- Deleted: The lesson or section has been removed
+- File: app/services/changelog-service.ts:341-351

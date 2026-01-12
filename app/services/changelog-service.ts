@@ -79,7 +79,9 @@ function buildLessonLookup(version: VersionWithStructure): Map<
 /**
  * Build a lookup map from section ID to its path for a given version.
  */
-function buildSectionLookup(version: VersionWithStructure): Map<string, string> {
+function buildSectionLookup(
+  version: VersionWithStructure
+): Map<string, string> {
   const lookup = new Map<string, string>();
   for (const section of version.sections) {
     lookup.set(section.id, section.path);
@@ -313,7 +315,12 @@ function organizeChangesBySection(
     if (!orderedSections.some(([path]) => path === deleted.sectionPath)) {
       orderedSections.push([
         deleted.sectionPath,
-        { newLessons: [], renamedLessons: [], updatedLessons: [], deletedLessons: [] },
+        {
+          newLessons: [],
+          renamedLessons: [],
+          updatedLessons: [],
+          deletedLessons: [],
+        },
       ]);
     }
   }
@@ -326,14 +333,22 @@ function organizeChangesBySection(
  * Versions should be in reverse chronological order (newest first).
  * Organized by section hierarchy: Version > Section > (New/Renamed/Deleted)
  */
-export function generateChangelog(
-  versions: VersionWithStructure[]
-): string {
+export function generateChangelog(versions: VersionWithStructure[]): string {
   if (versions.length === 0) {
     return "# Changelog\n\nNo versions found.\n";
   }
 
-  const lines: string[] = ["# Changelog", ""];
+  const lines: string[] = [
+    "# Changelog",
+    "",
+    "## Glossary",
+    "",
+    "- **New Lessons**: Newly added content.",
+    "- **Renamed**: The lesson or section name has changed.",
+    "- **Updated**: The video has been updated and the readme needs to be rewritten.",
+    "- **Deleted**: The lesson or section has been removed.",
+    "",
+  ];
 
   for (let i = 0; i < versions.length; i++) {
     const currentVersion = versions[i]!;
