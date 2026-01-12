@@ -115,12 +115,12 @@ function detectChanges(
   const renamedSectionIds = new Set<string>();
 
   for (const section of currentVersion.sections) {
-    // Check for renamed sections
+    // Check for renamed sections (only count if actual name changed, not just number)
     if (section.previousVersionSectionId) {
       const prevSectionPath = prevSectionLookup.get(
         section.previousVersionSectionId
       );
-      if (prevSectionPath && prevSectionPath !== section.path) {
+      if (prevSectionPath && hasNameChanged(prevSectionPath, section.path)) {
         if (!renamedSectionIds.has(section.previousVersionSectionId)) {
           changes.renamedSections.push({
             oldPath: prevSectionPath,
@@ -142,8 +142,8 @@ function detectChanges(
         // Check for renames and content changes
         const prevLesson = prevLessonLookup.get(lesson.previousVersionLessonId);
         if (prevLesson) {
-          // Check for path rename
-          if (prevLesson.lessonPath !== lesson.path) {
+          // Check for path rename (only count if actual name changed, not just number)
+          if (hasNameChanged(prevLesson.lessonPath, lesson.path)) {
             changes.renamedLessons.push({
               sectionPath: section.path,
               oldPath: prevLesson.lessonPath,
@@ -198,6 +198,23 @@ function detectChanges(
   }
 
   return changes;
+}
+
+/**
+ * Strip the numeric prefix from a path.
+ * e.g., "01.03-choosing-your-model" -> "choosing-your-model"
+ * e.g., "01-section-name" -> "section-name"
+ */
+function stripNumericPrefix(path: string): string {
+  return path.replace(/^[\d.]+-/, "");
+}
+
+/**
+ * Check if two paths have different names (ignoring numeric prefixes).
+ * Returns true if the actual name portion has changed.
+ */
+function hasNameChanged(oldPath: string, newPath: string): boolean {
+  return stripNumericPrefix(oldPath) !== stripNumericPrefix(newPath);
 }
 
 /**

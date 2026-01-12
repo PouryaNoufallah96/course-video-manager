@@ -19,3 +19,11 @@
 - Track content changes when organizing changes by section
 - Added "#### Updated" section in changelog output for lessons with transcript changes
 - File: app/services/changelog-service.ts:220-226, 246, 266-269, 380, 423-431
+
+## Issue #7 - Renames only count actual name changes, not number changes
+- Previously, changing `01.03-choosing-your-model` to `01.04-choosing-your-model` was detected as a rename
+- Added `stripNumericPrefix()` and `hasNameChanged()` helper functions
+- Updated section rename detection to use `hasNameChanged()` instead of path inequality
+- Updated lesson rename detection to use `hasNameChanged()` instead of path inequality
+- Now only detects renames when the actual name portion changes (e.g., `streaming-objects` → `generating-objects-via-output`)
+- File: app/services/changelog-service.ts:203-218, 123, 146
