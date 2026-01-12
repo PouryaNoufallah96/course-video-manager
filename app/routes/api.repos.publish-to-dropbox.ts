@@ -90,7 +90,21 @@ export const action = async ({ request }: Route.ActionArgs) => {
     const repoParserService = yield* RepoParserService;
     const db = yield* DBService;
 
-    const repoWithSections = yield* db.getRepoWithSectionsById(result.repoId);
+    // Get the latest version - only publish sections from the latest version
+    const latestVersion = yield* db.getLatestRepoVersion(result.repoId);
+
+    if (!latestVersion) {
+      return yield* new DoesNotExistOnDbError({
+        type: "section",
+        path: "",
+        message: `No version found for repo ${result.repoId}`,
+      });
+    }
+
+    const repoWithSections = yield* db.getRepoWithSectionsByVersion({
+      repoId: result.repoId,
+      versionId: latestVersion.id,
+    });
 
     const sectionsOnFileSystem = yield* repoParserService.parseRepo(
       repoWithSections.filePath

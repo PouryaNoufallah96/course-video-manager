@@ -34,3 +34,10 @@
 - Export menu item posts to existing `/api/videos/$videoId/export` endpoint
 - Uses Download icon to indicate export action
 - File: app/routes/_index.tsx:266, 834-844
+
+## Issue #8 - Publish not respecting repo versions
+- Publish endpoint was using `getRepoWithSectionsById` which returns ALL sections for a repo, regardless of version
+- Changed to first get the latest version via `getLatestRepoVersion`
+- Then use `getRepoWithSectionsByVersion` to fetch only sections from the latest version
+- This ensures only the latest version's sections are published to Dropbox
+- File: app/routes/api.repos.publish-to-dropbox.ts:93-107
