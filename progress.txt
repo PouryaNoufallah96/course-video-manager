@@ -1,3 +1,9 @@
 ## Issue #1 - Beat dots orange → light grey
 - Changed BeatIndicator dots from bg-orange-500 to bg-zinc-400
 - File: app/features/video-editor/video-editor.tsx:886-894
+
+## Issue #2 - Remove pause icon from video editor
+- Removed PauseIcon from timecode overlay on clip thumbnails
+- BeatIndicator (three ellipses) now serves as the only beat indicator
+- Kept PauseIcon in context menu for "Add/Remove Beat" action
+- File: app/features/video-editor/video-editor.tsx:730-732 (removed)

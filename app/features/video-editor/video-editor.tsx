@@ -727,9 +727,6 @@ export const VideoEditor = (props: {
                                     "text-white"
                                 )}
                               >
-                                {clip.beatType === "long" && (
-                                  <PauseIcon className="w-3 h-3 text-yellow-400" />
-                                )}
                                 {clip.timecode}
                               </div>
                             </div>
