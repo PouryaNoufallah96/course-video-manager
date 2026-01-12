@@ -134,6 +134,17 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           res.json();
         });
       },
+      "reorder-clip": (_state, effect, _dispatch) => {
+        fetch("/clips/reorder", {
+          method: "POST",
+          body: JSON.stringify({
+            clipId: effect.clipId,
+            direction: effect.direction,
+          }),
+        }).then((res) => {
+          res.json();
+        });
+      },
     }
   );
 
@@ -200,6 +211,9 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       }}
       onToggleBeatForClip={(clipId) => {
         dispatch({ type: "toggle-beat-for-clip", clipId });
+      }}
+      onMoveClip={(clipId, direction) => {
+        dispatch({ type: "move-clip", clipId, direction });
       }}
       obsConnectorState={obsConnector.state}
       clips={clipState.clips.filter((clip) => {

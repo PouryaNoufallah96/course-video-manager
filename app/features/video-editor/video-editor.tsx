@@ -32,6 +32,8 @@ import { formatSecondsToTimeCode } from "@/services/utils";
 import levenshtein from "js-levenshtein";
 import {
   AlertTriangleIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   CheckIcon,
   ChevronDown,
   ChevronLeftIcon,
@@ -106,6 +108,7 @@ export const VideoEditor = (props: {
   onDeleteLatestInsertedClip: () => void;
   onToggleBeat: () => void;
   onToggleBeatForClip: (clipId: FrontendId) => void;
+  onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
 }) => {
   const [state, dispatch] = useEffectReducer<
     videoStateReducer.State,
@@ -135,6 +138,9 @@ export const VideoEditor = (props: {
       },
       "toggle-beat-for-clip": (_state, effect, _dispatch) => {
         props.onToggleBeatForClip(effect.clipId);
+      },
+      "move-clip": (_state, effect, _dispatch) => {
+        props.onMoveClip(effect.clipId, effect.direction);
       },
     }
   );
@@ -182,10 +188,18 @@ export const VideoEditor = (props: {
         dispatch({ type: "press-arrow-right" });
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        dispatch({ type: "press-arrow-up" });
+        if (e.altKey) {
+          dispatch({ type: "press-alt-arrow-up" });
+        } else {
+          dispatch({ type: "press-arrow-up" });
+        }
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        dispatch({ type: "press-arrow-down" });
+        if (e.altKey) {
+          dispatch({ type: "press-alt-arrow-down" });
+        } else {
+          dispatch({ type: "press-arrow-down" });
+        }
       } else if (e.key === "l") {
         dispatch({ type: "press-l" });
       } else if (e.key === "k") {
@@ -667,7 +681,7 @@ export const VideoEditor = (props: {
               {props.insertionPoint.type === "start" && (
                 <InsertionPointIndicator />
               )}
-              {clipsWithTimecodeAndLevenshtein.map((clip) => {
+              {clipsWithTimecodeAndLevenshtein.map((clip, clipIndex) => {
                 const duration =
                   clip.type === "on-database"
                     ? clip.sourceEndTime - clip.sourceStartTime
@@ -680,6 +694,10 @@ export const VideoEditor = (props: {
                 const isPortrait =
                   clip.type === "on-database" &&
                   (clip.profile === "TikTok" || clip.profile === "Portrait");
+
+                const isFirstClip = clipIndex === 0;
+                const isLastClip =
+                  clipIndex === clipsWithTimecodeAndLevenshtein.length - 1;
 
                 return (
                   <>
@@ -815,6 +833,24 @@ export const VideoEditor = (props: {
                         >
                           <ChevronRightIcon />
                           Insert After
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          disabled={isFirstClip}
+                          onSelect={() => {
+                            props.onMoveClip(clip.frontendId, "up");
+                          }}
+                        >
+                          <ArrowUpIcon />
+                          Move Up
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          disabled={isLastClip}
+                          onSelect={() => {
+                            props.onMoveClip(clip.frontendId, "down");
+                          }}
+                        >
+                          <ArrowDownIcon />
+                          Move Down
                         </ContextMenuItem>
                         <ContextMenuItem
                           onSelect={() => {

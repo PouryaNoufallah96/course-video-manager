@@ -118,6 +118,11 @@ export namespace clipStateReducer {
     | {
         type: "toggle-beat-for-clip";
         clipId: FrontendId;
+      }
+    | {
+        type: "move-clip";
+        clipId: FrontendId;
+        direction: "up" | "down";
       };
 
   export type Effect =
@@ -140,6 +145,11 @@ export namespace clipStateReducer {
         type: "update-beat";
         clipId: DatabaseId;
         beatType: BeatType;
+      }
+    | {
+        type: "reorder-clip";
+        clipId: DatabaseId;
+        direction: "up" | "down";
       };
 }
 
@@ -559,6 +569,43 @@ export const clipStateReducer: EffectReducer<
             ? { ...clip, beatType: newBeatType }
             : clip
         ),
+      };
+    }
+    case "move-clip": {
+      const clipIndex = state.clips.findIndex(
+        (c) => c.frontendId === action.clipId
+      );
+
+      if (clipIndex === -1) {
+        return state;
+      }
+
+      const clip = state.clips[clipIndex]!;
+      const targetIndex =
+        action.direction === "up" ? clipIndex - 1 : clipIndex + 1;
+
+      // Check boundaries
+      if (targetIndex < 0 || targetIndex >= state.clips.length) {
+        return state;
+      }
+
+      // Swap clips in the array
+      const newClips = [...state.clips];
+      newClips[clipIndex] = newClips[targetIndex]!;
+      newClips[targetIndex] = clip;
+
+      // Fire effect to update database if this is a database clip
+      if (clip.type === "on-database") {
+        exec({
+          type: "reorder-clip",
+          clipId: clip.databaseId,
+          direction: action.direction,
+        });
+      }
+
+      return {
+        ...state,
+        clips: newClips,
       };
     }
   }

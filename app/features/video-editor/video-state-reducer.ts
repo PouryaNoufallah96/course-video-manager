@@ -29,6 +29,11 @@ export namespace videoStateReducer {
     | {
         type: "toggle-beat-for-clip";
         clipId: FrontendId;
+      }
+    | {
+        type: "move-clip";
+        clipId: FrontendId;
+        direction: "up" | "down";
       };
 
   export type Action =
@@ -97,6 +102,12 @@ export namespace videoStateReducer {
       }
     | {
         type: "beat-toggle-key-pressed";
+      }
+    | {
+        type: "press-alt-arrow-up";
+      }
+    | {
+        type: "press-alt-arrow-down";
       };
 }
 
@@ -462,6 +473,28 @@ export const makeVideoEditorReducer =
           exec({
             type: "toggle-beat-for-clip",
             clipId: selectedClipId,
+          });
+        }
+        return state;
+      }
+      case "press-alt-arrow-up": {
+        const selectedClipId = Array.from(state.selectedClipsSet).pop();
+        if (selectedClipId) {
+          exec({
+            type: "move-clip",
+            clipId: selectedClipId,
+            direction: "up",
+          });
+        }
+        return state;
+      }
+      case "press-alt-arrow-down": {
+        const selectedClipId = Array.from(state.selectedClipsSet).pop();
+        if (selectedClipId) {
+          exec({
+            type: "move-clip",
+            clipId: selectedClipId,
+            direction: "down",
           });
         }
         return state;

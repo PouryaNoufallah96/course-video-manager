@@ -49,3 +49,20 @@
 - Updated: The video has been updated and the readme needs to be rewritten
 - Deleted: The lesson or section has been removed
 - File: app/services/changelog-service.ts:341-351
+
+## Issue #10 - Allow users to move clips up and down in the video editor
+- Added keyboard hotkeys: Alt+Up moves selected clip up, Alt+Down moves selected clip down
+- Added context menu options "Move Up" and "Move Down" (disabled at boundaries)
+- Implemented using existing reducer pattern:
+  - Added `move-clip` action to clip-state-reducer.ts with `reorder-clip` effect
+  - Added `press-alt-arrow-up` and `press-alt-arrow-down` actions to video-state-reducer.ts
+  - Added `move-clip` effect that triggers parent's onMoveClip callback
+- Created new API endpoint `/clips/reorder` for database sync
+- Added `reorderClip` function to DBService using fractional-indexing for order calculation
+- Files changed:
+  - app/features/video-editor/clip-state-reducer.ts
+  - app/features/video-editor/video-state-reducer.ts
+  - app/features/video-editor/video-editor.tsx
+  - app/routes/videos.$videoId.edit.tsx
+  - app/services/db-service.ts
+  - app/routes/clips.reorder.ts (new)
