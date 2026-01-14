@@ -71,3 +71,20 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/video-editor.tsx:867
+
+## Issue #51 - Fix section scrolling broken by Issue #50
+- Fixed regression where clicking section links in sidebar stopped working
+- Root cause: Section frontendIds change on every re-render, so getElementById couldn't find the element after dispatch triggered re-render
+- Solution: Use section index instead of ID to find elements, since order is stable
+- Implementation details:
+  - Changed from getElementById with dynamic ID to querySelectorAll with index lookup
+  - Wrapped scroll in requestAnimationFrame to wait for React re-render to complete
+  - Restored smooth scroll behavior (behavior: "smooth") for better UX
+  - Changed block positioning to "center" instead of "start" for better visibility
+- Key decisions:
+  - Index-based lookup is more robust than ID-based when IDs are unstable
+  - requestAnimationFrame ensures DOM is updated before scrolling
+  - Smooth scroll provides better user experience than instant scroll
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/video-editor.tsx:850-870

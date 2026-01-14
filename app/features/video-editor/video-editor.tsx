@@ -845,7 +845,7 @@ export const VideoEditor = (props: {
                   </h3>
                   <ScrollArea className="h-[200px]">
                     <div className="space-y-2 pr-4">
-                      {clipSections.map((section) => (
+                      {clipSections.map((section, index) => (
                         <button
                           key={section.frontendId}
                           onClick={() => {
@@ -857,16 +857,17 @@ export const VideoEditor = (props: {
                               shiftKey: false,
                             });
 
-                            // Scroll to the section in the timeline
-                            const sectionElement = document.getElementById(
-                              `section-${section.frontendId}`
-                            );
-                            if (sectionElement) {
-                              window.scrollTo({
-                                top: sectionElement.offsetTop - 100,
-                                behavior: "instant",
-                              });
-                            }
+                            // Scroll to the section in the timeline after React finishes re-rendering
+                            // Use the index to find the section since IDs change on re-render
+                            requestAnimationFrame(() => {
+                              const allSections = document.querySelectorAll('[id^="section-"]');
+                              if (allSections[index]) {
+                                allSections[index].scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "center",
+                                });
+                              }
+                            });
                           }}
                           className={cn(
                             "w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors",
