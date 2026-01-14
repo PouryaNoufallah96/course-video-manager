@@ -126,3 +126,10 @@
   - app/routes/videos.$videoId.write.tsx:203-209, 212-218, 514-521
   - app/routes/videos.$videoId.completions.ts:13-26
   - app/services/text-writing-agent.ts:1-6, 21-27, 72-77
+
+## Issue #15 - Align transcript checkbox with files in context checkboxes
+- Removed border and padding from FileTree component container
+- Transcript checkbox now visually aligns with file tree checkboxes
+- Only removed `border rounded-lg p-2` classes from the wrapper div
+- Kept scrollbar styling and max-height for overflow handling
+- File: app/components/FileTree.tsx:213

@@ -210,7 +210,7 @@ export const FileTree = ({
   };
 
   return (
-    <div className="border rounded-lg p-2 max-h-96 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
+    <div className="max-h-96 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
       <div className="text-sm font-medium mb-2 px-2">Files in Context</div>
       {tree.map((node) => (
         <FileTreeNode
