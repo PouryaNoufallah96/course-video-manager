@@ -54,6 +54,7 @@ import {
   GraduationCapIcon,
   RefreshCwIcon,
   SearchIcon,
+  VideoIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher } from "react-router";
@@ -251,7 +252,8 @@ type Mode =
   | "skill-building"
   | "style-guide-skill-building"
   | "style-guide-project"
-  | "seo-description";
+  | "seo-description"
+  | "youtube-title";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const modeToLabel = {
@@ -261,6 +263,7 @@ const modeToLabel = {
   "style-guide-skill-building": "Style Guide Pass - Skill Building",
   "style-guide-project": "Style Guide Pass - Project",
   "seo-description": "SEO Description",
+  "youtube-title": "YouTube Title",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -578,6 +581,17 @@ export function InnerComponent(props: Route.ComponentProps) {
                           <div>SEO Description</div>
                           <div className="text-xs text-muted-foreground">
                             Generate SEO description (max 160 characters)
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="youtube-title">
+                      <div className="flex items-start gap-2">
+                        <VideoIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>YouTube Title</div>
+                          <div className="text-xs text-muted-foreground">
+                            Generate engaging YouTube video title
                           </div>
                         </div>
                       </div>

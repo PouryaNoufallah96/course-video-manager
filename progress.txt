@@ -457,3 +457,15 @@
   - Clip Actions: Add/Remove Beat, Re-transcribe
   - Destructive: Delete
 - File: app/features/video-editor/video-editor.tsx
+
+## Issue #32 - YouTube title generator mode
+- Added new "YouTube Title" mode to write article page
+- Follows same pattern as SEO description mode (Issue #13)
+- Prompt generates engaging, clickable YouTube titles (60-70 character target)
+- Includes examples: conversational style, questions, numbers, provocative statements
+- UI uses VideoIcon to represent YouTube/video content
+- Files changed:
+  - app/prompts/generate-youtube-title.ts (new prompt file)
+  - app/services/text-writing-agent.ts (added import, mode type, switch case)
+  - app/routes/videos.$videoId.completions.ts (added mode to schema)
+  - app/routes/videos.$videoId.write.tsx (added mode type, label, icon, UI SelectItem)
