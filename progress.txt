@@ -392,3 +392,15 @@
   - app/features/video-editor/clip-state-reducer.test.ts (added error field to initial state)
   - app/features/video-editor/video-editor.tsx (error prop, error overlay UI)
   - app/routes/videos.$videoId.edit.tsx (error handling in all effect handlers, error prop)
+
+## Issue #26 - Fix clip section ordering bug when moving to the top
+- When moving a clip section to the very top using Alt+Up, it was incorrectly saved to the database at the bottom
+- Root cause: JavaScript `localeCompare()` uses locale-aware sorting, but PostgreSQL `COLLATE "C"` uses byte/ASCII ordering
+- The fractional-indexing library generates keys like "Zz" to sort before "a0", which requires byte ordering
+- In byte ordering: 'Z' (90) < 'a' (97), so "Zz" < "a0"
+- In locale-aware sorting: 'a' < 'Z', so "a0" < "Zz" (incorrect!)
+- Fix: Replaced `localeCompare()` with ASCII comparison `(a < b ? -1 : a > b ? 1 : 0)`
+- Added `compareOrderStrings()` helper function in db-service.ts with documentation explaining the issue
+- Files changed:
+  - app/services/db-service.ts (added compareOrderStrings helper, updated 3 sort calls)
+  - app/routes/videos.$videoId.edit.tsx (fixed sort in loader)

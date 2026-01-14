@@ -57,8 +57,12 @@ export const loader = async (args: Route.LoaderArgs) => {
         data: clipSection,
       }));
 
+    // Sort using ASCII ordering to match PostgreSQL COLLATE "C" behavior.
+    // fractional-indexing generates keys like "Zz" to sort before "a0",
+    // which requires byte ordering (where 'Z' (90) < 'a' (97)).
+    // localeCompare() uses locale-aware sorting which doesn't match this.
     const sortedItems = [...clipItems, ...clipSectionItems].sort((a, b) =>
-      a.order.localeCompare(b.order)
+      a.order < b.order ? -1 : a.order > b.order ? 1 : 0
     );
 
     return {

@@ -20,6 +20,17 @@ const makeDbCall = <T>(fn: () => Promise<T>) => {
   });
 };
 
+/**
+ * Compare two order strings using ASCII/byte ordering.
+ * This matches PostgreSQL's COLLATE "C" behavior.
+ * IMPORTANT: localeCompare() uses locale-aware sorting which differs from COLLATE "C".
+ * fractional-indexing library generates keys like "Zz" to sort before "a0",
+ * which requires byte ordering (where 'Z' (90) < 'a' (97)).
+ */
+const compareOrderStrings = (a: string, b: string): number => {
+  return a < b ? -1 : a > b ? 1 : 0;
+};
+
 export class DBService extends Effect.Service<DBService>()("DBService", {
   effect: Effect.gen(function* () {
     const getClipById = Effect.fn("getClipById")(function* (clipId: string) {
@@ -212,7 +223,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
         ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
-      ].sort((a, b) => a.order.localeCompare(b.order));
+      ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       // Calculate order based on insertion point
       let prevOrder: string | null = null;
@@ -295,7 +306,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
         ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
-      ].sort((a, b) => a.order.localeCompare(b.order));
+      ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       // Find the target item
       const targetIndex = allItems.findIndex(
@@ -458,7 +469,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
         ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
-      ].sort((a, b) => a.order.localeCompare(b.order));
+      ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       const itemIndex = allItems.findIndex(
         (item) => item.type === "clip-section" && item.id === clipSectionId
