@@ -938,9 +938,8 @@ export const clipStateReducer: EffectReducer<
         targetItemType: targetItemType,
       });
 
-      exec({
-        type: "scroll-to-insertion-point",
-      });
+      // Don't scroll when adding section via context menu - user is organizing content
+      // and doesn't expect to be scrolled around
 
       return {
         ...state,

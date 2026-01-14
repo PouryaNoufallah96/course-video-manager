@@ -556,3 +556,13 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-thumbnail.ts
+
+## Issue #42 - Fix scroll behavior when adding clip section via context menu
+- When adding a clip section via right-click context menu, the page was scrolling unexpectedly
+- Root cause: `add-clip-section-at` action was triggering `scroll-to-insertion-point` effect
+- This was incorrect because the insertion point doesn't change when adding sections via context menu
+- Removed the scroll-to-insertion-point effect from the add-clip-section-at reducer case
+- Key decision: Keep scroll behavior for Stream Deck section creation (makes sense in recording workflow)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/clip-state-reducer.ts
