@@ -147,6 +147,13 @@ const preloadSelectedClips = (
   };
 };
 
+/**
+ * Creates the video editor reducer.
+ *
+ * @param itemIds - All timeline item IDs (clips + clip sections) for arrow key navigation
+ * @param clipIds - Only clip IDs (subset of itemIds) for video playback operations
+ *                  (preloading, clip-finished, Home/End keys) since clip sections have no video
+ */
 export const makeVideoEditorReducer =
   (
     itemIds: FrontendId[],
