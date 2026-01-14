@@ -362,3 +362,10 @@
 - Fixed by extending ClipSectionDivider props type to include React.ButtonHTMLAttributes
 - Destructured props and spread `...rest` onto the button element
 - File: app/features/video-editor/video-editor.tsx:1295-1322
+
+## Issue #24 - Home/End keys now navigate to clip sections
+- Previously, Home/End only selected the first/last clip, ignoring clip sections
+- Updated `press-home` to use `itemIds[0]` instead of `clipIds[0]`
+- Updated `press-end` to use `itemIds[itemIds.length - 1]` instead of `clipIds[clipIds.length - 1]`
+- Updated JSDoc comment to reflect that Home/End now use itemIds for navigation
+- File: app/features/video-editor/video-state-reducer.ts:185-199

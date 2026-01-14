@@ -150,9 +150,9 @@ const preloadSelectedClips = (
 /**
  * Creates the video editor reducer.
  *
- * @param itemIds - All timeline item IDs (clips + clip sections) for arrow key navigation
+ * @param itemIds - All timeline item IDs (clips + clip sections) for navigation (arrow keys, Home/End)
  * @param clipIds - Only clip IDs (subset of itemIds) for video playback operations
- *                  (preloading, clip-finished, Home/End keys) since clip sections have no video
+ *                  (preloading, clip-finished) since clip sections have no video
  */
 export const makeVideoEditorReducer =
   (
@@ -183,19 +183,19 @@ export const makeVideoEditorReducer =
         };
       }
       case "press-home":
-        const firstClip = clipIds[0];
-        if (!firstClip) {
+        const firstItem = itemIds[0];
+        if (!firstItem) {
           return state;
         }
-        return { ...state, selectedClipsSet: new Set([firstClip]) };
+        return { ...state, selectedClipsSet: new Set([firstItem]) };
       case "press-end":
-        const lastClip = clipIds[clipIds.length - 1];
-        if (!lastClip) {
+        const lastItem = itemIds[itemIds.length - 1];
+        if (!lastItem) {
           return state;
         }
         return {
           ...state,
-          selectedClipsSet: new Set([lastClip]),
+          selectedClipsSet: new Set([lastItem]),
         };
       case "press-l":
         if (state.playbackRate === 2) {
