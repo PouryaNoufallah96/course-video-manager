@@ -1,7 +1,7 @@
 import { Console, Effect } from "effect";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
-import type { Route } from "./+types/api.repos.$repoId.export-all";
+import type { Route } from "./+types/api.repoVersions.$versionId.export-all";
 import {
   TotalTypeScriptCLIService,
   type BeatType,
@@ -14,13 +14,13 @@ import { withDatabaseDump } from "@/services/dump-service";
 import { data } from "react-router";
 
 export const action = async (args: Route.ActionArgs) => {
-  const { repoId } = args.params;
+  const { versionId } = args.params;
 
   return Effect.gen(function* () {
     const db = yield* DBService;
     const ttCliService = yield* TotalTypeScriptCLIService;
 
-    const repoWithSections = yield* db.getRepoWithSectionsById(repoId);
+    const version = yield* db.getVersionWithSections(versionId);
 
     // Collect all videos with clips
     const videosToExport: Array<{
@@ -33,7 +33,7 @@ export const action = async (args: Route.ActionArgs) => {
       }>;
     }> = [];
 
-    for (const section of repoWithSections.sections) {
+    for (const section of version.sections) {
       for (const lesson of section.lessons) {
         for (const video of lesson.videos) {
           if (video.clips.length > 0) {
@@ -77,7 +77,7 @@ export const action = async (args: Route.ActionArgs) => {
     withDatabaseDump,
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
     Effect.catchTag("NotFoundError", () => {
-      return Effect.die(data("Repo not found", { status: 404 }));
+      return Effect.die(data("Version not found", { status: 404 }));
     }),
     Effect.catchAll(() => {
       return Effect.die(data("Internal server error", { status: 500 }));

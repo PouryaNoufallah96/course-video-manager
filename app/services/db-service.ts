@@ -225,7 +225,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             with: {
               section: {
                 with: {
-                  repo: true,
+                  repoVersion: {
+                    with: {
+                      repo: true,
+                    },
+                  },
                 },
               },
             },
@@ -252,7 +256,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               with: {
                 section: {
                   with: {
-                    repo: true,
+                    repoVersion: {
+                      with: {
+                        repo: true,
+                      },
+                    },
                   },
                 },
               },
@@ -302,7 +310,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               with: {
                 section: {
                   with: {
-                    repo: true,
+                    repoVersion: {
+                      with: {
+                        repo: true,
+                      },
+                    },
                   },
                 },
                 videos: true,
@@ -334,24 +346,29 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           db.query.repos.findFirst({
             where: eq(repos.id, id),
             with: {
-              sections: {
+              versions: {
+                orderBy: desc(repoVersions.createdAt),
                 with: {
-                  lessons: {
+                  sections: {
                     with: {
-                      videos: {
-                        orderBy: asc(videos.path),
+                      lessons: {
                         with: {
-                          clips: {
-                            orderBy: asc(clips.order),
-                            where: eq(clips.archived, false),
+                          videos: {
+                            orderBy: asc(videos.path),
+                            with: {
+                              clips: {
+                                orderBy: asc(clips.order),
+                                where: eq(clips.archived, false),
+                              },
+                            },
                           },
                         },
+                        orderBy: asc(lessons.order),
                       },
                     },
-                    orderBy: asc(lessons.order),
+                    orderBy: asc(sections.order),
                   },
                 },
-                orderBy: asc(sections.order),
               },
             },
           })
@@ -559,23 +576,20 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         return repo;
       }),
       createSections: Effect.fn("createSections")(function* ({
-        repoId,
         sections: newSections,
         repoVersionId,
       }: {
-        repoId: string;
         sections: {
           sectionPathWithNumber: string;
           sectionNumber: number;
         }[];
-        repoVersionId?: string;
+        repoVersionId: string;
       }) {
         const sectionResult = yield* makeDbCall(() =>
           db
             .insert(sections)
             .values(
               newSections.map((section) => ({
-                repoId,
                 repoVersionId,
                 path: section.sectionPathWithNumber,
                 order: section.sectionNumber,
@@ -651,14 +665,14 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const currentLesson = currentVideo.lesson;
         if (!currentLesson) return null; // Standalone videos have no next/prev
         const currentSection = currentLesson.section;
-        const repo = currentSection.repo;
+        const repo = currentSection.repoVersion.repo;
 
         // Get all videos in current lesson sorted by path
-        const videosInLesson = currentLesson.videos.sort((a, b) =>
+        const videosInLesson = currentLesson.videos.sort((a: { path: string }, b: { path: string }) =>
           a.path.localeCompare(b.path)
         );
         const currentVideoIndex = videosInLesson.findIndex(
-          (v) => v.id === currentVideoId
+          (v: { id: string }) => v.id === currentVideoId
         );
 
         // Try next video in current lesson
@@ -667,28 +681,29 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }
 
         // Need to get all sections and lessons to find next
-        const repoWithSections = yield* getRepoWithSectionsById(repo.id);
+        const repoWithVersions = yield* getRepoWithSectionsById(repo.id);
+        const latestVersionSections = repoWithVersions.versions[0]?.sections ?? [];
 
         // Find current lesson in the structure
-        for (let sIdx = 0; sIdx < repoWithSections.sections.length; sIdx++) {
-          const section = repoWithSections.sections[sIdx]!;
+        for (let sIdx = 0; sIdx < latestVersionSections.length; sIdx++) {
+          const section = latestVersionSections[sIdx]!;
           for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
             const lesson = section.lessons[lIdx]!;
             if (lesson.id === currentLesson.id) {
               // Try next lesson in current section
               if (lIdx < section.lessons.length - 1) {
                 const nextLesson = section.lessons[lIdx + 1]!;
-                const firstVideo = nextLesson.videos.sort((a, b) =>
+                const firstVideo = nextLesson.videos.sort((a: { path: string }, b: { path: string }) =>
                   a.path.localeCompare(b.path)
                 )[0];
                 return firstVideo?.id ?? null;
               }
 
               // Try first lesson of next section
-              if (sIdx < repoWithSections.sections.length - 1) {
-                const nextSection = repoWithSections.sections[sIdx + 1]!;
+              if (sIdx < latestVersionSections.length - 1) {
+                const nextSection = latestVersionSections[sIdx + 1]!;
                 const firstLesson = nextSection.lessons[0];
-                const firstVideo = firstLesson?.videos.sort((a, b) =>
+                const firstVideo = firstLesson?.videos.sort((a: { path: string }, b: { path: string }) =>
                   a.path.localeCompare(b.path)
                 )[0];
                 return firstVideo?.id ?? null;
@@ -709,14 +724,14 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const currentLesson = currentVideo.lesson;
         if (!currentLesson) return null; // Standalone videos have no next/prev
         const currentSection = currentLesson.section;
-        const repo = currentSection.repo;
+        const repo = currentSection.repoVersion.repo;
 
         // Get all videos in current lesson sorted by path
-        const videosInLesson = currentLesson.videos.sort((a, b) =>
+        const videosInLesson = currentLesson.videos.sort((a: { path: string }, b: { path: string }) =>
           a.path.localeCompare(b.path)
         );
         const currentVideoIndex = videosInLesson.findIndex(
-          (v) => v.id === currentVideoId
+          (v: { id: string }) => v.id === currentVideoId
         );
 
         // Try previous video in current lesson
@@ -725,18 +740,19 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }
 
         // Need to get all sections and lessons to find previous
-        const repoWithSections = yield* getRepoWithSectionsById(repo.id);
+        const repoWithVersions = yield* getRepoWithSectionsById(repo.id);
+        const latestVersionSections = repoWithVersions.versions[0]?.sections ?? [];
 
         // Find current lesson in the structure
-        for (let sIdx = 0; sIdx < repoWithSections.sections.length; sIdx++) {
-          const section = repoWithSections.sections[sIdx]!;
+        for (let sIdx = 0; sIdx < latestVersionSections.length; sIdx++) {
+          const section = latestVersionSections[sIdx]!;
           for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
             const lesson = section.lessons[lIdx]!;
             if (lesson.id === currentLesson.id) {
               // Try previous lesson in current section
               if (lIdx > 0) {
                 const prevLesson = section.lessons[lIdx - 1]!;
-                const videos = prevLesson.videos.sort((a, b) =>
+                const videos = prevLesson.videos.sort((a: { path: string }, b: { path: string }) =>
                   a.path.localeCompare(b.path)
                 );
                 const lastVideo = videos[videos.length - 1];
@@ -745,10 +761,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
               // Try last lesson of previous section
               if (sIdx > 0) {
-                const prevSection = repoWithSections.sections[sIdx - 1]!;
+                const prevSection = latestVersionSections[sIdx - 1]!;
                 const lastLesson =
                   prevSection.lessons[prevSection.lessons.length - 1];
-                const videos = lastLesson?.videos.sort((a, b) =>
+                const videos = lastLesson?.videos.sort((a: { path: string }, b: { path: string }) =>
                   a.path.localeCompare(b.path)
                 );
                 const lastVideo = videos?.[videos.length - 1];
@@ -847,6 +863,46 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           };
         }
       ),
+      getVersionWithSections: Effect.fn("getVersionWithSections")(function* (
+        versionId: string
+      ) {
+        const version = yield* makeDbCall(() =>
+          db.query.repoVersions.findFirst({
+            where: eq(repoVersions.id, versionId),
+            with: {
+              repo: true,
+              sections: {
+                orderBy: asc(sections.order),
+                with: {
+                  lessons: {
+                    orderBy: asc(lessons.order),
+                    with: {
+                      videos: {
+                        orderBy: asc(videos.path),
+                        with: {
+                          clips: {
+                            orderBy: asc(clips.order),
+                            where: eq(clips.archived, false),
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          })
+        );
+
+        if (!version) {
+          return yield* new NotFoundError({
+            type: "getVersionWithSections",
+            params: { versionId },
+          });
+        }
+
+        return version;
+      }),
       createRepoVersion: Effect.fn("createRepoVersion")(function* (input: {
         repoId: string;
         name: string;
@@ -1085,7 +1141,6 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         for (const sourceSection of sourceSections) {
           const [newSection] = yield* makeDbCall(() =>
             db.insert(sections).values({
-              repoId: input.repoId,
               repoVersionId: newVersion.id,
               previousVersionSectionId: sourceSection.id,
               path: sourceSection.path,

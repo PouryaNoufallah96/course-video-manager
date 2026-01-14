@@ -37,7 +37,7 @@ export const loader = async (args: Route.LoaderArgs) => {
     const lesson = video.lesson;
     const hasExplainerFolder = lesson
       ? yield* fs.exists(
-          `${lesson.section.repo.filePath}/${lesson.section.path}/${lesson.path}/explainer`
+          `${lesson.section.repoVersion.repo.filePath}/${lesson.section.path}/${lesson.path}/explainer`
         )
       : false;
 
@@ -222,11 +222,11 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         }
         return true;
       })}
-      repoId={props.loaderData.video.lesson?.section.repo.id}
+      repoId={props.loaderData.video.lesson?.section.repoVersion.repo.id}
       lessonId={props.loaderData.video.lesson?.id}
       videoPath={props.loaderData.video.path}
       lessonPath={props.loaderData.video.lesson?.path}
-      repoName={props.loaderData.video.lesson?.section.repo.name}
+      repoName={props.loaderData.video.lesson?.section.repoVersion.repo.name}
       videoId={props.loaderData.video.id}
       liveMediaStream={obsConnector.mediaStream}
       speechDetectorState={obsConnector.speechDetectorState}

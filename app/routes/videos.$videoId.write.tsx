@@ -100,7 +100,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       };
     }
 
-    const repo = lesson.section.repo;
+    const repo = lesson.section.repoVersion.repo;
     const section = lesson.section;
 
     const lessonPath = path.join(repo.filePath, section.path, lesson.path);
@@ -154,7 +154,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       videoPath: video.path,
       lessonPath: lesson.path,
       sectionPath: section.path,
-      repoId: section.repoId,
+      repoId: section.repoVersion.repoId,
       lessonId: lesson.id,
       fullPath: lessonPath,
       files: filesWithMetadata,

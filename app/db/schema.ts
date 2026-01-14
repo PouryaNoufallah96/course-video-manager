@@ -67,13 +67,9 @@ export const sections = createTable("section", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  repoId: varchar("repo_id", { length: 255 })
-    .references(() => repos.id, { onDelete: "cascade" })
+  repoVersionId: varchar("repo_version_id", { length: 255 })
+    .references(() => repoVersions.id, { onDelete: "cascade" })
     .notNull(),
-  repoVersionId: varchar("repo_version_id", { length: 255 }).references(
-    () => repoVersions.id,
-    { onDelete: "cascade" }
-  ),
   previousVersionSectionId: varchar("previous_version_section_id", {
     length: 255,
   }),
@@ -176,7 +172,6 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
 }));
 
 export const sectionsRelations = relations(sections, ({ one, many }) => ({
-  repo: one(repos, { fields: [sections.repoId], references: [repos.id] }),
   repoVersion: one(repoVersions, {
     fields: [sections.repoVersionId],
     references: [repoVersions.id],
@@ -196,7 +191,6 @@ export const repoVersionsRelations = relations(
 );
 
 export const reposRelations = relations(repos, ({ many }) => ({
-  sections: many(sections),
   versions: many(repoVersions),
 }));
 

@@ -138,18 +138,17 @@ export const loader = async (args: Route.LoaderArgs) => {
               return undefined;
             }
 
+            // Get sections from selected version only (or latest if none selected)
+            const versionData =
+              repo.versions.find((v) => v.id === selectedVersion?.id) ??
+              repo.versions[0];
+            const allSections = versionData?.sections ?? [];
+
             return {
               ...repo,
-              sections: repo.sections
+              sections: allSections
                 .filter((section) => {
                   return !section.path.endsWith("ARCHIVE");
-                })
-                .filter((section) => {
-                  // Filter by version if one is selected
-                  if (selectedVersion) {
-                    return section.repoVersionId === selectedVersion.id;
-                  }
-                  return true;
                 })
                 .filter((section) => section.lessons.length > 0),
             };
@@ -455,12 +454,14 @@ export default function Component(props: Route.ComponentProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-64">
                       <DropdownMenuItem
+                        disabled={!data.selectedVersion}
                         onSelect={() => {
+                          if (!data.selectedVersion) return;
                           exportUnexportedFetcher.submit(
                             {},
                             {
                               method: "post",
-                              action: `/api/repos/${currentRepo.id}/export-unexported`,
+                              action: `/api/repoVersions/${data.selectedVersion.id}/export-unexported`,
                             }
                           );
                         }}

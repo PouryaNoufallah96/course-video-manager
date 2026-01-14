@@ -113,7 +113,6 @@ export const action = async (args: Route.ActionArgs) => {
       }
 
       const [section] = yield* db.createSections({
-        repoId: repo.id,
         sections: [{ sectionPathWithNumber: sectionPath, sectionNumber }],
         repoVersionId: latestVersion.id,
       });

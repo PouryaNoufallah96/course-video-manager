@@ -30,9 +30,14 @@ export const action = async ({ request }: Route.ActionArgs) => {
       name: result.name,
     });
 
-    const sections = yield* db.createSections({
+    const version = yield* db.createRepoVersion({
       repoId: repo.id,
+      name: "v1.0",
+    });
+
+    const sections = yield* db.createSections({
       sections: parsedSections,
+      repoVersionId: version.id,
     });
 
     yield* Effect.forEach(sections, (section, index) =>
