@@ -46,7 +46,7 @@ Each title should:
 - Be compelling and encourage clicks
 - Clearly indicate what the viewer will learn or discover
 - Use conversational, engaging language
-- Capitalize important words (title case)
+- Use sentence case (capitalize only the first word and proper nouns)
 - Be concise (aim for 60-70 characters for optimal display)
 
 Use these framing devices (one title per device):

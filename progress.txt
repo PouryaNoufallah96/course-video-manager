@@ -490,3 +490,10 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-title.ts
+
+## Issue #37 - YouTube titles now use sentence case instead of title case
+- Updated prompt instruction from "Capitalize important words (title case)" to "Use sentence case (capitalize only the first word and proper nouns)"
+- This fixes generated titles to match the expected format: "Stop writing code without a plan mode strategy" instead of "Stop Writing Code Without A Plan Mode Strategy"
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-title.ts
