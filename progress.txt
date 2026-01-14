@@ -469,3 +469,22 @@
   - app/services/text-writing-agent.ts (added import, mode type, switch case)
   - app/routes/videos.$videoId.completions.ts (added mode to schema)
   - app/routes/videos.$videoId.write.tsx (added mode type, label, icon, UI SelectItem)
+
+## Issue #33 - YouTube title generator now generates 10 options
+- Modified YouTube title generator prompt to output 10 different titles instead of 1
+- Each title uses a different framing device for variety:
+  1. Problem-focused: Identify pain point immediately
+  2. Practical outcome: Promise specific result
+  3. Before/After revelation: Show transformation
+  4. Curiosity/mystery: Create intrigue
+  5. Contrarian/counter-intuitive: Challenge assumptions
+  6. Question format: Pose problem as question
+  7. Numbers/Lists: Promise specific takeaways
+  8. Direct command: Tell them what to do
+  9. Social proof: Reference what others don't know
+  10. This/That structure: Create clear contrast
+- Output format changed to numbered list (1-10), one title per line
+- Key decision: Included specific examples for each framing device in the prompt to guide AI
+- All tests pass, typecheck passes
+- Files changed:
+  - app/prompts/generate-youtube-title.ts (updated prompt and output format)
