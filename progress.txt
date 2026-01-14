@@ -261,3 +261,24 @@
 - TypeScript typechecks pass
 - Files changed:
   - app/features/video-editor/video-editor.tsx (ClipSectionDivider component, refactored rendering loop)
+
+## Issue #18 - Video Editor Clip Sections (Part 7: Context Menu & Keyboard Shortcuts)
+- Added context menu to ClipSectionDivider with: Insert Before, Insert After, Move Up, Move Down, Delete
+- ClipSectionDivider component now uses forwardRef to work with ContextMenuTrigger
+- Added new effects to clip-state-reducer: `reorder-clip-section` and `archive-clip-sections`
+- Updated `move-clip` action to fire correct effect based on item type (clip vs clip section)
+- Updated `archiveClips` helper to track and return `clipSectionsToArchive` separately
+- All call sites of `archiveClips` now fire both `archive-clips` and `archive-clip-sections` effects
+- Updated `set-insertion-point-after` to set correct insertion point type based on item
+- Updated `set-insertion-point-before` to handle previous item being a clip section
+- Updated `archiveClips` to handle `after-clip-section` insertion point when clip section is deleted
+- Updated `press-delete` case to handle deletion of clip sections (not just clips)
+- Added effect handlers in videos.$videoId.edit.tsx for `reorder-clip-section` and `archive-clip-sections`
+- All keyboard shortcuts (Delete, Alt+Up, Alt+Down) now work for clip sections
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/video-editor.tsx (context menu, forwardRef for ClipSectionDivider)
+  - app/features/video-editor/clip-state-reducer.ts (new effects, updated actions and archiveClips)
+  - app/features/video-editor/video-state-reducer.ts (updated press-delete handling)
+  - app/routes/videos.$videoId.edit.tsx (new effect handlers)

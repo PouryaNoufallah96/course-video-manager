@@ -55,7 +55,7 @@ import {
   Trash2Icon,
   UserRound,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-deck-forwarder-types";
 import { useEffectReducer } from "use-effect-reducer";
@@ -708,18 +708,70 @@ export const VideoEditor = (props: {
                 if (isClipSection(item)) {
                   return (
                     <div key={item.frontendId}>
-                      <ClipSectionDivider
-                        name={item.name}
-                        isSelected={state.selectedClipsSet.has(item.frontendId)}
-                        onClick={(e) => {
-                          dispatch({
-                            type: "click-clip",
-                            clipId: item.frontendId,
-                            ctrlKey: e.ctrlKey,
-                            shiftKey: e.shiftKey,
-                          });
-                        }}
-                      />
+                      <ContextMenu>
+                        <ContextMenuTrigger asChild>
+                          <ClipSectionDivider
+                            name={item.name}
+                            isSelected={state.selectedClipsSet.has(item.frontendId)}
+                            onClick={(e) => {
+                              dispatch({
+                                type: "click-clip",
+                                clipId: item.frontendId,
+                                ctrlKey: e.ctrlKey,
+                                shiftKey: e.shiftKey,
+                              });
+                            }}
+                          />
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          <ContextMenuItem
+                            onSelect={() => {
+                              props.onSetInsertionPoint("before", item.frontendId);
+                            }}
+                          >
+                            <ChevronLeftIcon />
+                            Insert Before
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onSelect={() => {
+                              props.onSetInsertionPoint("after", item.frontendId);
+                            }}
+                          >
+                            <ChevronRightIcon />
+                            Insert After
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            disabled={isFirstItem}
+                            onSelect={() => {
+                              props.onMoveClip(item.frontendId, "up");
+                            }}
+                          >
+                            <ArrowUpIcon />
+                            Move Up
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            disabled={isLastItem}
+                            onSelect={() => {
+                              props.onMoveClip(item.frontendId, "down");
+                            }}
+                          >
+                            <ArrowDownIcon />
+                            Move Down
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            variant="destructive"
+                            onSelect={() => {
+                              dispatch({
+                                type: "delete-clip",
+                                clipId: item.frontendId,
+                              });
+                            }}
+                          >
+                            <Trash2Icon />
+                            Delete
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
                       {props.insertionPoint.type === "after-clip-section" &&
                         props.insertionPoint.frontendClipSectionId ===
                           item.frontendId && <InsertionPointIndicator />}
@@ -979,13 +1031,17 @@ export const BeatIndicator = () => {
   );
 };
 
-export const ClipSectionDivider = (props: {
-  name: string;
-  isSelected: boolean;
-  onClick: (e: React.MouseEvent) => void;
-}) => {
+export const ClipSectionDivider = React.forwardRef<
+  HTMLButtonElement,
+  {
+    name: string;
+    isSelected: boolean;
+    onClick: (e: React.MouseEvent) => void;
+  }
+>((props, ref) => {
   return (
     <button
+      ref={ref}
       className={cn(
         "flex items-center gap-3 py-2 px-3 w-full allow-keydown",
         "hover:bg-gray-800/50 rounded-md transition-colors",
@@ -1000,7 +1056,8 @@ export const ClipSectionDivider = (props: {
       <div className="border-t-2 border-gray-500 flex-1" />
     </button>
   );
-};
+});
+ClipSectionDivider.displayName = "ClipSectionDivider";
 
 export const LiveMediaStream = (props: {
   mediaStream: MediaStream;

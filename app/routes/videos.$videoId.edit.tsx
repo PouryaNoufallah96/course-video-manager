@@ -177,6 +177,25 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           res.json();
         });
       },
+      "reorder-clip-section": (_state, effect, _dispatch) => {
+        fetch("/clip-sections/reorder", {
+          method: "POST",
+          body: JSON.stringify({
+            clipSectionId: effect.clipSectionId,
+            direction: effect.direction,
+          }),
+        }).then((res) => {
+          res.json();
+        });
+      },
+      "archive-clip-sections": (_state, effect, _dispatch) => {
+        fetch("/clip-sections/archive", {
+          method: "POST",
+          body: JSON.stringify({ clipSectionIds: effect.clipSectionIds }),
+        }).then((res) => {
+          res.json();
+        });
+      },
       "create-clip-section": (state, effect, _dispatch) => {
         // Convert frontend insertion point to database insertion point for API
         const apiInsertionPoint = toDatabaseInsertionPoint(

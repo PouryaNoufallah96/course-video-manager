@@ -316,24 +316,34 @@ export const makeVideoEditorReducer =
             selectedClipsSet: new Set([action.clipId]),
           });
         }
-      case "press-delete":
+      case "press-delete": {
+        // Handle deletion of both clips and clip sections
+        // First check if there are any selected items at all
+        if (state.selectedClipsSet.size === 0) {
+          return state;
+        }
+
+        // Find clips that are being deleted (for selection management)
         const lastClipBeingDeletedIndex = clipIds.findLastIndex((clipId) => {
           return state.selectedClipsSet.has(clipId);
         });
 
-        if (lastClipBeingDeletedIndex === -1) {
-          return state;
+        // Determine next clip to select (only from clips, not clip sections)
+        let newSelectedClipId: FrontendId | undefined;
+        if (lastClipBeingDeletedIndex !== -1) {
+          const clipToMoveSelectionTo = clipIds[lastClipBeingDeletedIndex + 1];
+          const backupClipToMoveSelectionTo =
+            clipIds[lastClipBeingDeletedIndex - 1];
+          const finalBackupClipToMoveSelectionTo = clipIds[0];
+
+          newSelectedClipId =
+            clipToMoveSelectionTo ??
+            backupClipToMoveSelectionTo ??
+            finalBackupClipToMoveSelectionTo;
+        } else {
+          // Only clip sections were selected, keep first clip selected
+          newSelectedClipId = clipIds[0];
         }
-
-        const clipToMoveSelectionTo = clipIds[lastClipBeingDeletedIndex + 1];
-        const backupClipToMoveSelectionTo =
-          clipIds[lastClipBeingDeletedIndex - 1];
-        const finalBackupClipToMoveSelectionTo = clipIds[0];
-
-        const newSelectedClipId =
-          clipToMoveSelectionTo ??
-          backupClipToMoveSelectionTo ??
-          finalBackupClipToMoveSelectionTo;
 
         const isCurrentClipDeleted =
           state.currentClipId &&
@@ -354,6 +364,7 @@ export const makeVideoEditorReducer =
             ? newSelectedClipId!
             : state.currentClipId,
         });
+      }
 
       case "update-clip-current-time":
         return { ...state, currentTimeInClip: action.time };
