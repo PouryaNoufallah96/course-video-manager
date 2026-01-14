@@ -21,7 +21,8 @@ const chatSchema = Schema.Struct({
     Schema.Literal("style-guide-project"),
     Schema.Literal("seo-description"),
     Schema.Literal("youtube-title"),
-    Schema.Literal("youtube-thumbnail")
+    Schema.Literal("youtube-thumbnail"),
+    Schema.Literal("youtube-description")
   ),
   model: Schema.String,
   includeTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),
@@ -56,6 +57,7 @@ export const action = async (args: Route.ActionArgs) => {
       transcript: videoContext.transcript,
       code: videoContext.textFiles,
       imageFiles: videoContext.imageFiles,
+      youtubeChapters: videoContext.youtubeChapters,
     });
 
     const result = agent.stream({

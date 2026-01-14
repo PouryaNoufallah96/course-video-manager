@@ -56,6 +56,7 @@ import {
   SearchIcon,
   VideoIcon,
   ImageIcon,
+  AlignLeftIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher } from "react-router";
@@ -255,7 +256,8 @@ type Mode =
   | "style-guide-project"
   | "seo-description"
   | "youtube-title"
-  | "youtube-thumbnail";
+  | "youtube-thumbnail"
+  | "youtube-description";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const modeToLabel = {
@@ -267,6 +269,7 @@ const modeToLabel = {
   "seo-description": "SEO Description",
   "youtube-title": "YouTube Title",
   "youtube-thumbnail": "YouTube Thumbnail",
+  "youtube-description": "YouTube Description",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -606,6 +609,17 @@ export function InnerComponent(props: Route.ComponentProps) {
                           <div>YouTube Thumbnail</div>
                           <div className="text-xs text-muted-foreground">
                             Generate YouTube thumbnail description
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="youtube-description">
+                      <div className="flex items-start gap-2">
+                        <AlignLeftIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>YouTube Description</div>
+                          <div className="text-xs text-muted-foreground">
+                            Generate YouTube video description with timestamps
                           </div>
                         </div>
                       </div>

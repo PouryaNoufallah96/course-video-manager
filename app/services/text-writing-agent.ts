@@ -6,6 +6,7 @@ import { refineProjectWithStyleGuidePrompt } from "@/prompts/refine-project-with
 import { generateSeoDescriptionPrompt } from "@/prompts/generate-seo-description";
 import { generateYoutubeTitlePrompt } from "@/prompts/generate-youtube-title";
 import { generateYoutubeThumbnailPrompt } from "@/prompts/generate-youtube-thumbnail";
+import { generateYoutubeDescriptionPrompt } from "@/prompts/generate-youtube-description";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -17,6 +18,7 @@ import { Array, Effect } from "effect";
 import { DBService } from "./db-service";
 import path from "node:path";
 import { FileSystem } from "@effect/platform";
+import { formatSecondsToTimeCode } from "./utils";
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
 
@@ -28,7 +30,8 @@ export type TextWritingAgentMode =
   | "project"
   | "seo-description"
   | "youtube-title"
-  | "youtube-thumbnail";
+  | "youtube-thumbnail"
+  | "youtube-description";
 
 export type TextWritingAgentCodeFile = {
   path: string;
@@ -46,6 +49,7 @@ export const createTextWritingAgent = (props: {
   transcript: string;
   code: TextWritingAgentCodeFile[];
   imageFiles: TextWritingAgentImageFile[];
+  youtubeChapters?: { timestamp: string; name: string }[];
 }) => {
   const systemPrompt = (() => {
     switch (props.mode) {
@@ -90,6 +94,13 @@ export const createTextWritingAgent = (props: {
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+        });
+      case "youtube-description":
+        return generateYoutubeDescriptionPrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+          youtubeChapters: props.youtubeChapters || [],
         });
       case "article":
       default:
@@ -245,12 +256,36 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
           .trim()
       : "";
 
+    // Calculate YouTube chapters from clip sections
+    const youtubeChapters: { timestamp: string; name: string }[] = [];
+    let cumulativeDuration = 0;
+
+    // Combine clips and clip sections, sort by order (ASCII ordering to match PostgreSQL COLLATE "C")
+    const allItems = [
+      ...video.clips.map((clip) => ({ type: "clip" as const, order: clip.order, clip })),
+      ...video.clipSections.map((section) => ({ type: "clip-section" as const, order: section.order, section })),
+    ].sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0));
+
+    for (const item of allItems) {
+      if (item.type === "clip-section") {
+        // Record the timestamp at the start of this clip section
+        youtubeChapters.push({
+          timestamp: formatSecondsToTimeCode(cumulativeDuration),
+          name: item.section.name,
+        });
+      } else if (item.type === "clip") {
+        // Add the clip's duration to cumulative total
+        cumulativeDuration += item.clip.sourceEndTime - item.clip.sourceStartTime;
+      }
+    }
+
     return {
       textFiles,
       imageFiles,
       transcript,
       sectionPath: section.path,
       lessonPath: lesson.path,
+      youtubeChapters,
     };
   }
 );

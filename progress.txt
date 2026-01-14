@@ -566,3 +566,31 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/clip-state-reducer.ts
+
+## Issue #43 - Add YouTube description mode to write article page
+- Added new "YouTube Description" mode to write article page for generating video descriptions
+- Prompt generates complete YouTube descriptions with proper structure:
+  - Opening summary (max 300 characters, no emojis, based on transcript)
+  - YouTube chapter timestamps (if clip sections exist)
+  - Relevant links from the video content
+  - Standard promotional footer for AI-related videos (AI Hero course, Twitter, Discord)
+- Implementation details:
+  - Created `generateYoutubeDescriptionPrompt` prompt file with structured description format
+  - Extended `acquireTextWritingContext` to calculate YouTube chapters from clips and clip sections
+  - Added `youtubeChapters` calculation using same logic as video editor (cumulative duration tracking)
+  - Added `formatSecondsToTimeCode` import to text-writing-agent for timestamp formatting
+  - Updated `TextWritingAgentMode` type to include "youtube-description"
+  - Extended `createTextWritingAgent` to accept optional `youtubeChapters` parameter
+  - Added youtube-description case to switch statement in `createTextWritingAgent`
+  - Updated completions endpoint schema to accept "youtube-description" mode
+  - Updated frontend Mode type and modeToLabel mapping
+  - Added AlignLeftIcon import for UI representation
+  - Added SelectItem in UI with icon and description
+- Key decision: YouTube chapters calculated in backend using same ASCII ordering as video editor
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/prompts/generate-youtube-description.ts (new)
+  - app/services/text-writing-agent.ts (imports, type, createTextWritingAgent signature and switch, acquireTextWritingContext)
+  - app/routes/videos.$videoId.completions.ts (schema, agent call)
+  - app/routes/videos.$videoId.write.tsx (Mode type, modeToLabel, imports, SelectItem)
