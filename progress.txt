@@ -594,3 +594,20 @@
   - app/services/text-writing-agent.ts (imports, type, createTextWritingAgent signature and switch, acquireTextWritingContext)
   - app/routes/videos.$videoId.completions.ts (schema, agent call)
   - app/routes/videos.$videoId.write.tsx (Mode type, modeToLabel, imports, SelectItem)
+
+## Issue #45 - Add table of contents underneath video display
+- Added table of contents (TOC) component to video editor that displays clip sections
+- TOC appears on right-hand side underneath video player and buttons
+- Only shows when clip sections exist (conditionally rendered)
+- Implementation details:
+  - Added ScrollArea import from UI components
+  - Created TOC component with fixed 200px scrollable height
+  - Each section is a clickable button that:
+    - Selects the section (dispatches "click-clip" action)
+    - Scrolls to the section in timeline using smooth scrolling
+  - Selected section is highlighted in TOC with gray background and bold font
+  - Added id attribute (`section-${frontendId}`) to ClipSectionDivider for scroll targeting
+- Key decision: Used IIFE pattern for conditional rendering to keep component inline
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/video-editor.tsx

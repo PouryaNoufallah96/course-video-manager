@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -826,6 +827,56 @@ export const VideoEditor = (props: {
                 </DropdownMenu>
               </TooltipProvider>
             </div>
+
+            {/* Table of Contents */}
+            {(() => {
+              const clipSections = props.items.filter(isClipSection);
+              if (clipSections.length === 0) return null;
+
+              return (
+                <div className="mt-6 border-t border-gray-700 pt-4">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                    Sections
+                  </h3>
+                  <ScrollArea className="h-[200px]">
+                    <div className="space-y-2 pr-4">
+                      {clipSections.map((section) => (
+                        <button
+                          key={section.frontendId}
+                          onClick={() => {
+                            // Select the section
+                            dispatch({
+                              type: "click-clip",
+                              clipId: section.frontendId,
+                              ctrlKey: false,
+                              shiftKey: false,
+                            });
+
+                            // Scroll to the section in the timeline
+                            const sectionElement = document.getElementById(
+                              `section-${section.frontendId}`
+                            );
+                            if (sectionElement) {
+                              window.scrollTo({
+                                top: sectionElement.offsetTop - 100,
+                                behavior: "smooth",
+                              });
+                            }
+                          }}
+                          className={cn(
+                            "w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors",
+                            state.selectedClipsSet.has(section.frontendId) &&
+                              "bg-gray-700 font-medium"
+                          )}
+                        >
+                          {section.name}
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -977,6 +1028,7 @@ export const VideoEditor = (props: {
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
                           <ClipSectionDivider
+                            id={`section-${item.frontendId}`}
                             name={item.name}
                             isSelected={state.selectedClipsSet.has(
                               item.frontendId
