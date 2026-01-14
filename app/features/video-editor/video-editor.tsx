@@ -608,6 +608,24 @@ export const VideoEditor = (props: {
                       )}
                     </Tooltip>
 
+                    {youtubeChapters.length > 0 && (
+                      <DropdownMenuItem onSelect={copyYoutubeChaptersToClipboard}>
+                        {isChaptersCopied ? (
+                          <CheckIcon className="w-4 h-4 mr-2" />
+                        ) : (
+                          <CopyIcon className="w-4 h-4 mr-2" />
+                        )}
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            Copy YouTube Chapters
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Copy chapter timestamps to clipboard
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    )}
+
                     <Dialog
                       open={isExportModalOpen}
                       onOpenChange={setIsExportModalOpen}

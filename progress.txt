@@ -339,3 +339,10 @@
   - app/routes/videos.$videoId.edit.tsx (effect handler, new prop)
   - app/services/db-service.ts (createClipSectionAtPosition function)
   - app/routes/clip-sections.create-at-position.ts (new API route)
+
+## Issue #21 - Copy YouTube chapters from Actions button
+- Added "Copy YouTube Chapters" option to Actions dropdown in video editor
+- Menu item only appears when clip sections exist (i.e., when chapters are available)
+- Uses existing copyYoutubeChaptersToClipboard function and isChaptersCopied state
+- Shows check icon feedback when chapters are copied
+- File: app/features/video-editor/video-editor.tsx:611-627
