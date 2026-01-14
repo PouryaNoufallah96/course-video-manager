@@ -864,7 +864,7 @@ export const VideoEditor = (props: {
                             if (sectionElement) {
                               window.scrollTo({
                                 top: sectionElement.offsetTop - 100,
-                                behavior: "smooth",
+                                behavior: "instant",
                               });
                             }
                           }}

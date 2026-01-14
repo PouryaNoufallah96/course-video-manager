@@ -63,3 +63,11 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/videos.$videoId.write.tsx:483-553
+
+## Issue #50 - Remove smooth scroll when clicking section links in video editor
+- Changed scroll behavior from "smooth" to "instant" when clicking section links in sidebar
+- When clicking a section in the sidebar, the timeline now scrolls instantly to that section
+- Key decision: Changed window.scrollTo behavior property from "smooth" to "instant" for immediate navigation
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/video-editor.tsx:867
