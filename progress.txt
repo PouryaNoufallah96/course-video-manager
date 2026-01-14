@@ -426,3 +426,9 @@
 - This matches the pattern already used in `reorderClipSection` which was working correctly
 - Files changed:
   - app/services/db-service.ts (updated reorderClip to consider clip sections)
+
+## Issue #27 - Beat icon (three ellipses) spacing fix
+- Beat indicator dots were showing too close to the clip above
+- Changed padding from `py-1` (4px top and bottom) to `pt-2 pb-1` (8px top, 4px bottom)
+- This adds more visual separation between the clip and the beat indicator
+- File: app/features/video-editor/video-editor.tsx:1336
