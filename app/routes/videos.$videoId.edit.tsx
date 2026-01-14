@@ -213,6 +213,17 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           res.json();
         });
       },
+      "update-clip-section": (_state, effect, _dispatch) => {
+        fetch("/clip-sections/update", {
+          method: "POST",
+          body: JSON.stringify({
+            clipSectionId: effect.clipSectionId,
+            name: effect.name,
+          }),
+        }).then((res) => {
+          res.json();
+        });
+      },
     }
   );
 
@@ -285,6 +296,9 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       }}
       onAddClipSection={(name) => {
         dispatch({ type: "add-clip-section", name });
+      }}
+      onUpdateClipSection={(clipSectionId, name) => {
+        dispatch({ type: "update-clip-section", clipSectionId, name });
       }}
       obsConnectorState={obsConnector.state}
       items={clipState.items.filter((item) => {

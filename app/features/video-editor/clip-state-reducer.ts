@@ -169,6 +169,11 @@ export namespace clipStateReducer {
     | {
         type: "add-clip-section";
         name: string;
+      }
+    | {
+        type: "update-clip-section";
+        clipSectionId: FrontendId;
+        name: string;
       };
 
   export type Effect =
@@ -211,6 +216,11 @@ export namespace clipStateReducer {
         frontendId: FrontendId;
         name: string;
         insertionPoint: FrontendInsertionPoint;
+      }
+    | {
+        type: "update-clip-section";
+        clipSectionId: DatabaseId;
+        name: string;
       };
 }
 
@@ -809,6 +819,33 @@ export const clipStateReducer: EffectReducer<
         items: newItems,
         insertionOrder: state.insertionOrder + 1,
         insertionPoint: newInsertionPoint,
+      };
+    }
+    case "update-clip-section": {
+      const clipSection = state.items.find(
+        (item) => item.frontendId === action.clipSectionId
+      );
+      if (!clipSection || (clipSection.type !== "clip-section-on-database" && clipSection.type !== "clip-section-optimistically-added")) {
+        return state;
+      }
+
+      // Only fire effect for database clip sections
+      if (clipSection.type === "clip-section-on-database") {
+        exec({
+          type: "update-clip-section",
+          clipSectionId: clipSection.databaseId,
+          name: action.name,
+        });
+      }
+
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (item.frontendId === action.clipSectionId) {
+            return { ...item, name: action.name };
+          }
+          return item;
+        }),
       };
     }
   }

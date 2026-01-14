@@ -282,3 +282,23 @@
   - app/features/video-editor/clip-state-reducer.ts (new effects, updated actions and archiveClips)
   - app/features/video-editor/video-state-reducer.ts (updated press-delete handling)
   - app/routes/videos.$videoId.edit.tsx (new effect handlers)
+
+## Issue #18 - Video Editor Clip Sections (Part 8: Naming Modal)
+- Added naming modal that appears when creating a clip section via Stream Deck
+- Modal allows user to enter a custom name or dismiss to use default name ("Section N")
+- Added "Edit" option to clip section context menu for renaming existing sections
+- Implementation details:
+  - Added `clipSectionNamingModal` state to VideoEditor with two modes: "create" and "edit"
+  - Stream Deck handler now opens modal instead of immediately creating clip section
+  - Modal has "Skip" button for create mode (uses default name) and "Cancel" for edit mode
+  - Auto-focus on input field for quick naming
+  - Added `update-clip-section` action and effect to clip-state-reducer
+  - Added `onUpdateClipSection` prop to VideoEditor
+  - Added effect handler for `update-clip-section` that calls `/clip-sections/update` API
+- User Stories addressed: 9, 10, 11, 12, 17 (partial - Edit action added)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/clip-state-reducer.ts (new action and effect types, new reducer case)
+  - app/features/video-editor/video-editor.tsx (modal state, modal component, context menu Edit option)
+  - app/routes/videos.$videoId.edit.tsx (effect handler, onUpdateClipSection prop)

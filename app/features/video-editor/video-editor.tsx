@@ -116,6 +116,7 @@ export const VideoEditor = (props: {
   onToggleBeatForClip: (clipId: FrontendId) => void;
   onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
   onAddClipSection: (name: string) => void;
+  onUpdateClipSection: (clipSectionId: FrontendId, name: string) => void;
 }) => {
   // Filter items to get only clips (excluding clip sections)
   // Clip sections will be rendered separately in a future update
@@ -251,7 +252,10 @@ export const VideoEditor = (props: {
       } else if (data.type === "toggle-beat") {
         props.onToggleBeat();
       } else if (data.type === "add-clip-section") {
-        props.onAddClipSection(generateDefaultClipSectionName());
+        setClipSectionNamingModal({
+          mode: "create",
+          defaultName: generateDefaultClipSectionName(),
+        });
       }
     });
     return () => {
@@ -264,6 +268,15 @@ export const VideoEditor = (props: {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
+
+  // State for clip section naming modal
+  // When creating: { mode: "create", defaultName: string }
+  // When editing: { mode: "edit", clipSectionId: FrontendId, currentName: string }
+  const [clipSectionNamingModal, setClipSectionNamingModal] = useState<
+    | { mode: "create"; defaultName: string }
+    | { mode: "edit"; clipSectionId: FrontendId; currentName: string }
+    | null
+  >(null);
 
   const copyTranscriptToClipboard = async () => {
     try {
@@ -669,6 +682,78 @@ export const VideoEditor = (props: {
         onOpenChange={setIsAddVideoModalOpen}
       />
 
+      {/* Clip Section Naming Modal */}
+      <Dialog
+        open={clipSectionNamingModal !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            // On dismiss, create with default name if in create mode
+            if (clipSectionNamingModal?.mode === "create") {
+              props.onAddClipSection(clipSectionNamingModal.defaultName);
+            }
+            setClipSectionNamingModal(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {clipSectionNamingModal?.mode === "create"
+                ? "Name Clip Section"
+                : "Edit Clip Section"}
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            className="space-y-4 py-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const name = formData.get("name") as string;
+              if (clipSectionNamingModal?.mode === "create") {
+                props.onAddClipSection(name);
+              } else if (clipSectionNamingModal?.mode === "edit") {
+                props.onUpdateClipSection(
+                  clipSectionNamingModal.clipSectionId,
+                  name
+                );
+              }
+              setClipSectionNamingModal(null);
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="clip-section-name">Section Name</Label>
+              <Input
+                id="clip-section-name"
+                name="name"
+                autoFocus
+                defaultValue={
+                  clipSectionNamingModal?.mode === "create"
+                    ? clipSectionNamingModal.defaultName
+                    : clipSectionNamingModal?.currentName ?? ""
+                }
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // On cancel in create mode, create with default name
+                  if (clipSectionNamingModal?.mode === "create") {
+                    props.onAddClipSection(clipSectionNamingModal.defaultName);
+                  }
+                  setClipSectionNamingModal(null);
+                }}
+                type="button"
+              >
+                {clipSectionNamingModal?.mode === "create" ? "Skip" : "Cancel"}
+              </Button>
+              <Button type="submit">Save</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Clips Section - Shows second on mobile, first on desktop */}
       <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
         <div className="grid gap-4 w-full p-2">
@@ -739,6 +824,18 @@ export const VideoEditor = (props: {
                           >
                             <ChevronRightIcon />
                             Insert After
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onSelect={() => {
+                              setClipSectionNamingModal({
+                                mode: "edit",
+                                clipSectionId: item.frontendId,
+                                currentName: item.name,
+                              });
+                            }}
+                          >
+                            <PencilIcon />
+                            Edit
                           </ContextMenuItem>
                           <ContextMenuItem
                             disabled={isFirstItem}
