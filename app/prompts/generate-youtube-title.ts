@@ -99,7 +99,20 @@ Format:
 ...
 10. [Title text here]
 
-Do not include any other text, explanations, or quotation marks around the titles.
+After listing all 10 titles, add a blank line and then provide your top 3 recommendations:
+
+---
+
+**Recommended Top 3:**
+
+[Rank] #[Number] - [Brief explanation of why this title is most effective - focus on click-through potential, clarity, and emotional appeal]
+
+Example:
+1st: #4 - Creates immediate curiosity while clearly promising value; the word choice is conversational and relatable
+2nd: #7 - Specific number creates tangible expectation; addresses common pain point directly
+3rd: #2 - Strong action-oriented opening; practical outcome is crystal clear
+
+Provide concise explanations (1-2 sentences max per recommendation).
 </output-format>
 `.trim();
 };

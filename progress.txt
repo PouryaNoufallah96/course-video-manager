@@ -480,3 +480,13 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-title.ts
+
+## Issue #35 - Generate 10 YouTube title options and recommend top 3
+- Modified YouTube title generator prompt to include recommendations section after the 10 titles
+- AI now analyzes the 10 generated titles and recommends the top 3
+- Recommendations include ranking (1st, 2nd, 3rd) and brief explanations
+- Explanations focus on click-through potential, clarity, and emotional appeal
+- Key decision: Keep recommendations concise (1-2 sentences max) to avoid overwhelming output
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-title.ts
