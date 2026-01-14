@@ -145,3 +145,15 @@
   - SEO Description: SearchIcon (search optimization)
 - Updated SelectItem components to include flex layout with icon on the left
 - File: app/routes/videos.$videoId.write.tsx:43-57, 479-544
+
+## Issue #17 - Remove microphone monitoring from empty video editor state
+- Removed microphone monitoring list item from pre-recording checklist in empty state
+- Deleted `VolumeIndicator` component (volume-indicator.tsx) that displayed live audio levels
+- Deleted `useVolumeLevel` hook (use-volume-level.ts) that consumed CPU cycles monitoring MediaStream
+- Removed imports for VolumeIndicator and useVolumeLevel from video-editor.tsx
+- Removed volumeLevel hook usage that was creating AudioContext and running requestAnimationFrame loop
+- This eliminates unnecessary CPU usage when the video editor has no clips
+- Files changed:
+  - app/features/video-editor/video-editor.tsx:76-77, 148, 653-661 (removed)
+  - app/features/video-editor/volume-indicator.tsx (deleted)
+  - app/features/video-editor/use-volume-level.ts (deleted)
