@@ -1298,21 +1298,23 @@ export const ClipSectionDivider = React.forwardRef<
     name: string;
     isSelected: boolean;
     onClick: (e: React.MouseEvent) => void;
-  }
->((props, ref) => {
+  } & React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ name, isSelected, onClick, className, ...rest }, ref) => {
   return (
     <button
       ref={ref}
       className={cn(
         "flex items-center gap-3 py-2 px-3 w-full allow-keydown",
         "hover:bg-gray-800/50 rounded-md transition-colors",
-        props.isSelected && "bg-gray-700 outline-2 outline-gray-200"
+        isSelected && "bg-gray-700 outline-2 outline-gray-200",
+        className
       )}
-      onClick={props.onClick}
+      onClick={onClick}
+      {...rest}
     >
       <div className="border-t-2 border-gray-500 flex-1" />
       <span className="text-sm font-medium text-gray-300 whitespace-nowrap">
-        {props.name}
+        {name}
       </span>
       <div className="border-t-2 border-gray-500 flex-1" />
     </button>

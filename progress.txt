@@ -355,3 +355,10 @@
 - Files changed:
   - app/features/video-editor/video-state-reducer.ts:150-154, 404-451
   - app/features/video-editor/video-editor.tsx:139-142
+
+## Issue #23 - Right-clicking clip section opens context menu
+- ClipSectionDivider component wasn't forwarding props from ContextMenuTrigger to its button element
+- When using Radix UI's `asChild` pattern, the trigger passes event handlers (like onContextMenu) to the child
+- Fixed by extending ClipSectionDivider props type to include React.ButtonHTMLAttributes
+- Destructured props and spread `...rest` onto the button element
+- File: app/features/video-editor/video-editor.tsx:1295-1322
