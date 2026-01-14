@@ -167,6 +167,8 @@ Format:
 +-------------------------+
 \`\`\`
 
+**Description:** [1-2 sentences describing the concrete implementation details - colors, fonts, specific visual treatments, animations, etc. This elaborates on the ASCII diagram with practical design ideas.]
+
 2. [Framing device name]
 
 **Title:** [YouTube title here in sentence case]
@@ -177,6 +179,8 @@ Format:
 | [ASCII diagram here]    |
 +-------------------------+
 \`\`\`
+
+**Description:** [1-2 sentences describing the concrete implementation details - colors, fonts, specific visual treatments, animations, etc. This elaborates on the ASCII diagram with practical design ideas.]
 
 ...and so on for all 5.
 
