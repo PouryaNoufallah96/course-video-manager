@@ -5,6 +5,7 @@ import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-
 import { refineProjectWithStyleGuidePrompt } from "@/prompts/refine-project-with-style-guide";
 import { generateSeoDescriptionPrompt } from "@/prompts/generate-seo-description";
 import { generateYoutubeTitlePrompt } from "@/prompts/generate-youtube-title";
+import { generateYoutubeThumbnailPrompt } from "@/prompts/generate-youtube-thumbnail";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -26,7 +27,8 @@ export type TextWritingAgentMode =
   | "style-guide-project"
   | "project"
   | "seo-description"
-  | "youtube-title";
+  | "youtube-title"
+  | "youtube-thumbnail";
 
 export type TextWritingAgentCodeFile = {
   path: string;
@@ -79,6 +81,12 @@ export const createTextWritingAgent = (props: {
         });
       case "youtube-title":
         return generateYoutubeTitlePrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "youtube-thumbnail":
+        return generateYoutubeThumbnailPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),

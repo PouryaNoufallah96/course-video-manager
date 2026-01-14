@@ -497,3 +497,20 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-title.ts
+
+## Issue #36 - Create YouTube thumbnail mode in write article page
+- Added new "YouTube Thumbnail" mode to write article page
+- Follows same pattern as YouTube title generator (Issue #32)
+- Prompt generates thumbnail descriptions using 10 different framing devices
+- Each thumbnail description includes visual elements (code snippets, diagrams, icons, facial expressions)
+- Includes top 3 recommendations with explanations of visual impact
+- UI uses ImageIcon to represent thumbnail/image content
+- Framing devices include: Problem-focused, Practical outcome, Before/After, Curiosity/mystery, Contrarian, Question format, Numbers/Lists, Direct command, Social proof, This/That structure
+- Key decision: Focus on practical, creatable thumbnails rather than complex illustrations
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/prompts/generate-youtube-thumbnail.ts (new prompt file)
+  - app/services/text-writing-agent.ts (added import, mode type, switch case)
+  - app/routes/videos.$videoId.completions.ts (added mode to schema)
+  - app/routes/videos.$videoId.write.tsx (added mode type, label, icon, UI SelectItem)
