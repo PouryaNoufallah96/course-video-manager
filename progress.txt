@@ -418,3 +418,11 @@
 - Files changed:
   - app/features/video-editor/video-state-reducer.ts (new action type, handler, updated press-return)
   - app/features/video-editor/video-editor.tsx (updated ClipSectionDivider click handler)
+
+## Issue #29 - Clip ordering across section boundaries
+- Fixed bug where moving a clip across a section boundary would move it "one too far"
+- Root cause: `reorderClip` in db-service.ts only considered clips when calculating position, but clips and clip sections share the same ordering space
+- Fix: Updated `reorderClip` to fetch both clips AND clip sections, combine them, and calculate position in the unified list
+- This matches the pattern already used in `reorderClipSection` which was working correctly
+- Files changed:
+  - app/services/db-service.ts (updated reorderClip to consider clip sections)

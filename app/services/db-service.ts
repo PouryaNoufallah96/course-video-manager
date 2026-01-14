@@ -108,7 +108,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       clipId: string,
       direction: "up" | "down"
     ) {
-      // First, get the clip and its video to know what clips we're working with
+      // First, get the clip to know what video we're working with
       const clip = yield* makeDbCall(() =>
         db.query.clips.findFirst({
           where: eq(clips.id, clipId),
@@ -122,7 +122,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         });
       }
 
-      // Get all non-archived clips for this video, ordered by their current order
+      // Get all non-archived clips and clip sections for this video
+      // We need both because clips and clip sections share the same ordering space
       const allClips = yield* makeDbCall(() =>
         db.query.clips.findMany({
           where: and(eq(clips.videoId, clip.videoId), eq(clips.archived, false)),
@@ -130,40 +131,54 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         })
       );
 
-      const clipIndex = allClips.findIndex((c) => c.id === clipId);
-      const targetIndex = direction === "up" ? clipIndex - 1 : clipIndex + 1;
+      const allClipSections = yield* makeDbCall(() =>
+        db.query.clipSections.findMany({
+          where: and(
+            eq(clipSections.videoId, clip.videoId),
+            eq(clipSections.archived, false)
+          ),
+          orderBy: asc(clipSections.order),
+        })
+      );
+
+      // Combine and sort by order - clips and clip sections share the same ordering space
+      const allItems = [
+        ...allClips.map((c) => ({ type: "clip" as const, ...c })),
+        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+      ].sort((a, b) => compareOrderStrings(a.order, b.order));
+
+      const itemIndex = allItems.findIndex(
+        (item) => item.type === "clip" && item.id === clipId
+      );
+      const targetIndex = direction === "up" ? itemIndex - 1 : itemIndex + 1;
 
       // Check boundaries
-      if (targetIndex < 0 || targetIndex >= allClips.length) {
+      if (targetIndex < 0 || targetIndex >= allItems.length) {
         return { success: false, reason: "boundary" };
       }
 
-      const targetClip = allClips[targetIndex]!;
-
-      // Generate new orders: swap the positions by recalculating their orders
-      // For a swap, we need to give the moving clip an order between its new neighbors
-      let newOrderForMovingClip: string;
-
+      // Calculate new order based on neighbors in the combined list
+      let newOrder: string;
       if (direction === "up") {
-        // Moving up: need order between targetIndex-1 and targetIndex
-        const prevClip = allClips[targetIndex - 1];
-        const prevOrder = prevClip?.order ?? null;
-        const nextOrder = targetClip.order;
+        const prevItem = allItems[targetIndex - 1];
+        const nextItem = allItems[targetIndex];
+        const prevOrder = prevItem?.order ?? null;
+        const nextOrder = nextItem!.order;
         const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
-        newOrderForMovingClip = order!;
+        newOrder = order!;
       } else {
-        // Moving down: need order between targetIndex and targetIndex+1
-        const nextClip = allClips[targetIndex + 1];
-        const prevOrder = targetClip.order;
-        const nextOrder = nextClip?.order ?? null;
+        const prevItem = allItems[targetIndex];
+        const nextItem = allItems[targetIndex + 1];
+        const prevOrder = prevItem!.order;
+        const nextOrder = nextItem?.order ?? null;
         const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
-        newOrderForMovingClip = order!;
+        newOrder = order!;
       }
 
       yield* makeDbCall(() =>
         db
           .update(clips)
-          .set({ order: newOrderForMovingClip })
+          .set({ order: newOrder })
           .where(eq(clips.id, clipId))
       );
 
