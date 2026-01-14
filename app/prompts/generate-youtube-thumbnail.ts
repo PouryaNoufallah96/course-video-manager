@@ -40,66 +40,130 @@ YouTube thumbnails are critical for click-through rates. They should be visually
 ${transcriptSection}${codeSection}</documents>
 
 <the-ask>
-Generate 10 different engaging YouTube thumbnail descriptions for this coding lesson, each using a different framing device.
+Generate 10 different engaging YouTube thumbnail designs for this coding lesson, each using a different framing device.
 
-Each thumbnail description should:
-- Be visually striking and encourage clicks
-- Clearly communicate what the viewer will learn or discover
-- Use simple, bold text that's readable even at small sizes
-- Include specific visual elements (code snippets, diagrams, icons, facial expressions, etc.)
-- Be practical to create (don't require complex illustrations or animations)
+Each thumbnail should contain EXACTLY 5 elements or fewer. Present the design as an ASCII diagram showing the spatial layout.
+
+IMPORTANT: Do NOT include any faces, people, or facial expressions. Focus on code, text, diagrams, icons, and visual elements only.
 
 Use these framing devices (one thumbnail per device):
 
 1. **Problem-focused**: Show the pain point visually
-   - Example: "Split screen: messy code on left with red X, clean code on right with green checkmark. Bold text: 'STOP THIS'"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [messy code]    [clean] |
+   |      ❌            ✓     |
+   |                         |
+   |    "STOP THIS"          |
+   +-------------------------+
 
 2. **Practical outcome**: Show the end result
-   - Example: "Screenshot of finished app with '30 MIN' in large text. Developer smiling with arms crossed."
+   - Example ASCII diagram:
+   +-------------------------+
+   | [app screenshot]        |
+   |                         |
+   |       30 MIN            |
+   |       -----             |
+   +-------------------------+
 
 3. **Before/After**: Show transformation visually
-   - Example: "Before/After layout. Left: slow loading bar (5s). Right: instant checkmark (0.1s). '80% FASTER' in bold"
+   - Example ASCII diagram:
+   +-------------------------+
+   | BEFORE  |  AFTER        |
+   |  [5s]   |  [0.1s]       |
+   |   ⏱️     |   ⚡          |
+   |    "80% FASTER"         |
+   +-------------------------+
 
 4. **Curiosity/mystery**: Create visual intrigue
-   - Example: "Code snippet with one line highlighted in bright yellow. Surprised face with eyes wide. Text: 'THIS CHANGED EVERYTHING'"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [code snippet]          |
+   |  const x = [HIGHLIGHT]  |
+   |                         |
+   | "THIS CHANGED IT ALL"   |
+   +-------------------------+
 
 5. **Contrarian/counter-intuitive**: Challenge visually
-   - Example: "async/await keyword with big red circle-slash over it. Confused face. 'WHEN NOT TO USE'"
+   - Example ASCII diagram:
+   +-------------------------+
+   |    async/await          |
+   |        🚫               |
+   |                         |
+   |   "WHEN NOT TO USE"     |
+   +-------------------------+
 
 6. **Question format**: Pose question visually
-   - Example: "Complex nested TypeScript types on screen. Large question mark. Frustrated developer scratching head"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [TypeScript types]      |
+   |                         |
+   |         ❓              |
+   |    "WHY SO COMPLEX?"    |
+   +-------------------------+
 
 7. **Numbers/Lists**: Promise specific takeaways
-   - Example: "5 code examples in grid layout, each with red X. Developer pointing at screen. 'DON'T DO THIS'"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [ex1] [ex2] [ex3]       |
+   |  ❌    ❌    ❌          |
+   |                         |
+   |   "DON'T DO THIS"       |
+   +-------------------------+
 
 8. **Direct command**: Visual call to action
-   - Example: "Test file with green passing tests. Developer giving thumbs up. Bold text: 'TEST SMARTER'"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [test results]          |
+   |   ✓✓✓✓✓✓✓✓             |
+   |                         |
+   |   "TEST SMARTER"        |
+   +-------------------------+
 
 9. **Social proof**: Reference what others miss
-   - Example: "Hidden JavaScript feature revealed with magnifying glass. '90% DON'T KNOW' in large text"
+   - Example ASCII diagram:
+   +-------------------------+
+   | [hidden feature]        |
+   |        🔍               |
+   |                         |
+   |  "90% DON'T KNOW"       |
+   +-------------------------+
 
 10. **This/That structure**: Create clear visual contrast
-    - Example: "Prop drilling diagram with tangled lines and X. Clean alternative with single arrow and checkmark. 'USE THIS INSTEAD'"
+    - Example ASCII diagram:
+    +-------------------------+
+    | [complex] | [simple]    |
+    |     ❌    |    ✓        |
+    |                         |
+    |   "USE THIS INSTEAD"    |
+    +-------------------------+
 
-Examples of good thumbnail descriptions:
-- "Developer pointing at code with red arrows highlighting the problem. Text overlay: 'Components Done Wrong'. Frustrated expression"
-- "Before/After split screen showing callback hell vs clean async code. '10x CLEANER' in bold yellow text"
-- "Testing strategy diagram on whiteboard. Developer explaining with marker. 'PRODUCTION READY' badge in corner"
-- "Server scaling diagram with upward arrow. Surprised/excited developer. 'IT'S EASIER' in caps with underline"
+Key constraints:
+- Maximum 5 elements per thumbnail
+- Use ASCII diagrams to show spatial layout
+- No faces, people, or human figures
+- Focus on code, icons, text, and diagrams
 </the-ask>
 
 <output-format>
-Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the thumbnail descriptions.
+Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the thumbnail designs.
 
-Respond with EXACTLY 10 thumbnail descriptions, one per line, numbered 1-10.
+Respond with EXACTLY 10 thumbnail designs as ASCII diagrams, numbered 1-10.
 
 Format:
-1. [Thumbnail description here]
-2. [Thumbnail description here]
-...
-10. [Thumbnail description here]
+1. [Framing device name]
++-------------------------+
+| [ASCII diagram here]    |
++-------------------------+
 
-After listing all 10 thumbnail descriptions, add a blank line and then provide your top 3 recommendations:
+2. [Framing device name]
++-------------------------+
+| [ASCII diagram here]    |
++-------------------------+
+
+...and so on for all 10.
+
+After listing all 10 thumbnail designs, add a blank line and then provide your top 3 recommendations:
 
 ---
 
@@ -108,9 +172,9 @@ After listing all 10 thumbnail descriptions, add a blank line and then provide y
 [Rank] #[Number] - [Brief explanation of why this thumbnail is most effective - focus on visual impact, clarity, and emotional appeal]
 
 Example:
-- 1st: #4 - Strong visual contrast with highlighted code creates instant curiosity; surprised expression adds emotional hook
-- 2nd: #7 - Grid of examples creates visual interest and '5 mistakes' promise is concrete and clickable
-- 3rd: #2 - Time indicator is immediately understandable; confident posture conveys authority and success
+- 1st: #4 - Strong visual contrast with highlighted code creates instant curiosity
+- 2nd: #7 - Grid layout creates visual interest and concrete promise is clickable
+- 3rd: #2 - Time indicator is immediately understandable and conveys quick value
 
 Provide concise explanations (1-2 sentences max per recommendation).
 </output-format>

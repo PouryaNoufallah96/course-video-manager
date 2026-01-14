@@ -514,3 +514,14 @@
   - app/services/text-writing-agent.ts (added import, mode type, switch case)
   - app/routes/videos.$videoId.completions.ts (added mode to schema)
   - app/routes/videos.$videoId.write.tsx (added mode type, label, icon, UI SelectItem)
+
+## Issue #38 - YouTube thumbnail descriptions use ASCII diagrams with max 5 elements
+- Updated YouTube thumbnail prompt to output ASCII diagrams instead of verbose descriptions
+- Limited each thumbnail design to exactly 5 elements or fewer for simplicity
+- Removed all references to faces, people, and facial expressions per user request
+- ASCII diagrams show spatial layout of thumbnail elements in a clear, visual format
+- Updated output format instructions to expect ASCII diagrams for each of the 10 thumbnail options
+- Key decision: Removed code block syntax (triple backticks) from template literal to avoid TypeScript parsing errors
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-thumbnail.ts
