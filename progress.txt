@@ -525,3 +525,13 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-thumbnail.ts
+
+## Issue #39 - YouTube thumbnail mode returns only 5 options with proper formatting
+- Reduced output from 10 thumbnails to top 5 most effective designs
+- Kept all 10 framing devices in the prompt for AI to consider when selecting top 5
+- Changed from 3 recommendations to a single top recommendation
+- Added Markdown code blocks around ASCII diagrams for proper formatting
+- Key decision: Used escaped backticks (\`\`\`) in template literal to avoid TypeScript parsing errors
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-thumbnail.ts

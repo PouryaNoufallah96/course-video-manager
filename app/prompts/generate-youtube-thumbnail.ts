@@ -40,13 +40,13 @@ YouTube thumbnails are critical for click-through rates. They should be visually
 ${transcriptSection}${codeSection}</documents>
 
 <the-ask>
-Generate 10 different engaging YouTube thumbnail designs for this coding lesson, each using a different framing device.
+Consider the following 10 framing devices, then generate the top 5 most effective YouTube thumbnail designs for this coding lesson.
 
 Each thumbnail should contain EXACTLY 5 elements or fewer. Present the design as an ASCII diagram showing the spatial layout.
 
 IMPORTANT: Do NOT include any faces, people, or facial expressions. Focus on code, text, diagrams, icons, and visual elements only.
 
-Use these framing devices (one thumbnail per device):
+Consider these framing devices when choosing your top 5:
 
 1. **Problem-focused**: Show the pain point visually
    - Example ASCII diagram:
@@ -148,35 +148,37 @@ Key constraints:
 <output-format>
 Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the thumbnail designs.
 
-Respond with EXACTLY 10 thumbnail designs as ASCII diagrams, numbered 1-10.
+Respond with EXACTLY 5 thumbnail designs as ASCII diagrams, numbered 1-5.
+
+IMPORTANT: Wrap each ASCII diagram in a Markdown code block for proper formatting.
 
 Format:
 1. [Framing device name]
+\`\`\`
 +-------------------------+
 | [ASCII diagram here]    |
 +-------------------------+
+\`\`\`
 
 2. [Framing device name]
+\`\`\`
 +-------------------------+
 | [ASCII diagram here]    |
 +-------------------------+
+\`\`\`
 
-...and so on for all 10.
+...and so on for all 5.
 
-After listing all 10 thumbnail designs, add a blank line and then provide your top 3 recommendations:
+After listing all 5 thumbnail designs, add a blank line and then provide your single top recommendation:
 
 ---
 
-**Recommended Top 3:**
+**Top Recommendation:**
 
-[Rank] #[Number] - [Brief explanation of why this thumbnail is most effective - focus on visual impact, clarity, and emotional appeal]
+#[Number] - [Brief explanation of why this thumbnail is most effective - focus on visual impact, clarity, and emotional appeal. Keep it concise (1-2 sentences max).]
 
 Example:
-- 1st: #4 - Strong visual contrast with highlighted code creates instant curiosity
-- 2nd: #7 - Grid layout creates visual interest and concrete promise is clickable
-- 3rd: #2 - Time indicator is immediately understandable and conveys quick value
-
-Provide concise explanations (1-2 sentences max per recommendation).
+#3 - Strong before/after contrast with performance metrics creates instant curiosity and clearly demonstrates value proposition.
 </output-format>
 `.trim();
 };
