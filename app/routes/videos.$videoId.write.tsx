@@ -48,6 +48,7 @@ import {
   SaveIcon,
   CheckIcon,
   PlusIcon,
+  FilmIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher } from "react-router";
@@ -356,6 +357,12 @@ export function InnerComponent(props: Route.ComponentProps) {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/videos/${videoId}/edit`}>
+              <FilmIcon className="size-4 mr-1" />
+              Edit Video
+            </Link>
+          </Button>
           {previousVideoId ? (
             <Button variant="ghost" size="sm" asChild>
               <Link to={`/videos/${previousVideoId}/write`}>
