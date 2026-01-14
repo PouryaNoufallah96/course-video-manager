@@ -22,6 +22,7 @@ const createInitialState = (
   items: [],
   insertionPoint: { type: "end" },
   insertionOrder: 0,
+  error: null,
   ...overrides,
 });
 

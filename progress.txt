@@ -376,3 +376,19 @@
 - Removed the `insertionPoint` update from the `add-clip-section-at` reducer case
 - Stream Deck add section still moves insertion point (correct for recording workflow)
 - File: app/features/video-editor/clip-state-reducer.ts:929-934
+
+## Issue #20 - Add error handling to video editor
+- Added error state to clipStateReducer with EditorError type (message, effectType, timestamp)
+- Added `effect-failed` action to handle errors from effect handlers
+- All 11 effect handlers now check HTTP response status and dispatch `effect-failed` on error
+- Effect handlers converted from fire-and-forget to use `.then().catch()` pattern for error handling
+- Added full-screen error overlay UI that appears when a fatal error occurs
+- Error overlay displays operation type, error message, and requires page refresh to continue
+- Design philosophy: fail fast and fail hard - errors shut down the editor requiring refresh
+- Key decision: Used `.then().catch()` instead of async/await due to use-effect-reducer library constraints
+- All tests pass (21 passed, 1 todo)
+- Files changed:
+  - app/features/video-editor/clip-state-reducer.ts (EditorError type, error state, effect-failed action)
+  - app/features/video-editor/clip-state-reducer.test.ts (added error field to initial state)
+  - app/features/video-editor/video-editor.tsx (error prop, error overlay UI)
+  - app/routes/videos.$videoId.edit.tsx (error handling in all effect handlers, error prop)

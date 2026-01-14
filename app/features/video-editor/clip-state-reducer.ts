@@ -113,12 +113,23 @@ export type ClipSection = ClipSectionOnDatabase | ClipSectionOptimisticallyAdded
 
 export type TimelineItem = Clip | ClipSection;
 
+export type EditorError = {
+  message: string;
+  effectType: string;
+  timestamp: number;
+};
+
 export namespace clipStateReducer {
   export type State = {
     items: TimelineItem[];
     clipIdsBeingTranscribed: Set<FrontendId>;
     insertionPoint: FrontendInsertionPoint;
     insertionOrder: number;
+    /**
+     * When set, indicates a fatal error has occurred in the video editor.
+     * The editor should display an error overlay and require a page refresh.
+     */
+    error: EditorError | null;
   };
 
   export type Action =
@@ -180,6 +191,11 @@ export namespace clipStateReducer {
         name: string;
         position: "before" | "after";
         itemId: FrontendId;
+      }
+    | {
+        type: "effect-failed";
+        effectType: string;
+        message: string;
       };
 
   export type Effect =
@@ -931,6 +947,16 @@ export const clipStateReducer: EffectReducer<
         items: newItems,
         insertionOrder: state.insertionOrder + 1,
         // Don't move insertion point - user is just organizing content via context menu
+      };
+    }
+    case "effect-failed": {
+      return {
+        ...state,
+        error: {
+          message: action.message,
+          effectType: action.effectType,
+          timestamp: Date.now(),
+        },
       };
     }
   }

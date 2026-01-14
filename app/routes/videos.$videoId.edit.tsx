@@ -114,22 +114,38 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
       insertionOrder: 0,
       insertionPoint: { type: "end" },
+      error: null,
     },
     {
-      "archive-clips": (_state, effect, _dispatch) => {
+      "archive-clips": (_state, effect, dispatch) => {
         fetch("/clips/archive", {
           method: "POST",
           body: JSON.stringify({ clipIds: effect.clipIds }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "archive-clips",
+              message: error instanceof Error ? error.message : "Failed to archive clips",
+            });
+          });
       },
       "transcribe-clips": (_state, effect, dispatch) => {
         fetch("/clips/transcribe", {
           method: "POST",
           body: JSON.stringify({ clipIds: effect.clipIds }),
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+          })
           .then((clips: DB.Clip[]) => {
             dispatch({
               type: "clips-transcribed",
@@ -137,6 +153,13 @@ export const ComponentInner = (props: Route.ComponentProps) => {
                 databaseId: clip.id,
                 text: clip.text,
               })),
+            });
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "transcribe-clips",
+              message: error instanceof Error ? error.message : "Failed to transcribe clips",
             });
           });
       },
@@ -147,56 +170,106 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           behavior: "smooth",
         });
       },
-      "update-clips": (_state, effect, _dispatch) => {
+      "update-clips": (_state, effect, dispatch) => {
         fetch("/clips/update", {
           method: "POST",
           body: JSON.stringify({ clips: effect.clips }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "update-clips",
+              message: error instanceof Error ? error.message : "Failed to update clips",
+            });
+          });
       },
-      "update-beat": (_state, effect, _dispatch) => {
+      "update-beat": (_state, effect, dispatch) => {
         fetch("/clips/update-beat", {
           method: "POST",
           body: JSON.stringify({
             clipId: effect.clipId,
             beatType: effect.beatType,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "update-beat",
+              message: error instanceof Error ? error.message : "Failed to update beat",
+            });
+          });
       },
-      "reorder-clip": (_state, effect, _dispatch) => {
+      "reorder-clip": (_state, effect, dispatch) => {
         fetch("/clips/reorder", {
           method: "POST",
           body: JSON.stringify({
             clipId: effect.clipId,
             direction: effect.direction,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "reorder-clip",
+              message: error instanceof Error ? error.message : "Failed to reorder clip",
+            });
+          });
       },
-      "reorder-clip-section": (_state, effect, _dispatch) => {
+      "reorder-clip-section": (_state, effect, dispatch) => {
         fetch("/clip-sections/reorder", {
           method: "POST",
           body: JSON.stringify({
             clipSectionId: effect.clipSectionId,
             direction: effect.direction,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "reorder-clip-section",
+              message: error instanceof Error ? error.message : "Failed to reorder clip section",
+            });
+          });
       },
-      "archive-clip-sections": (_state, effect, _dispatch) => {
+      "archive-clip-sections": (_state, effect, dispatch) => {
         fetch("/clip-sections/archive", {
           method: "POST",
           body: JSON.stringify({ clipSectionIds: effect.clipSectionIds }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "archive-clip-sections",
+              message: error instanceof Error ? error.message : "Failed to archive clip sections",
+            });
+          });
       },
-      "create-clip-section": (state, effect, _dispatch) => {
+      "create-clip-section": (state, effect, dispatch) => {
         // Convert frontend insertion point to database insertion point for API
         const apiInsertionPoint = toDatabaseInsertionPoint(
           effect.insertionPoint,
@@ -209,22 +282,42 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             name: effect.name,
             insertionPoint: apiInsertionPoint,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "create-clip-section",
+              message: error instanceof Error ? error.message : "Failed to create clip section",
+            });
+          });
       },
-      "update-clip-section": (_state, effect, _dispatch) => {
+      "update-clip-section": (_state, effect, dispatch) => {
         fetch("/clip-sections/update", {
           method: "POST",
           body: JSON.stringify({
             clipSectionId: effect.clipSectionId,
             name: effect.name,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "update-clip-section",
+              message: error instanceof Error ? error.message : "Failed to update clip section",
+            });
+          });
       },
-      "create-clip-section-at": (_state, effect, _dispatch) => {
+      "create-clip-section-at": (_state, effect, dispatch) => {
         fetch("/clip-sections/create-at-position", {
           method: "POST",
           body: JSON.stringify({
@@ -234,9 +327,19 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             targetItemId: effect.targetItemId,
             targetItemType: effect.targetItemType,
           }),
-        }).then((res) => {
-          res.json();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "create-clip-section-at",
+              message: error instanceof Error ? error.message : "Failed to create clip section at position",
+            });
+          });
       },
     }
   );
@@ -272,12 +375,16 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           })
           .filter((id): id is DatabaseId => id !== null);
 
-        // This will trigger the transcribe-clips effect handler above
         fetch("/clips/transcribe", {
           method: "POST",
           body: JSON.stringify({ clipIds: databaseIds }),
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+          })
           .then((clips: DB.Clip[]) => {
             dispatch({
               type: "clips-transcribed",
@@ -285,6 +392,13 @@ export const ComponentInner = (props: Route.ComponentProps) => {
                 databaseId: clip.id,
                 text: clip.text,
               })),
+            });
+          })
+          .catch((error) => {
+            dispatch({
+              type: "effect-failed",
+              effectType: "transcribe-clips",
+              message: error instanceof Error ? error.message : "Failed to transcribe clips",
             });
           });
       }}
@@ -338,6 +452,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       clipIdsBeingTranscribed={clipState.clipIdsBeingTranscribed}
       hasExplainerFolder={props.loaderData.hasExplainerFolder}
       videoCount={props.loaderData.videoCount}
+      error={clipState.error}
     />
   );
 };
