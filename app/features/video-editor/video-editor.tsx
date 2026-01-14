@@ -136,7 +136,10 @@ export const VideoEditor = (props: {
     videoStateReducer.Action,
     videoStateReducer.Effect
   >(
-    makeVideoEditorReducer(clips.map((clip) => clip.frontendId)),
+    makeVideoEditorReducer(
+      props.items.map((item) => item.frontendId),
+      clips.map((clip) => clip.frontendId)
+    ),
     {
       showLastFrameOfVideo: true,
       runningState: "paused",

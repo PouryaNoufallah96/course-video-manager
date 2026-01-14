@@ -149,6 +149,7 @@ const preloadSelectedClips = (
 
 export const makeVideoEditorReducer =
   (
+    itemIds: FrontendId[],
     clipIds: FrontendId[]
   ): EffectReducer<
     videoStateReducer.State,
@@ -409,16 +410,16 @@ export const makeVideoEditorReducer =
           });
         }
 
-        const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
+        const mostRecentItemId = Array.from(state.selectedClipsSet).pop()!;
 
-        const currentClipIndex = clipIds.findIndex(
-          (clipId) => clipId === mostRecentClipId
+        const currentItemIndex = itemIds.findIndex(
+          (itemId) => itemId === mostRecentItemId
         );
-        const previousClip = clipIds[currentClipIndex - 1];
-        if (previousClip) {
+        const previousItem = itemIds[currentItemIndex - 1];
+        if (previousItem) {
           return preloadSelectedClips(clipIds, {
             ...state,
-            selectedClipsSet: new Set([previousClip]),
+            selectedClipsSet: new Set([previousItem]),
           });
         } else {
           return state;
@@ -433,16 +434,16 @@ export const makeVideoEditorReducer =
           });
         }
 
-        const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
+        const mostRecentItemId = Array.from(state.selectedClipsSet).pop()!;
 
-        const currentClipIndex = clipIds.findIndex(
-          (clipId) => clipId === mostRecentClipId
+        const currentItemIndex = itemIds.findIndex(
+          (itemId) => itemId === mostRecentItemId
         );
-        const nextClip = clipIds[currentClipIndex + 1];
-        if (nextClip) {
+        const nextItem = itemIds[currentItemIndex + 1];
+        if (nextItem) {
           return preloadSelectedClips(clipIds, {
             ...state,
-            selectedClipsSet: new Set([nextClip]),
+            selectedClipsSet: new Set([nextItem]),
           });
         } else {
           return state;

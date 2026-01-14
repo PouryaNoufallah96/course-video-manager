@@ -346,3 +346,12 @@
 - Uses existing copyYoutubeChaptersToClipboard function and isChaptersCopied state
 - Shows check icon feedback when chapters are copied
 - File: app/features/video-editor/video-editor.tsx:611-627
+
+## Issue #22 - Arrow keys navigate through clip sections
+- Previously, up/down arrow keys only navigated through clips, skipping clip sections
+- Updated `makeVideoEditorReducer` to accept both `itemIds` (all items) and `clipIds` (just clips)
+- Arrow key navigation (up/down/left/right) now uses `itemIds` to navigate through both clips and clip sections
+- Other operations (video playback, preloading, Home/End keys) still use `clipIds` since they need actual video clips
+- Files changed:
+  - app/features/video-editor/video-state-reducer.ts:150-154, 404-451
+  - app/features/video-editor/video-editor.tsx:139-142
