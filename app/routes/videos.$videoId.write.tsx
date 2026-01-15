@@ -464,101 +464,92 @@ export function InnerComponent(props: Route.ComponentProps) {
         </div>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        {/* Left column: Video and Files (hidden for standalone) */}
-        {!isStandalone && (
-          <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
-            <Video src={`/videos/${videoId}`} />
-            <div className="flex items-center gap-2 py-1 px-2">
-              <Checkbox
-                id="include-transcript"
-                checked={
-                  clipSections.length > 0
-                    ? enabledSections.size === clipSections.length
-                      ? true
-                      : enabledSections.size > 0
-                      ? "indeterminate"
-                      : false
-                    : includeTranscript
-                }
-                onCheckedChange={(checked) => {
-                  if (clipSections.length > 0) {
-                    // If sections exist, toggle all sections
-                    if (checked) {
-                      setEnabledSections(new Set(clipSections.map((s) => s.id)));
-                    } else {
-                      setEnabledSections(new Set());
-                    }
+        {/* Left column: Video and Transcript/Files */}
+        <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
+          <Video src={`/videos/${videoId}`} />
+          <div className="flex items-center gap-2 py-1 px-2">
+            <Checkbox
+              id="include-transcript"
+              checked={
+                clipSections.length > 0
+                  ? enabledSections.size === clipSections.length
+                    ? true
+                    : enabledSections.size > 0
+                    ? "indeterminate"
+                    : false
+                  : includeTranscript
+              }
+              onCheckedChange={(checked) => {
+                if (clipSections.length > 0) {
+                  // If sections exist, toggle all sections
+                  if (checked) {
+                    setEnabledSections(new Set(clipSections.map((s) => s.id)));
                   } else {
-                    // If no sections, just toggle transcript
-                    setIncludeTranscript(!!checked);
+                    setEnabledSections(new Set());
                   }
-                }}
-              />
-              <label
-                htmlFor="include-transcript"
-                className="text-sm flex-1 cursor-pointer"
-              >
-                Transcript
-              </label>
-              <span className="text-xs text-muted-foreground">
-                ({transcriptWordCount.toLocaleString()} words)
-              </span>
+                } else {
+                  // If no sections, just toggle transcript
+                  setIncludeTranscript(!!checked);
+                }
+              }}
+            />
+            <label
+              htmlFor="include-transcript"
+              className="text-sm flex-1 cursor-pointer"
+            >
+              Transcript
+            </label>
+            <span className="text-xs text-muted-foreground">
+              ({transcriptWordCount.toLocaleString()} words)
+            </span>
+          </div>
+          {/* Section checkboxes - only show when sections exist */}
+          {clipSections.length > 0 && (
+            <div className="shrink-0">
+              <ScrollArea className="h-48">
+                <div className="space-y-1 px-2">
+                  {clipSections.map((section) => (
+                    <div key={section.id} className="flex items-center gap-2 py-1 pl-6">
+                      <Checkbox
+                        id={`section-${section.id}`}
+                        checked={enabledSections.has(section.id)}
+                        onCheckedChange={(checked) => {
+                          const newSet = new Set(enabledSections);
+                          if (checked) {
+                            newSet.add(section.id);
+                          } else {
+                            newSet.delete(section.id);
+                          }
+                          setEnabledSections(newSet);
+                        }}
+                      />
+                      <label
+                        htmlFor={`section-${section.id}`}
+                        className="text-sm flex-1 cursor-pointer"
+                      >
+                        {section.name}
+                      </label>
+                      <span className="text-xs text-muted-foreground">
+                        ({section.wordCount.toLocaleString()} words)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
-            {/* Section checkboxes - only show when sections exist */}
-            {clipSections.length > 0 && (
-              <div className="shrink-0">
-                <ScrollArea className="h-48">
-                  <div className="space-y-1 px-2">
-                    {clipSections.map((section) => (
-                      <div key={section.id} className="flex items-center gap-2 py-1 pl-6">
-                        <Checkbox
-                          id={`section-${section.id}`}
-                          checked={enabledSections.has(section.id)}
-                          onCheckedChange={(checked) => {
-                            const newSet = new Set(enabledSections);
-                            if (checked) {
-                              newSet.add(section.id);
-                            } else {
-                              newSet.delete(section.id);
-                            }
-                            setEnabledSections(newSet);
-                          }}
-                        />
-                        <label
-                          htmlFor={`section-${section.id}`}
-                          className="text-sm flex-1 cursor-pointer"
-                        >
-                          {section.name}
-                        </label>
-                        <span className="text-xs text-muted-foreground">
-                          ({section.wordCount.toLocaleString()} words)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            )}
+          )}
+          {/* File tree - only show for lesson-connected videos */}
+          {!isStandalone && (
             <FileTree
               files={files}
               enabledFiles={enabledFiles}
               onEnabledFilesChange={setEnabledFiles}
             />
-          </div>
-        )}
-
-        {/* Right column: Chat (full width for standalone) */}
-        <div
-          className={`${isStandalone ? "w-full" : "w-3/4"} flex flex-col`}
-        >
-          {/* Video player for standalone videos */}
-          {isStandalone && (
-            <div className="p-4 border-b">
-              <div className="max-w-2xl mx-auto">
-                <Video src={`/videos/${videoId}`} />
-              </div>
-            </div>
           )}
+        </div>
+
+        {/* Right column: Chat */}
+        <div className="w-3/4 flex flex-col">
           <AIConversation className="flex-1 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
             <AIConversationContent className="max-w-2xl mx-auto">
               {error && (

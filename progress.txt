@@ -520,3 +520,21 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/hooks/use-keyboard-shortcuts.ts:2,22
+
+## Issue #66 - Standalone videos now show transcript sidebar
+- Fixed inconsistent UI treatment between standalone and lesson-connected videos
+- Standalone videos now display the left sidebar with video, transcript, and section checkboxes
+- Implementation details:
+  - Removed conditional rendering that hid sidebar for standalone videos (line 468)
+  - Sidebar now always renders with video player and transcript controls
+  - File tree conditionally hidden for standalone videos using !isStandalone check (line 542)
+  - README dropdown already had !isStandalone check, so no change needed (line 746)
+  - Removed duplicate video player from main content area for standalone videos
+  - Chat panel now always uses 3/4 width with sidebar taking 1/4 width
+- Key decisions:
+  - Consistent sidebar treatment across both video types improves UX
+  - Transcript and section selection functionality now available for standalone videos
+  - File tree and README features remain lesson-specific as they require repo context
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/videos.$videoId.write.tsx:467-552
