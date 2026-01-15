@@ -720,3 +720,30 @@
 - Files changed:
   - app/features/video-editor/components/actions-dropdown.tsx (new file, 176 lines)
   - app/features/video-editor/video-editor.tsx:10-15,28,36-50,507-637 (removed imports, added ActionsDropdown import and usage)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ClipItem component
+- Extracted ClipItem component from video-editor.tsx into separate file
+- Component renders individual clip in timeline with thumbnail, transcript, and context menu
+- Implementation details:
+  - Created app/features/video-editor/components/clip-item.tsx with ClipItem component
+  - Component displays clip thumbnail (16:9 or 9:16 portrait) with timecode overlay
+  - Shows loading spinner during transcription
+  - Displays transcript text with Levenshtein distance warning for similar consecutive clips
+  - Progress bar overlay when clip is currently playing
+  - Context menu with Insert Before/After, Add Section Before/After, Move Up/Down, Toggle Beat, Re-transcribe, Delete
+  - Removed unused imports from video-editor.tsx (Loader2, PauseIcon, RefreshCwIcon moved to ClipItem)
+  - Kept RefreshCwIcon in video-editor.tsx as it's still used in error overlay
+  - Updated video-editor.tsx to use ClipItem component with all required props
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives all state and callbacks as props (no Context needed)
+  - Maintains forwardRef pattern for future DOM manipulation needs
+  - All behavior preserved including multi-select with Ctrl/Shift keys
+  - DANGEROUS_TEXT_SIMILARITY_THRESHOLD constant kept in video-editor.tsx as it's still used there
+  - video-editor.tsx reduced from 1,033 to 832 lines (201 lines saved)
+  - Total reduction so far: 1,592 → 832 lines (760 lines saved / 48% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/clip-item.tsx (new file, 267 lines)
+  - app/features/video-editor/video-editor.tsx:31-47,752-797 (added import, replaced inline clip rendering with component)

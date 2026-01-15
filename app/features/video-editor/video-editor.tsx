@@ -29,6 +29,7 @@ import { TableOfContents } from "./components/table-of-contents";
 import { ClipSectionDivider } from "./components/clip-section-divider";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { ActionsDropdown } from "./components/actions-dropdown";
+import { ClipItem } from "./components/clip-item";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -39,9 +40,7 @@ import {
   ChevronRightIcon,
   CircleQuestionMarkIcon,
   Columns2,
-  Loader2,
   MonitorIcon,
-  PauseIcon,
   PencilIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -757,238 +756,39 @@ export const VideoEditor = (props: {
                 const timecode = computedProps?.timecode ?? "";
                 const nextLevenshtein = computedProps?.nextLevenshtein ?? 0;
 
-                const duration =
-                  clip.type === "on-database"
-                    ? clip.sourceEndTime - clip.sourceStartTime
-                    : null;
-
-                const percentComplete = duration
-                  ? state.currentTimeInClip / duration
-                  : 0;
-
-                const isPortrait =
-                  clip.type === "on-database" &&
-                  (clip.profile === "TikTok" || clip.profile === "Portrait");
-
                 return (
                   <div key={clip.frontendId}>
-                    <ContextMenu>
-                      <ContextMenuTrigger asChild>
-                        <button
-                          className={cn(
-                            "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex w-full",
-                            state.selectedClipsSet.has(clip.frontendId) &&
-                              "outline-2 outline-gray-200 bg-gray-700",
-                            clip.frontendId === currentClipId && "bg-blue-900"
-                          )}
-                          onClick={(e) => {
-                            dispatch({
-                              type: "click-clip",
-                              clipId: clip.frontendId,
-                              ctrlKey: e.ctrlKey,
-                              shiftKey: e.shiftKey,
-                            });
-                          }}
-                        >
-                          {/* Thumbnail image */}
-                          {clip.type === "on-database" ? (
-                            <div className="flex-shrink-0 relative">
-                              <img
-                                src={`/clips/${clip.databaseId}/first-frame`}
-                                alt="First frame"
-                                className={cn(
-                                  "rounded object-cover h-full object-center",
-                                  isPortrait
-                                    ? "w-24 aspect-[9/16]"
-                                    : "w-32 aspect-[16/9]",
-                                  props.clipIdsBeingTranscribed.has(
-                                    clip.frontendId
-                                  ) && "opacity-50 grayscale"
-                                )}
-                              />
-                              {/* Loading spinner overlay */}
-                              {props.clipIdsBeingTranscribed.has(
-                                clip.frontendId
-                              ) && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <Loader2 className="w-6 h-6 animate-spin text-white" />
-                                </div>
-                              )}
-                              {/* Timecode overlay on image */}
-                              <div
-                                className={cn(
-                                  "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100 flex items-center gap-1",
-                                  clip.frontendId === currentClipId &&
-                                    "text-blue-100",
-                                  state.selectedClipsSet.has(clip.frontendId) &&
-                                    "text-white"
-                                )}
-                              >
-                                {timecode}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
-                              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                            </div>
-                          )}
-
-                          {/* Content area */}
-                          <div className="flex-1 flex flex-col min-w-0 relative p-3">
-                            {/* Progress bar overlay on text */}
-                            {clip.frontendId === currentClipId && (
-                              <div
-                                className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
-                                style={{
-                                  width: `${percentComplete * 100}%`,
-                                }}
-                              />
-                            )}
-
-                            {/* Transcript text */}
-                            <div className="z-10 relative text-white text-sm leading-6">
-                              {props.clipIdsBeingTranscribed.has(
-                                clip.frontendId
-                              ) ? (
-                                clip.type === "on-database" &&
-                                !clip.transcribedAt &&
-                                !clip.text && (
-                                  <span className="text-gray-400">
-                                    Transcribing...
-                                  </span>
-                                )
-                              ) : clip.type === "on-database" ? (
-                                <>
-                                  {nextLevenshtein >
-                                    DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
-                                    <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
-                                      <AlertTriangleIcon className="w-4 h-4 mr-2" />
-                                      {nextLevenshtein.toFixed(0)}%
-                                    </span>
-                                  )}
-                                  <span
-                                    className={cn(
-                                      "text-gray-100",
-                                      clip.frontendId === currentClipId &&
-                                        "text-white"
-                                    )}
-                                  >
-                                    {clip.text}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-gray-400">
-                                  Detecting silence...
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      </ContextMenuTrigger>
-                      <ContextMenuContent>
-                        <ContextMenuItem
-                          onSelect={() => {
-                            props.onSetInsertionPoint(
-                              "before",
-                              clip.frontendId
-                            );
-                          }}
-                        >
-                          <ChevronLeftIcon />
-                          Insert Before
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          onSelect={() => {
-                            props.onSetInsertionPoint("after", clip.frontendId);
-                          }}
-                        >
-                          <ChevronRightIcon />
-                          Insert After
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          onSelect={() => {
-                            setClipSectionNamingModal({
-                              mode: "add-at",
-                              position: "before",
-                              itemId: clip.frontendId,
-                              defaultName: generateDefaultClipSectionName(),
-                            });
-                          }}
-                        >
-                          <PlusIcon />
-                          Add Section Before
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          onSelect={() => {
-                            setClipSectionNamingModal({
-                              mode: "add-at",
-                              position: "after",
-                              itemId: clip.frontendId,
-                              defaultName: generateDefaultClipSectionName(),
-                            });
-                          }}
-                        >
-                          <PlusIcon />
-                          Add Section After
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          disabled={isFirstItem}
-                          onSelect={() => {
-                            props.onMoveClip(clip.frontendId, "up");
-                          }}
-                        >
-                          <ArrowUpIcon />
-                          Move Up
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          disabled={isLastItem}
-                          onSelect={() => {
-                            props.onMoveClip(clip.frontendId, "down");
-                          }}
-                        >
-                          <ArrowDownIcon />
-                          Move Down
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          onSelect={() => {
-                            props.onToggleBeatForClip(clip.frontendId);
-                          }}
-                        >
-                          <PauseIcon />
-                          {clip.beatType === "long"
-                            ? "Remove Beat"
-                            : "Add Beat"}
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          disabled={clip.type !== "on-database"}
-                          onSelect={() => {
-                            dispatch({
-                              type: "retranscribe-clip",
-                              clipId: clip.frontendId,
-                            });
-                          }}
-                        >
-                          <RefreshCwIcon />
-                          Re-transcribe
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          variant="destructive"
-                          onSelect={() => {
-                            dispatch({
-                              type: "delete-clip",
-                              clipId: clip.frontendId,
-                            });
-                          }}
-                        >
-                          <Trash2Icon />
-                          Delete
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
+                    <ClipItem
+                      clip={clip}
+                      isFirstItem={isFirstItem}
+                      isLastItem={isLastItem}
+                      isSelected={state.selectedClipsSet.has(clip.frontendId)}
+                      isCurrentClip={clip.frontendId === currentClipId}
+                      currentTimeInClip={state.currentTimeInClip}
+                      timecode={timecode}
+                      nextLevenshtein={nextLevenshtein}
+                      clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
+                      onSetInsertionPoint={props.onSetInsertionPoint}
+                      onMoveClip={props.onMoveClip}
+                      onToggleBeatForClip={props.onToggleBeatForClip}
+                      onAddSectionBefore={() => {
+                        setClipSectionNamingModal({
+                          mode: "add-at",
+                          position: "before",
+                          itemId: clip.frontendId,
+                          defaultName: generateDefaultClipSectionName(),
+                        });
+                      }}
+                      onAddSectionAfter={() => {
+                        setClipSectionNamingModal({
+                          mode: "add-at",
+                          position: "after",
+                          itemId: clip.frontendId,
+                          defaultName: generateDefaultClipSectionName(),
+                        });
+                      }}
+                      dispatch={dispatch}
+                    />
                     {/* Beat indicator dots below clip */}
                     {clip.beatType === "long" && <BeatIndicator />}
                     {props.insertionPoint.type === "after-clip" &&
