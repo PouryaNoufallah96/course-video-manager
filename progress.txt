@@ -648,3 +648,26 @@
   - app/prompts/generate-article.ts:16-51 (added sectionNames param, added section names section in prompt)
   - app/services/text-writing-agent.ts:46-54,107-113,289,328-347 (added sectionNames param to createTextWritingAgent, removed H2 headers, collect and return section names)
   - app/routes/videos.$videoId.completions.ts:64 (pass sectionNames to createTextWritingAgent)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ClipSectionDivider component
+- Extracted ClipSectionDivider component from video-editor.tsx into separate file
+- Component displays section divider in timeline with sticky positioning
+- Implementation details:
+  - Created app/features/video-editor/components/clip-section-divider.tsx with ClipSectionDivider component
+  - Component shows horizontal line with section name centered
+  - Uses sticky positioning to stay visible while scrolling through clips
+  - Highlights when selected with outline effect
+  - Updated video-editor.tsx to import from components directory
+  - Removed React import from video-editor.tsx (no longer needed without React.forwardRef)
+  - Removed ClipSectionDividerProps import from types (now imported in component file)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component maintains forwardRef for DOM manipulation needs
+  - All props and behavior remain unchanged
+  - Follows same pattern as other extracted components
+  - video-editor.tsx reduced from 1,285 to 1,257 lines (28 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/clip-section-divider.tsx (new file, 42 lines)
+  - app/features/video-editor/video-editor.tsx:33-35,45,69,1237-1262 (added import, removed React import, removed ClipSectionDividerProps import, removed component definition)

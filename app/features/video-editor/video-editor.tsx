@@ -32,7 +32,6 @@ import { formatSecondsToTimeCode } from "@/services/utils";
 import type {
   ClipSectionNamingModal,
   ClipComputedProps,
-  ClipSectionDividerProps,
 } from "./types";
 import {
   InsertionPointIndicator,
@@ -42,6 +41,7 @@ import {
 import { LiveMediaStream } from "./components/live-media-stream";
 import { ExportModal } from "./components/export-modal";
 import { TableOfContents } from "./components/table-of-contents";
+import { ClipSectionDivider } from "./components/clip-section-divider";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -66,7 +66,7 @@ import {
   Trash2Icon,
   UserRound,
 } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
@@ -1233,33 +1233,6 @@ export const VideoEditor = (props: {
     </div>
   );
 };
-
-export const ClipSectionDivider = React.forwardRef<
-  HTMLButtonElement,
-  ClipSectionDividerProps
->(({ name, isSelected, onClick, className, ...rest }, ref) => {
-  return (
-    <button
-      ref={ref}
-      className={cn(
-        "flex items-center gap-3 py-2 px-3 w-full allow-keydown",
-        "sticky top-0 z-10 bg-gray-900",
-        "hover:bg-gray-800/50 rounded-md transition-colors",
-        isSelected && "bg-gray-700 outline-2 outline-gray-200",
-        className
-      )}
-      onClick={onClick}
-      {...rest}
-    >
-      <div className="border-t-2 border-gray-500 flex-1" />
-      <span className="text-sm font-medium text-gray-300 whitespace-nowrap">
-        {name}
-      </span>
-      <div className="border-t-2 border-gray-500 flex-1" />
-    </button>
-  );
-});
-ClipSectionDivider.displayName = "ClipSectionDivider";
 
 const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
 
