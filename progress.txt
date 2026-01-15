@@ -625,3 +625,26 @@
 - Files changed:
   - app/features/video-editor/components/table-of-contents.tsx (new file, 47 lines)
   - app/features/video-editor/video-editor.tsx:24,45,663-689 (added import, removed ScrollArea import, replaced inline implementation with component)
+
+## Issue #71 - LLM should choose its own section headings for articles
+- Updated article writing prompt to let LLM choose section headings using video sections as inspiration
+- Previously, section names were inserted as H2 headers in the transcript, causing LLM to follow them too closely
+- Implementation details:
+  - Updated generateArticlePrompt to accept optional sectionNames parameter
+  - Added instructions in prompt to use section names as inspiration rather than exact headings
+  - Section names now passed separately in prompt, not as H2 headers in transcript
+  - Removed H2 header insertion from transcript building in text-writing-agent.ts (line 291-294)
+  - Added sectionNames collection in acquireTextWritingContext (lines 328-337)
+  - Updated createTextWritingAgent signature to accept sectionNames parameter
+  - Passed sectionNames from videoContext to createTextWritingAgent in completions route
+- Key decisions:
+  - Section names collected based on enabled sections (respects user's section selection)
+  - If all sections enabled, includes all section names; otherwise only enabled ones
+  - Prompt explicitly tells LLM to "choose headings that best fit the content and flow"
+  - Maintains backward compatibility - sectionNames is optional
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/prompts/generate-article.ts:16-51 (added sectionNames param, added section names section in prompt)
+  - app/services/text-writing-agent.ts:46-54,107-113,289,328-347 (added sectionNames param to createTextWritingAgent, removed H2 headers, collect and return section names)
+  - app/routes/videos.$videoId.completions.ts:64 (pass sectionNames to createTextWritingAgent)

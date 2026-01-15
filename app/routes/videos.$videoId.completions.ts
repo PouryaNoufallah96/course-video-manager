@@ -61,6 +61,7 @@ export const action = async (args: Route.ActionArgs) => {
       code: videoContext.textFiles,
       imageFiles: videoContext.imageFiles,
       youtubeChapters: videoContext.youtubeChapters,
+      sectionNames: videoContext.sectionNames,
     });
 
     const result = agent.stream({

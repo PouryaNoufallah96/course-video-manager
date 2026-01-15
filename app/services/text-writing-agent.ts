@@ -50,6 +50,7 @@ export const createTextWritingAgent = (props: {
   code: TextWritingAgentCodeFile[];
   imageFiles: TextWritingAgentImageFile[];
   youtubeChapters?: { timestamp: string; name: string }[];
+  sectionNames?: string[];
 }) => {
   const systemPrompt = (() => {
     switch (props.mode) {
@@ -108,6 +109,7 @@ export const createTextWritingAgent = (props: {
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          sectionNames: props.sectionNames,
         });
     }
   })();
@@ -287,11 +289,6 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
 
           // Check if this section is enabled
           currentSectionEnabled = allSectionsEnabled || enabledSectionIds.has(item.section.id);
-
-          // Add section as H2 header if enabled
-          if (currentSectionEnabled) {
-            transcriptParts.push(`## ${item.section.name}`);
-          }
         } else if (item.clip.text && currentSectionEnabled) {
           currentParagraph.push(item.clip.text);
         }
@@ -328,6 +325,17 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
       }
     }
 
+    // Collect enabled section names for the prompt
+    const enabledSectionIds = new Set(props.enabledSections ?? []);
+    const allSectionsEnabled =
+      enabledSectionIds.size === 0 ||
+      (props.enabledSections?.length === 0 && video.clipSections.length === 0);
+    const sectionNames = allSectionsEnabled
+      ? video.clipSections.map((section) => section.name)
+      : video.clipSections
+          .filter((section) => enabledSectionIds.has(section.id))
+          .map((section) => section.name);
+
     return {
       textFiles,
       imageFiles,
@@ -335,6 +343,7 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
       sectionPath,
       lessonPath,
       youtubeChapters,
+      sectionNames,
     };
   }
 );

@@ -20,6 +20,7 @@ export const generateArticlePrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  sectionNames?: string[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -31,12 +32,23 @@ ${opts.transcript}
 `
     : "";
 
+  const sectionNamesSection =
+    opts.sectionNames && opts.sectionNames.length > 0
+      ? `The video has been organized into the following sections:
+
+${opts.sectionNames.map((name) => `- ${name}`).join("\n")}
+
+Use these section names as inspiration for your own section headings. You should choose headings that best fit the content and flow of the article, rather than sticking exactly to these names.
+
+`
+      : "";
+
   return `
 You are a helpful assistant being asked to format a transcript of a video to accompany it for easier reading. The video is a screencast from a coding lesson, where the viewer can see the code.
 
 ## Documents
 
-${transcriptSection}Here is the code for the video.
+${transcriptSection}${sectionNamesSection}Here is the code for the video.
 
 <code>
 ${opts.code
