@@ -195,3 +195,21 @@
 - Files changed:
   - app/routes/_index.tsx:367-377,421-428
   - app/routes/archived-repos.tsx:135-145,181-188
+
+## Issue #57 - Remove add repo button from sidebar
+- Removed the Plus icon button from Repos section header in sidebar
+- Updated both _index.tsx and archived-repos.tsx for consistency
+- Implementation details:
+  - Removed the Button with Plus icon that was next to "Repos" CollapsibleTrigger
+  - Removed the wrapping div with "flex items-center justify-between" layout
+  - CollapsibleTrigger now stands alone without the add button
+  - AddRepoModal component and state management remain for other entry points (e.g., empty state in main content)
+- Key decisions:
+  - Kept the AddRepoModal functionality intact - can still be triggered from other UI locations
+  - Simplified Repos section header to just the collapsible trigger
+  - Users can still add repos via the empty state button in the main content area
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/routes/_index.tsx:311-315
+  - app/routes/archived-repos.tsx:79-83
