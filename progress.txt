@@ -769,3 +769,32 @@
 - Files changed:
   - app/features/video-editor/components/pre-recording-checklist.tsx (new file, 48 lines)
   - app/features/video-editor/video-editor.tsx:32-48,574-603 (added import, removed unused icon imports, replaced inline checklist with component)
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract VideoPlayerPanel component
+- Extracted VideoPlayerPanel component from video-editor.tsx into separate file
+- Component displays video preview panel including title, player, live stream, controls, and table of contents
+- Implementation details:
+  - Created `app/features/video-editor/components/video-player-panel.tsx` with VideoPlayerPanel component
+  - Component includes video metadata header (title, duration, repo/lesson path)
+  - Manages three view modes: video-player, live-stream, and last-frame
+  - Integrates LiveMediaStream component for OBS recording preview
+  - Integrates PreloadableClipManager for video playback
+  - Shows last frame overlay when appropriate (for recording continuity)
+  - Navigation button to go back to lesson/videos list
+  - Integrates ActionsDropdown for all export and writing actions
+  - Integrates TableOfContents for section navigation
+  - Includes AddVideoModal for lesson-attached videos
+  - Updated video-editor.tsx to use VideoPlayerPanel component
+  - Removed unused imports (AddVideoModal, Tooltip components, LiveMediaStream, TableOfContents, ActionsDropdown, RecordingSignalIndicator, Link, PreloadableClipManager, cn utility)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives all state and callbacks as props (no Context needed)
+  - Maintains all existing behavior and visual styling
+  - Largest single extraction so far (180+ lines of JSX)
+  - video-editor.tsx reduced from 806 to 674 lines (132 lines saved)
+  - Total reduction so far: 1,592 → 674 lines (918 lines saved / 58% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/video-player-panel.tsx (new file, 252 lines)
+  - app/features/video-editor/video-editor.tsx:1-53,356-426 (removed imports, added VideoPlayerPanel import and usage)
+

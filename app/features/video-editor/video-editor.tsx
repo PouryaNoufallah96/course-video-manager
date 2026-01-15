@@ -1,4 +1,3 @@
-import { AddVideoModal } from "@/components/add-video-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -7,13 +6,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { formatSecondsToTimeCode } from "@/services/utils";
 import type {
   ClipSectionNamingModal,
@@ -22,15 +14,12 @@ import type {
 import {
   InsertionPointIndicator,
   BeatIndicator,
-  RecordingSignalIndicator,
 } from "./components/timeline-indicators";
-import { LiveMediaStream } from "./components/live-media-stream";
-import { TableOfContents } from "./components/table-of-contents";
 import { ClipSectionDivider } from "./components/clip-section-divider";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
-import { ActionsDropdown } from "./components/actions-dropdown";
 import { ClipItem } from "./components/clip-item";
 import { PreRecordingChecklist } from "./components/pre-recording-checklist";
+import { VideoPlayerPanel } from "./components/video-player-panel";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -45,7 +34,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link, useFetcher } from "react-router";
+import { useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
@@ -61,7 +50,6 @@ import {
   isClipSection,
 } from "./clip-utils";
 import { type OBSConnectionState } from "./obs-connector";
-import { PreloadableClipManager } from "./preloadable-clip";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import {
   makeVideoEditorReducer,
@@ -367,194 +355,73 @@ export const VideoEditor = (props: {
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
-      <div className="lg:flex-1 relative order-1 lg:order-2">
-        <div className="sticky top-6">
-          <div className="">
-            <div className="mb-4">
-              <h1 className="text-2xl font-bold mb-1 flex items-center">
-                {props.videoPath}
-                {" (" + formatSecondsToTimeCode(totalDuration) + ")"}
-                {areAnyClipsDangerous && (
-                  <span className="text-orange-500 ml-4 text-base font-medium inline-flex items-center">
-                    <AlertTriangleIcon className="size-6 mr-2" />
-                    Possible duplicate clips
-                  </span>
-                )}
-              </h1>
-              {props.repoName && props.lessonPath && (
-                <h2 className="text-sm font-medium mb-1">
-                  {props.repoName}
-                  {" - "}
-                  {props.lessonPath}
-                </h2>
-              )}
-            </div>
-
-            {props.liveMediaStream && (
-              <div
-                className={cn(
-                  "w-full h-full relative aspect-[16/9]",
-                  (props.obsConnectorState.type === "obs-connected" ||
-                    props.obsConnectorState.type === "obs-recording") &&
-                    props.obsConnectorState.profile === "TikTok" &&
-                    "w-92 aspect-[9/16]",
-                  "hidden",
-                  (viewMode === "live-stream" || viewMode === "last-frame") &&
-                    "block"
-                )}
-              >
-                {props.obsConnectorState.type === "obs-recording" && (
-                  <RecordingSignalIndicator />
-                )}
-
-                {(props.obsConnectorState.type === "obs-recording" ||
-                  props.obsConnectorState.type === "obs-connected") && (
-                  <LiveMediaStream
-                    mediaStream={props.liveMediaStream}
-                    obsConnectorState={props.obsConnectorState}
-                    speechDetectorState={props.speechDetectorState}
-                    showCenterLine={props.obsConnectorState.scene === "Camera"}
-                  />
-                )}
-                {databaseClipToShowLastFrameOf &&
-                  viewMode === "last-frame" &&
-                  // Only show overlay if scenes match, or if no scene is detected
-                  (props.obsConnectorState.type !== "obs-recording" &&
-                  props.obsConnectorState.type !== "obs-connected"
-                    ? true // Default to showing if OBS not connected
-                    : databaseClipToShowLastFrameOf.scene === null ||
-                      databaseClipToShowLastFrameOf.scene ===
-                        props.obsConnectorState.scene) && (
-                    <div
-                      className={cn(
-                        "absolute top-0 left-0 rounded-lg",
-                        databaseClipToShowLastFrameOf.profile === "TikTok" &&
-                          "w-92 aspect-[9/16]"
-                      )}
-                    >
-                      <img
-                        className="w-full h-full rounded-lg opacity-50"
-                        src={`/clips/${databaseClipToShowLastFrameOf.databaseId}/last-frame`}
-                      />
-                    </div>
-                  )}
-              </div>
-            )}
-            <div
-              className={cn(
-                "w-full aspect-[16/9]",
-                viewMode !== "video-player" && "hidden"
-              )}
-            >
-              <PreloadableClipManager
-                clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-                clips={clips
-                  .filter((clip) => state.clipIdsPreloaded.has(clip.frontendId))
-                  .filter((clip) => clip.type === "on-database")}
-                finalClipId={clips[clips.length - 1]?.frontendId}
-                state={state.runningState}
-                currentClipId={currentClipId}
-                currentClipProfile={currentClip?.profile ?? undefined}
-                onClipFinished={() => {
-                  dispatch({ type: "clip-finished" });
-                }}
-                onUpdateCurrentTime={(time) => {
-                  dispatch({ type: "update-clip-current-time", time });
-                }}
-                playbackRate={state.playbackRate}
-              />
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      asChild={allClipsHaveSilenceDetected}
-                      variant="secondary"
-                      aria-label="Go Back"
-                      disabled={!allClipsHaveSilenceDetected}
-                    >
-                      {allClipsHaveSilenceDetected ? (
-                        <Link
-                          to={
-                            props.repoId && props.lessonId
-                              ? `/?repoId=${props.repoId}#${props.lessonId}`
-                              : "/videos"
-                          }
-                        >
-                          <ChevronLeftIcon className="w-4 h-4" />
-                        </Link>
-                      ) : (
-                        <span>
-                          <ChevronLeftIcon className="w-4 h-4" />
-                        </span>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  {!allClipsHaveSilenceDetected && (
-                    <TooltipContent>
-                      <p>Waiting for silence detection to complete</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-
-                <ActionsDropdown
-                  allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
-                  allClipsHaveText={allClipsHaveText}
-                  exportVideoClipsFetcher={exportVideoClipsFetcher}
-                  exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
-                  videoId={props.videoId}
-                  lessonId={props.lessonId}
-                  isExportModalOpen={isExportModalOpen}
-                  setIsExportModalOpen={setIsExportModalOpen}
-                  isCopied={isCopied}
-                  copyTranscriptToClipboard={copyTranscriptToClipboard}
-                  youtubeChapters={youtubeChapters}
-                  isChaptersCopied={isChaptersCopied}
-                  copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
-                  onAddVideoClick={() => setIsAddVideoModalOpen(true)}
-                />
-              </TooltipProvider>
-            </div>
-
-            {/* Table of Contents */}
-            <TableOfContents
-              clipSections={props.items.filter(isClipSection)}
-              selectedClipsSet={state.selectedClipsSet}
-              onSectionClick={(sectionId, index) => {
-                // Select the section
-                dispatch({
-                  type: "click-clip",
-                  clipId: sectionId,
-                  ctrlKey: false,
-                  shiftKey: false,
-                });
-
-                // Scroll to the section in the timeline after React finishes re-rendering
-                // Use the index to find the section since IDs change on re-render
-                requestAnimationFrame(() => {
-                  const allSections =
-                    document.querySelectorAll('[id^="section-"]');
-                  if (allSections[index]) {
-                    allSections[index].scrollIntoView({
-                      behavior: "instant",
-                      block: "center",
-                    });
-                  }
-                });
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <AddVideoModal
+      <VideoPlayerPanel
+        videoPath={props.videoPath}
+        videoId={props.videoId}
+        repoName={props.repoName}
+        lessonPath={props.lessonPath}
+        repoId={props.repoId}
         lessonId={props.lessonId}
-        videoCount={props.videoCount}
+        totalDuration={totalDuration}
+        areAnyClipsDangerous={areAnyClipsDangerous}
+        items={props.items}
+        clips={clips}
+        viewMode={viewMode}
+        databaseClipToShowLastFrameOf={databaseClipToShowLastFrameOf}
+        clipsToAggressivelyPreload={clipsToAggressivelyPreload}
+        runningState={state.runningState}
+        currentClipId={currentClipId}
+        currentClipProfile={currentClip?.profile ?? undefined}
+        currentTimeInClip={state.currentTimeInClip}
+        selectedClipsSet={state.selectedClipsSet}
+        clipIdsPreloaded={state.clipIdsPreloaded}
+        playbackRate={state.playbackRate}
+        obsConnectorState={props.obsConnectorState}
+        liveMediaStream={props.liveMediaStream}
+        speechDetectorState={props.speechDetectorState}
+        allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
+        allClipsHaveText={allClipsHaveText}
+        exportVideoClipsFetcher={exportVideoClipsFetcher}
+        exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
+        isExportModalOpen={isExportModalOpen}
+        setIsExportModalOpen={setIsExportModalOpen}
+        isCopied={isCopied}
+        copyTranscriptToClipboard={copyTranscriptToClipboard}
+        youtubeChapters={youtubeChapters}
+        isChaptersCopied={isChaptersCopied}
+        copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
+        isAddVideoModalOpen={isAddVideoModalOpen}
+        setIsAddVideoModalOpen={setIsAddVideoModalOpen}
         hasExplainerFolder={props.hasExplainerFolder}
-        open={isAddVideoModalOpen}
-        onOpenChange={setIsAddVideoModalOpen}
+        videoCount={props.videoCount}
+        dispatch={dispatch}
+        onClipFinished={() => {
+          dispatch({ type: "clip-finished" });
+        }}
+        onUpdateCurrentTime={(time) => {
+          dispatch({ type: "update-clip-current-time", time });
+        }}
+        onSectionClick={(sectionId, index) => {
+          // Select the section
+          dispatch({
+            type: "click-clip",
+            clipId: sectionId,
+            ctrlKey: false,
+            shiftKey: false,
+          });
+
+          // Scroll to the section in the timeline after React finishes re-rendering
+          // Use the index to find the section since IDs change on re-render
+          requestAnimationFrame(() => {
+            const allSections = document.querySelectorAll('[id^="section-"]');
+            if (allSections[index]) {
+              allSections[index].scrollIntoView({
+                behavior: "instant",
+                block: "center",
+              });
+            }
+          });
+        }}
       />
 
       {/* Clip Section Naming Modal */}
