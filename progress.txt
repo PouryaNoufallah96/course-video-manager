@@ -798,3 +798,29 @@
   - app/features/video-editor/components/video-player-panel.tsx (new file, 252 lines)
   - app/features/video-editor/video-editor.tsx:1-53,356-426 (removed imports, added VideoPlayerPanel import and usage)
 
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ClipSectionItem component
+- Extracted ClipSectionItem component from video-editor.tsx into separate file
+- Component displays clip section divider with context menu in the timeline
+- Implementation details:
+  - Created `app/features/video-editor/components/clip-section-item.tsx` with ClipSectionItem component
+  - Component renders ClipSectionDivider with full context menu functionality
+  - Context menu includes Insert Before/After, Add Section Before/After, Edit, Move Up/Down, Delete
+  - Handles section selection with Ctrl/Shift multi-select support
+  - Double-click selected section plays from that section
+  - Shows InsertionPointIndicator when insertion point is after this section
+  - Updated video-editor.tsx to use ClipSectionItem component
+  - Removed unused ContextMenu component imports
+  - Removed unused icon imports (ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon, PlusIcon, Trash2Icon)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives callbacks as props for modal state management (onEditSection, onAddSectionBefore, onAddSectionAfter)
+  - Maintains all existing behavior including multi-select and play-from-section
+  - Encapsulates all section-specific UI logic in one place
+  - video-editor.tsx reduced from 674 to 561 lines (113 lines saved)
+  - Total reduction so far: 1,592 → 561 lines (1,031 lines saved / 65% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/clip-section-item.tsx (new file, 151 lines)
+  - app/features/video-editor/video-editor.tsx:1-21,441-479 (removed imports, added ClipSectionItem import and usage)
+

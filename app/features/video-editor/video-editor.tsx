@@ -1,11 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { formatSecondsToTimeCode } from "@/services/utils";
 import type {
   ClipSectionNamingModal,
@@ -15,23 +8,16 @@ import {
   InsertionPointIndicator,
   BeatIndicator,
 } from "./components/timeline-indicators";
-import { ClipSectionDivider } from "./components/clip-section-divider";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { ClipItem } from "./components/clip-item";
+import { ClipSectionItem } from "./components/clip-section-item";
 import { PreRecordingChecklist } from "./components/pre-recording-checklist";
 import { VideoPlayerPanel } from "./components/video-player-panel";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
   AlertTriangleIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PencilIcon,
-  PlusIcon,
   RefreshCwIcon,
-  Trash2Icon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFetcher } from "react-router";
@@ -454,139 +440,41 @@ export const VideoEditor = (props: {
                 // Render clip section divider
                 if (isClipSection(item)) {
                   return (
-                    <div key={item.frontendId}>
-                      <ContextMenu>
-                        <ContextMenuTrigger asChild>
-                          <ClipSectionDivider
-                            id={`section-${item.frontendId}`}
-                            name={item.name}
-                            isSelected={state.selectedClipsSet.has(
-                              item.frontendId
-                            )}
-                            onClick={(e) => {
-                              // If already selected and clicked again (without modifiers),
-                              // play from the next clip after this section
-                              if (
-                                !e.ctrlKey &&
-                                !e.shiftKey &&
-                                state.selectedClipsSet.has(item.frontendId) &&
-                                state.selectedClipsSet.size === 1
-                              ) {
-                                dispatch({
-                                  type: "play-from-clip-section",
-                                  clipSectionId: item.frontendId,
-                                });
-                                return;
-                              }
-                              dispatch({
-                                type: "click-clip",
-                                clipId: item.frontendId,
-                                ctrlKey: e.ctrlKey,
-                                shiftKey: e.shiftKey,
-                              });
-                            }}
-                          />
-                        </ContextMenuTrigger>
-                        <ContextMenuContent>
-                          <ContextMenuItem
-                            onSelect={() => {
-                              props.onSetInsertionPoint(
-                                "before",
-                                item.frontendId
-                              );
-                            }}
-                          >
-                            <ChevronLeftIcon />
-                            Insert Before
-                          </ContextMenuItem>
-                          <ContextMenuItem
-                            onSelect={() => {
-                              props.onSetInsertionPoint(
-                                "after",
-                                item.frontendId
-                              );
-                            }}
-                          >
-                            <ChevronRightIcon />
-                            Insert After
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            onSelect={() => {
-                              setClipSectionNamingModal({
-                                mode: "add-at",
-                                position: "before",
-                                itemId: item.frontendId,
-                                defaultName: generateDefaultClipSectionName(),
-                              });
-                            }}
-                          >
-                            <PlusIcon />
-                            Add Section Before
-                          </ContextMenuItem>
-                          <ContextMenuItem
-                            onSelect={() => {
-                              setClipSectionNamingModal({
-                                mode: "add-at",
-                                position: "after",
-                                itemId: item.frontendId,
-                                defaultName: generateDefaultClipSectionName(),
-                              });
-                            }}
-                          >
-                            <PlusIcon />
-                            Add Section After
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            onSelect={() => {
-                              setClipSectionNamingModal({
-                                mode: "edit",
-                                clipSectionId: item.frontendId,
-                                currentName: item.name,
-                              });
-                            }}
-                          >
-                            <PencilIcon />
-                            Edit
-                          </ContextMenuItem>
-                          <ContextMenuItem
-                            disabled={isFirstItem}
-                            onSelect={() => {
-                              props.onMoveClip(item.frontendId, "up");
-                            }}
-                          >
-                            <ArrowUpIcon />
-                            Move Up
-                          </ContextMenuItem>
-                          <ContextMenuItem
-                            disabled={isLastItem}
-                            onSelect={() => {
-                              props.onMoveClip(item.frontendId, "down");
-                            }}
-                          >
-                            <ArrowDownIcon />
-                            Move Down
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            variant="destructive"
-                            onSelect={() => {
-                              dispatch({
-                                type: "delete-clip",
-                                clipId: item.frontendId,
-                              });
-                            }}
-                          >
-                            <Trash2Icon />
-                            Delete
-                          </ContextMenuItem>
-                        </ContextMenuContent>
-                      </ContextMenu>
-                      {props.insertionPoint.type === "after-clip-section" &&
-                        props.insertionPoint.frontendClipSectionId ===
-                          item.frontendId && <InsertionPointIndicator />}
-                    </div>
+                    <ClipSectionItem
+                      key={item.frontendId}
+                      section={item}
+                      isFirstItem={isFirstItem}
+                      isLastItem={isLastItem}
+                      isSelected={state.selectedClipsSet.has(item.frontendId)}
+                      insertionPoint={props.insertionPoint}
+                      selectedClipsSet={state.selectedClipsSet}
+                      dispatch={dispatch}
+                      onSetInsertionPoint={props.onSetInsertionPoint}
+                      onMoveClip={props.onMoveClip}
+                      onEditSection={() => {
+                        setClipSectionNamingModal({
+                          mode: "edit",
+                          clipSectionId: item.frontendId,
+                          currentName: item.name,
+                        });
+                      }}
+                      onAddSectionBefore={() => {
+                        setClipSectionNamingModal({
+                          mode: "add-at",
+                          position: "before",
+                          itemId: item.frontendId,
+                          defaultName: generateDefaultClipSectionName(),
+                        });
+                      }}
+                      onAddSectionAfter={() => {
+                        setClipSectionNamingModal({
+                          mode: "add-at",
+                          position: "after",
+                          itemId: item.frontendId,
+                          defaultName: generateDefaultClipSectionName(),
+                        });
+                      }}
+                    />
                   );
                 }
 
