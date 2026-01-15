@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +41,7 @@ import {
 } from "./components/timeline-indicators";
 import { LiveMediaStream } from "./components/live-media-stream";
 import { ExportModal } from "./components/export-modal";
+import { TableOfContents } from "./components/table-of-contents";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -660,55 +660,32 @@ export const VideoEditor = (props: {
             </div>
 
             {/* Table of Contents */}
-            {(() => {
-              const clipSections = props.items.filter(isClipSection);
-              if (clipSections.length === 0) return null;
+            <TableOfContents
+              clipSections={props.items.filter(isClipSection)}
+              selectedClipsSet={state.selectedClipsSet}
+              onSectionClick={(sectionId, index) => {
+                // Select the section
+                dispatch({
+                  type: "click-clip",
+                  clipId: sectionId,
+                  ctrlKey: false,
+                  shiftKey: false,
+                });
 
-              return (
-                <div className="mt-6 border-t border-gray-700 pt-4">
-                  <h3 className="text-sm font-semibold text-gray-300 mb-3">
-                    Sections
-                  </h3>
-                  <ScrollArea className="h-[200px]">
-                    <div className="space-y-2 pr-4">
-                      {clipSections.map((section, index) => (
-                        <button
-                          key={section.frontendId}
-                          onClick={() => {
-                            // Select the section
-                            dispatch({
-                              type: "click-clip",
-                              clipId: section.frontendId,
-                              ctrlKey: false,
-                              shiftKey: false,
-                            });
-
-                            // Scroll to the section in the timeline after React finishes re-rendering
-                            // Use the index to find the section since IDs change on re-render
-                            requestAnimationFrame(() => {
-                              const allSections = document.querySelectorAll('[id^="section-"]');
-                              if (allSections[index]) {
-                                allSections[index].scrollIntoView({
-                                  behavior: "instant",
-                                  block: "center",
-                                });
-                              }
-                            });
-                          }}
-                          className={cn(
-                            "w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors",
-                            state.selectedClipsSet.has(section.frontendId) &&
-                              "bg-gray-700 font-medium"
-                          )}
-                        >
-                          {section.name}
-                        </button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-              );
-            })()}
+                // Scroll to the section in the timeline after React finishes re-rendering
+                // Use the index to find the section since IDs change on re-render
+                requestAnimationFrame(() => {
+                  const allSections =
+                    document.querySelectorAll('[id^="section-"]');
+                  if (allSections[index]) {
+                    allSections[index].scrollIntoView({
+                      behavior: "instant",
+                      block: "center",
+                    });
+                  }
+                });
+              }}
+            />
           </div>
         </div>
       </div>

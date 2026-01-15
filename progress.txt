@@ -602,3 +602,26 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/services/text-writing-agent.ts:164-257,335-336
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract TableOfContents component
+- Extracted TableOfContents component from video-editor.tsx into separate file
+- Component displays navigable list of clip sections in sidebar
+- Implementation details:
+  - Created app/features/video-editor/components/table-of-contents.tsx with TableOfContents component
+  - Component renders scrollable list of sections with selection highlighting
+  - Clicking a section selects it and scrolls timeline to that section
+  - Uses requestAnimationFrame for scroll timing after React re-render
+  - Removed unused ScrollArea import from video-editor.tsx
+  - Updated video-editor.tsx to import and use TableOfContents component
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives clipSections array, selectedClipsSet, and onSectionClick callback
+  - Callback handles both state dispatch and DOM scrolling logic
+  - Returns null when no sections exist (same as before)
+  - Maintains all existing behavior and visual styling
+  - video-editor.tsx reduced from 1,308 to 1,285 lines (23 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/table-of-contents.tsx (new file, 47 lines)
+  - app/features/video-editor/video-editor.tsx:24,45,663-689 (added import, removed ScrollArea import, replaced inline implementation with component)
