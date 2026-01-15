@@ -376,3 +376,40 @@
   - Task 4: Implement smart sequential filename generation
   - Task 5: Add image preview functionality
   - Task 6: Update create API to handle base64 image data
+
+### Task 2 & 3: Implement clipboard paste detection and content type detection
+- Created new StandaloneFilePasteModal component for dedicated paste workflow
+- Implementation details:
+  - Modal shows focusable paste area with visual prompt
+  - onPaste handler captures clipboard events
+  - Detects images from clipboard via DataTransferItemList
+  - Falls back to plain text if no image found
+  - Converts image blobs to base64 data URLs via FileReader
+  - Stores pasted content in state with type discrimination ("text" | "image")
+  - Shows preview of pasted content (text shown in pre, images show placeholder for now)
+  - Auto-focuses paste area when modal opens
+  - "Clear and paste again" button allows retry
+  - Filename input required before submission
+  - Form submission via useFetcher to /api/standalone-files/create
+- Integrated into videos.$videoId.write.tsx:
+  - Added isPasteModalOpen state
+  - Modified handleAddFile to route "paste" mode to new modal
+  - Added handlePasteModalClose with revalidation
+  - Rendered StandaloneFilePasteModal alongside other modals
+- Key decisions:
+  - Separate modal component for paste workflow (cleaner than mode switching)
+  - Paste area is focusable div with tabIndex={0} for accessibility
+  - Type detection happens in order: images first, then text fallback
+  - Base64 encoding for images (API integration pending)
+  - Uses same form submission pattern as existing modals
+  - Placeholders for text/image filenames (smart generation coming in next task)
+- Files changed:
+  - app/components/standalone-file-paste-modal.tsx (new component)
+  - app/routes/videos.$videoId.write.tsx (integrated paste modal)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 4: Implement smart sequential filename generation
+  - Task 5: Add image preview functionality
+  - Task 6: Update create API to handle base64 image data

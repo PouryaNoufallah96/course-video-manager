@@ -73,6 +73,7 @@ import { FileSystem } from "@effect/platform";
 import { FileTree } from "@/components/FileTree";
 import { StandaloneFileTree } from "@/components/StandaloneFileTree";
 import { StandaloneFileManagementModal } from "@/components/standalone-file-management-modal";
+import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-modal";
 import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
@@ -441,6 +442,7 @@ export function InnerComponent(props: Route.ComponentProps) {
   const [fileUploadMode, setFileUploadMode] = useState<"text" | "file">("file");
   const [selectedFilename, setSelectedFilename] = useState<string>("");
   const [selectedFileContent, setSelectedFileContent] = useState<string>("");
+  const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<string>("");
 
@@ -497,11 +499,15 @@ export function InnerComponent(props: Route.ComponentProps) {
   };
 
   const handleAddFile = (mode: "text" | "file" | "paste") => {
-    setFileModalMode("create");
-    setSelectedFilename("");
-    setSelectedFileContent("");
-    setFileUploadMode(mode === "paste" ? "text" : mode);
-    setIsFileModalOpen(true);
+    if (mode === "paste") {
+      setIsPasteModalOpen(true);
+    } else {
+      setFileModalMode("create");
+      setSelectedFilename("");
+      setSelectedFileContent("");
+      setFileUploadMode(mode);
+      setIsFileModalOpen(true);
+    }
   };
 
   const handleEditFile = async (filename: string) => {
@@ -530,6 +536,14 @@ export function InnerComponent(props: Route.ComponentProps) {
 
   const handleFileModalClose = (open: boolean) => {
     setIsFileModalOpen(open);
+    if (!open) {
+      // Revalidate to refresh the file list
+      revalidator.revalidate();
+    }
+  };
+
+  const handlePasteModalClose = (open: boolean) => {
+    setIsPasteModalOpen(open);
     if (!open) {
       // Revalidate to refresh the file list
       revalidator.revalidate();
@@ -1066,6 +1080,11 @@ export function InnerComponent(props: Route.ComponentProps) {
             content={selectedFileContent}
             open={isFileModalOpen}
             onOpenChange={handleFileModalClose}
+          />
+          <StandaloneFilePasteModal
+            videoId={videoId}
+            open={isPasteModalOpen}
+            onOpenChange={handlePasteModalClose}
           />
           <DeleteStandaloneFileModal
             videoId={videoId}
