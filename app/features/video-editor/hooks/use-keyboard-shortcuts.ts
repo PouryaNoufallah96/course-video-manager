@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useContextSelector } from "use-context-selector";
-import { VideoStateContext } from "../video-state-context";
+import type { videoStateReducer } from "../video-state-reducer";
 
 /**
  * Hook that handles keyboard shortcuts for the video editor.
@@ -19,8 +18,9 @@ import { VideoStateContext } from "../video-state-context";
  * Ignores keyboard events when focus is on input fields, textareas,
  * or buttons (unless they have the "allow-keydown" class).
  */
-export function useKeyboardShortcuts() {
-  const dispatch = useContextSelector(VideoStateContext, (v) => v!.dispatch);
+export function useKeyboardShortcuts(
+  dispatch: (action: videoStateReducer.Action) => void
+) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
