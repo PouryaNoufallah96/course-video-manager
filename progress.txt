@@ -545,3 +545,37 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #82 is complete - lesson videos now have clipboard paste functionality
+
+## Issue #84 - File Preview Modal (Task 1 of 7)
+### Task 1: Create FilePreviewModal component and integrate with file trees
+- Implemented file preview modal for both lesson and standalone videos
+- Implementation details:
+  - Created FilePreviewModal component with text/image/binary support
+  - Detects file type based on extension (text, image, or binary)
+  - Text files: displays in monospace pre tag with word wrap
+  - Images: displays with max size constraints and proper scaling
+  - Binary files: shows "cannot be previewed" message
+  - Created API route api.lesson-files.read.ts for reading lesson files
+  - Reused existing api.standalone-files.read.ts for standalone files
+  - Updated FileTree component to add onFileClick prop
+  - File names now clickable buttons with hover underline
+  - Updated StandaloneFileTree component to add onFileClick prop
+  - Integrated modal into videos.$videoId.write.tsx with handlers
+- Key decisions:
+  - Single modal component works for both lesson and standalone videos
+  - File type detection based on comprehensive extension list
+  - Image URLs properly cleaned up to prevent memory leaks
+  - Modal uses large width (sm:max-w-4xl) for comfortable viewing
+  - Text files limited to 600px height with scrolling
+  - Clickable file names styled as buttons for accessibility
+- Files changed:
+  - app/components/file-preview-modal.tsx (new component)
+  - app/routes/api.lesson-files.read.ts (new API route)
+  - app/components/FileTree.tsx (added onFileClick prop)
+  - app/components/StandaloneFileTree.tsx (added onFileClick prop)
+  - app/routes/videos.$videoId.write.tsx (integrated modal)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 1 is complete - users can now click file names to preview content

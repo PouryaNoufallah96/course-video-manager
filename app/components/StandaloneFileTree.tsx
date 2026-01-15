@@ -20,6 +20,7 @@ export function StandaloneFileTree(props: {
   onEnabledFilesChange: (enabledFiles: Set<string>) => void;
   onEditFile: (filename: string) => void;
   onDeleteFile: (filename: string) => void;
+  onFileClick?: (filename: string) => void;
 }) {
   // Sort files alphabetically
   const sortedFiles = [...props.files].sort((a, b) =>
@@ -60,9 +61,12 @@ export function StandaloneFileTree(props: {
                 handleToggle(file.path, !!checked);
               }}
             />
-            <span className="text-sm flex-1 truncate font-mono">
+            <button
+              className="text-sm flex-1 truncate font-mono text-left hover:underline cursor-pointer"
+              onClick={() => props.onFileClick?.(file.path)}
+            >
               {file.path}
-            </span>
+            </button>
             <span className="text-xs text-muted-foreground shrink-0">
               {formatFileSize(file.size)}
             </span>

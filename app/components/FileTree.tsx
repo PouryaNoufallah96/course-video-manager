@@ -99,6 +99,7 @@ type FileTreeNodeProps = {
   node: TreeNode;
   enabledFiles: Set<string>;
   onToggle: (paths: string[], enabled: boolean) => void;
+  onFileClick?: (filePath: string) => void;
   depth: number;
 };
 
@@ -106,6 +107,7 @@ const FileTreeNode = ({
   node,
   enabledFiles,
   onToggle,
+  onFileClick,
   depth,
 }: FileTreeNodeProps) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -124,7 +126,12 @@ const FileTreeNode = ({
             onToggle([node.path], !!checked);
           }}
         />
-        <span className="text-sm flex-1 min-w-0 truncate">{node.name}</span>
+        <button
+          className="text-sm flex-1 min-w-0 truncate text-left hover:underline cursor-pointer"
+          onClick={() => onFileClick?.(node.path)}
+        >
+          {node.name}
+        </button>
         {node.size !== undefined && (
           <span className="text-xs text-muted-foreground flex-shrink-0">
             ({formatFileSize(node.size)})
@@ -174,6 +181,7 @@ const FileTreeNode = ({
             node={child}
             enabledFiles={enabledFiles}
             onToggle={onToggle}
+            onFileClick={onFileClick}
             depth={depth + 1}
           />
         ))}
@@ -186,12 +194,14 @@ type FileTreeProps = {
   files: FileMetadata[];
   enabledFiles: Set<string>;
   onEnabledFilesChange: (enabledFiles: Set<string>) => void;
+  onFileClick?: (filePath: string) => void;
 };
 
 export const FileTree = ({
   files,
   enabledFiles,
   onEnabledFilesChange,
+  onFileClick,
 }: FileTreeProps) => {
   const tree = buildTree(files);
 
@@ -218,6 +228,7 @@ export const FileTree = ({
           node={node}
           enabledFiles={enabledFiles}
           onToggle={handleToggle}
+          onFileClick={onFileClick}
           depth={0}
         />
       ))}

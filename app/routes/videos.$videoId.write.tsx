@@ -76,6 +76,7 @@ import { StandaloneFileManagementModal } from "@/components/standalone-file-mana
 import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-modal";
 import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
 import { LessonFilePasteModal } from "@/components/lesson-file-paste-modal";
+import { FilePreviewModal } from "@/components/file-preview-modal";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
@@ -446,6 +447,10 @@ export function InnerComponent(props: Route.ComponentProps) {
   // Lesson file paste modal state
   const [isLessonPasteModalOpen, setIsLessonPasteModalOpen] = useState(false);
 
+  // File preview modal state
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewFilePath, setPreviewFilePath] = useState<string>("");
+
   // Get last assistant message
   const lastAssistantMessage = messages
     .slice()
@@ -549,6 +554,18 @@ export function InnerComponent(props: Route.ComponentProps) {
     if (!open) {
       // Revalidate to refresh the file list
       revalidator.revalidate();
+    }
+  };
+
+  const handleFileClick = (filePath: string) => {
+    setPreviewFilePath(filePath);
+    setIsPreviewModalOpen(true);
+  };
+
+  const handlePreviewModalClose = (open: boolean) => {
+    setIsPreviewModalOpen(open);
+    if (!open) {
+      setPreviewFilePath("");
     }
   };
 
@@ -713,6 +730,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                 files={files}
                 enabledFiles={enabledFiles}
                 onEnabledFilesChange={setEnabledFiles}
+                onFileClick={handleFileClick}
               />
             </div>
           )}
@@ -761,6 +779,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                 onEnabledFilesChange={setEnabledFiles}
                 onEditFile={handleEditFile}
                 onDeleteFile={handleDeleteFile}
+                onFileClick={handleFileClick}
               />
             </div>
           )}
@@ -1076,6 +1095,14 @@ export function InnerComponent(props: Route.ComponentProps) {
           existingFiles={files}
         />
       )}
+      {/* File preview modal */}
+      <FilePreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => handlePreviewModalClose(false)}
+        videoId={videoId}
+        filePath={previewFilePath}
+        isStandalone={isStandalone}
+      />
     </div>
   );
 }
