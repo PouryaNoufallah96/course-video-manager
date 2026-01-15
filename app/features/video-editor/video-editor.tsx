@@ -9,6 +9,7 @@ import { ClipTimeline } from "./components/clip-timeline";
 import { ErrorOverlay } from "./components/error-overlay";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
+import { useClipboardOperations } from "./hooks/use-clipboard-operations";
 import { useMemo, useState } from "react";
 import { useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
@@ -23,7 +24,6 @@ import type {
 import {
   calculateTextSimilarity,
   isClip,
-  isClipSection,
 } from "./clip-utils";
 import { type OBSConnectionState } from "./obs-connector";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
@@ -134,7 +134,6 @@ export const VideoEditor = (props: {
   const exportVideoClipsFetcher = useFetcher();
   const exportToDavinciResolveFetcher = useFetcher();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
 
   // State for clip section naming modal
@@ -153,79 +152,14 @@ export const VideoEditor = (props: {
     generateDefaultClipSectionName,
   });
 
-  const copyTranscriptToClipboard = async () => {
-    try {
-      // Build transcript with clip sections as markdown headers
-      const parts: string[] = [];
-      let currentParagraph: string[] = [];
-
-      for (const item of props.items) {
-        if (isClipSection(item)) {
-          // Flush current paragraph before starting a new section
-          if (currentParagraph.length > 0) {
-            parts.push(currentParagraph.join(" "));
-            currentParagraph = [];
-          }
-          // Add section as H2 header
-          parts.push(`## ${item.name}`);
-        } else if (isClip(item) && item.type === "on-database" && item.text) {
-          currentParagraph.push(item.text);
-        }
-      }
-
-      // Flush remaining paragraph
-      if (currentParagraph.length > 0) {
-        parts.push(currentParagraph.join(" "));
-      }
-
-      // Join sections with double newlines
-      const transcript = parts.join("\n\n");
-
-      await navigator.clipboard.writeText(transcript);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy transcript to clipboard:", error);
-    }
-  };
-
-  // Generate YouTube chapters from clip sections
-  // Format: "0:00 Section Name" for each clip section
-  const youtubeChapters = useMemo(() => {
-    const chapters: { timestamp: string; name: string }[] = [];
-    let cumulativeDuration = 0;
-
-    for (const item of props.items) {
-      if (isClipSection(item)) {
-        // Record the timestamp at the start of this clip section
-        chapters.push({
-          timestamp: formatSecondsToTimeCode(cumulativeDuration),
-          name: item.name,
-        });
-      } else if (isClip(item) && item.type === "on-database") {
-        // Add the clip's duration to cumulative total
-        cumulativeDuration += item.sourceEndTime - item.sourceStartTime;
-      }
-    }
-
-    return chapters;
-  }, [props.items]);
-
-  const [isChaptersCopied, setIsChaptersCopied] = useState(false);
-
-  const copyYoutubeChaptersToClipboard = async () => {
-    try {
-      const chaptersText = youtubeChapters
-        .map((chapter) => `${chapter.timestamp} ${chapter.name}`)
-        .join("\n");
-
-      await navigator.clipboard.writeText(chaptersText);
-      setIsChaptersCopied(true);
-      setTimeout(() => setIsChaptersCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy YouTube chapters to clipboard:", error);
-    }
-  };
+  // Clipboard operations for transcript and YouTube chapters
+  const {
+    copyTranscriptToClipboard,
+    copyYoutubeChaptersToClipboard,
+    isCopied,
+    isChaptersCopied,
+    youtubeChapters,
+  } = useClipboardOperations(props.items);
 
   const totalDuration = clips.reduce((acc, clip) => {
     if (clip.type === "on-database") {

@@ -874,3 +874,26 @@
   - app/features/video-editor/components/error-overlay.tsx (new file, 48 lines)
   - app/features/video-editor/video-editor.tsx:1-14,295-327 (removed imports, replaced error overlay with component)
 
+## Issue #64 - Progressive Disclosure Refactor - Phase 3: Extract clipboard operations hook
+- Extracted clipboard operations from video-editor.tsx into custom hook
+- Hook manages transcript and YouTube chapters clipboard functionality
+- Implementation details:
+  - Created `app/features/video-editor/hooks/use-clipboard-operations.ts` with useClipboardOperations hook
+  - Hook provides copyTranscriptToClipboard and copyYoutubeChaptersToClipboard functions
+  - Manages isCopied and isChaptersCopied state for user feedback
+  - Computes youtubeChapters memoized array from items
+  - Removed ~90 lines of clipboard-related code from video-editor.tsx
+  - Removed unused isClipSection import from video-editor.tsx
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Single hook encapsulates all clipboard-related functionality
+  - State management moved to hook for cleaner component code
+  - Maintains all existing behavior including 2-second feedback timeout
+  - video-editor.tsx reduced from 449 to 382 lines (67 lines saved)
+  - Total reduction so far: 1,592 → 382 lines (1,210 lines saved / 76% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/hooks/use-clipboard-operations.ts (new file, 95 lines)
+  - app/features/video-editor/video-editor.tsx:10-12,134-163 (added import, replaced inline code with hook usage)
+
