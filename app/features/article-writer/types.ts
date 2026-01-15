@@ -22,7 +22,8 @@ export type Mode =
   | "seo-description"
   | "youtube-title"
   | "youtube-thumbnail"
-  | "youtube-description";
+  | "youtube-description"
+  | "newsletter";
 
 /**
  * AI model selection for article generation.

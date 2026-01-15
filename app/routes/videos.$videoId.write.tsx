@@ -64,6 +64,7 @@ import {
   ImageIcon,
   AlignLeftIcon,
   ClipboardIcon,
+  MailIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -343,6 +344,7 @@ const modeToLabel: Record<Mode, string> = {
   "youtube-title": "YouTube Title",
   "youtube-thumbnail": "YouTube Thumbnail",
   "youtube-description": "YouTube Description",
+  newsletter: "Newsletter",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -930,6 +932,18 @@ export function InnerComponent(props: Route.ComponentProps) {
                           <div>YouTube Description</div>
                           <div className="text-xs text-muted-foreground">
                             Generate YouTube video description with timestamps
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="newsletter">
+                      <div className="flex items-start gap-2">
+                        <MailIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Newsletter</div>
+                          <div className="text-xs text-muted-foreground">
+                            Generate friendly newsletter preview for AI Hero
+                            audience
                           </div>
                         </div>
                       </div>

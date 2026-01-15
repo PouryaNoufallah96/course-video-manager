@@ -7,6 +7,7 @@ import { generateSeoDescriptionPrompt } from "@/prompts/generate-seo-description
 import { generateYoutubeTitlePrompt } from "@/prompts/generate-youtube-title";
 import { generateYoutubeThumbnailPrompt } from "@/prompts/generate-youtube-thumbnail";
 import { generateYoutubeDescriptionPrompt } from "@/prompts/generate-youtube-description";
+import { generateNewsletterPrompt } from "@/prompts/generate-newsletter";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -32,7 +33,8 @@ export type TextWritingAgentMode =
   | "seo-description"
   | "youtube-title"
   | "youtube-thumbnail"
-  | "youtube-description";
+  | "youtube-description"
+  | "newsletter";
 
 export type TextWritingAgentCodeFile = {
   path: string;
@@ -103,6 +105,12 @@ export const createTextWritingAgent = (props: {
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
           youtubeChapters: props.youtubeChapters || [],
+        });
+      case "newsletter":
+        return generateNewsletterPrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
         });
       case "article":
       default:

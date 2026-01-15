@@ -579,3 +579,35 @@
   - TypeScript type checking passes
 - Next steps:
   - Task 1 is complete - users can now click file names to preview content
+
+
+## Issue #83 - Newsletter Mode
+- Added newsletter writing mode to the article writer
+- Implementation details:
+  - Added "newsletter" to Mode type in app/features/article-writer/types.ts
+  - Added "newsletter" to TextWritingAgentMode type in app/services/text-writing-agent.ts
+  - Created app/prompts/generate-newsletter.ts with newsletter-specific prompt
+    - Friendly, informal style (but not stupid)
+    - Short preview/teaser format (a few paragraphs at most)
+    - Designed for AI Hero audience
+    - Teases key insights without giving everything away
+    - Supports images (especially diagrams)
+    - Signs off with "Matt"
+  - Added newsletter case to createTextWritingAgent switch statement
+  - Added "newsletter" to modeToLabel mapping in UI
+  - Added newsletter SelectItem with MailIcon and description to mode selector dropdown
+- Key decisions:
+  - Newsletter mode follows existing mode pattern (no architectural changes needed)
+  - Reuses existing image instructions functionality
+  - Focus on enticing readers to read the full article
+  - Conversational and engaging tone per user requirements
+- Files changed:
+  - app/features/article-writer/types.ts (added newsletter to Mode type)
+  - app/services/text-writing-agent.ts (added newsletter to TextWritingAgentMode, import, and switch case)
+  - app/prompts/generate-newsletter.ts (new prompt file)
+  - app/routes/videos.$videoId.write.tsx (added newsletter to modeToLabel, added MailIcon import, added SelectItem)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #83 is complete - newsletter mode is now available in the mode selector
