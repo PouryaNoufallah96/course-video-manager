@@ -863,7 +863,7 @@ export const VideoEditor = (props: {
                               const allSections = document.querySelectorAll('[id^="section-"]');
                               if (allSections[index]) {
                                 allSections[index].scrollIntoView({
-                                  behavior: "smooth",
+                                  behavior: "instant",
                                   block: "center",
                                 });
                               }

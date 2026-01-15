@@ -43,19 +43,23 @@ export const loader = async (args: Route.LoaderArgs) => {
       : false;
 
     // Combine clips and clipSections into a unified items array, sorted by order
-    const clipItems: Array<{ type: "clip"; order: string; data: DB.Clip }> =
-      (video.clips as DB.Clip[]).map((clip) => ({
-        type: "clip" as const,
-        order: clip.order,
-        data: clip,
-      }));
+    const clipItems: Array<{ type: "clip"; order: string; data: DB.Clip }> = (
+      video.clips as DB.Clip[]
+    ).map((clip) => ({
+      type: "clip" as const,
+      order: clip.order,
+      data: clip,
+    }));
 
-    const clipSectionItems: Array<{ type: "clip-section"; order: string; data: DB.ClipSection }> =
-      (video.clipSections as DB.ClipSection[]).map((clipSection) => ({
-        type: "clip-section" as const,
-        order: clipSection.order,
-        data: clipSection,
-      }));
+    const clipSectionItems: Array<{
+      type: "clip-section";
+      order: string;
+      data: DB.ClipSection;
+    }> = (video.clipSections as DB.ClipSection[]).map((clipSection) => ({
+      type: "clip-section" as const,
+      order: clipSection.order,
+      data: clipSection,
+    }));
 
     // Sort using ASCII ordering to match PostgreSQL COLLATE "C" behavior.
     // fractional-indexing generates keys like "Zz" to sort before "a0",
@@ -135,7 +139,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "archive-clips",
-              message: error instanceof Error ? error.message : "Failed to archive clips",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to archive clips",
             });
           });
       },
@@ -163,7 +170,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "transcribe-clips",
-              message: error instanceof Error ? error.message : "Failed to transcribe clips",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to transcribe clips",
             });
           });
       },
@@ -188,7 +198,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "update-clips",
-              message: error instanceof Error ? error.message : "Failed to update clips",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to update clips",
             });
           });
       },
@@ -209,7 +222,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "update-beat",
-              message: error instanceof Error ? error.message : "Failed to update beat",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to update beat",
             });
           });
       },
@@ -230,7 +246,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "reorder-clip",
-              message: error instanceof Error ? error.message : "Failed to reorder clip",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to reorder clip",
             });
           });
       },
@@ -251,7 +270,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "reorder-clip-section",
-              message: error instanceof Error ? error.message : "Failed to reorder clip section",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to reorder clip section",
             });
           });
       },
@@ -269,7 +291,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "archive-clip-sections",
-              message: error instanceof Error ? error.message : "Failed to archive clip sections",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to archive clip sections",
             });
           });
       },
@@ -296,7 +321,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "create-clip-section",
-              message: error instanceof Error ? error.message : "Failed to create clip section",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to create clip section",
             });
           });
       },
@@ -317,7 +345,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "update-clip-section",
-              message: error instanceof Error ? error.message : "Failed to update clip section",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to update clip section",
             });
           });
       },
@@ -341,7 +372,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "create-clip-section-at",
-              message: error instanceof Error ? error.message : "Failed to create clip section at position",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to create clip section at position",
             });
           });
       },
@@ -360,7 +394,12 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
     onNewClipOptimisticallyAdded: ({ scene, profile, soundDetectionId }) => {
-      dispatch({ type: "new-optimistic-clip-detected", scene, profile, soundDetectionId });
+      dispatch({
+        type: "new-optimistic-clip-detected",
+        scene,
+        profile,
+        soundDetectionId,
+      });
     },
   });
 
@@ -402,7 +441,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             dispatch({
               type: "effect-failed",
               effectType: "transcribe-clips",
-              message: error instanceof Error ? error.message : "Failed to transcribe clips",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to transcribe clips",
             });
           });
       }}
@@ -440,7 +482,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         if (item.type === "optimistically-added" && item.shouldArchive) {
           return false;
         }
-        if (item.type === "clip-section-optimistically-added" && item.shouldArchive) {
+        if (
+          item.type === "clip-section-optimistically-added" &&
+          item.shouldArchive
+        ) {
           return false;
         }
         return true;
