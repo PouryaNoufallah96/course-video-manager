@@ -6,8 +6,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
-import type { Clip, FrontendId } from "../clip-state-reducer";
-import type { videoStateReducer } from "../video-state-reducer";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -20,6 +18,10 @@ import {
   RefreshCwIcon,
   Trash2Icon,
 } from "lucide-react";
+import { use } from "react";
+import type { Clip, FrontendId } from "../clip-state-reducer";
+import { VideoEditorContext } from "../video-editor-context";
+import type { videoStateReducer } from "../video-state-reducer";
 
 const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
 
@@ -32,7 +34,6 @@ export type ClipItemProps = {
   isLastItem: boolean;
   isSelected: boolean;
   isCurrentClip: boolean;
-  currentTimeInClip: number;
   timecode: string;
   nextLevenshtein: number;
   clipIdsBeingTranscribed: Set<FrontendId>;
@@ -54,7 +55,6 @@ export const ClipItem = (props: ClipItemProps) => {
     isLastItem,
     isSelected,
     isCurrentClip,
-    currentTimeInClip,
     timecode,
     nextLevenshtein,
     clipIdsBeingTranscribed,
@@ -70,6 +70,8 @@ export const ClipItem = (props: ClipItemProps) => {
     clip.type === "on-database"
       ? clip.sourceEndTime - clip.sourceStartTime
       : null;
+
+  const currentTimeInClip = use(VideoEditorContext).currentTimeInClip;
 
   const percentComplete = duration ? currentTimeInClip / duration : 0;
 

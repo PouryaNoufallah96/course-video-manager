@@ -7,7 +7,7 @@ import { ErrorOverlay } from "./components/error-overlay";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import { useClipboardOperations } from "./hooks/use-clipboard-operations";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
@@ -19,15 +19,71 @@ import type {
   TimelineItem,
 } from "./clip-state-reducer";
 import { calculateTextSimilarity, isClip } from "./clip-utils";
-import { type OBSConnectionState } from "./obs-connector";
+import { type OBSConnectionOuterState } from "./obs-connector";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import {
   makeVideoEditorReducer,
   type videoStateReducer,
 } from "./video-state-reducer";
+import { VideoEditorContext } from "./video-editor-context";
+
+const useVideoEditor = (props: {
+  items: TimelineItem[];
+  clips: Clip[];
+  insertionPoint: FrontendInsertionPoint;
+  onClipsRemoved: (clipIds: FrontendId[]) => void;
+  onClipsRetranscribe: (clipIds: FrontendId[]) => void;
+  onToggleBeatForClip: (clipId: FrontendId) => void;
+  onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
+  onAddClipSection: (name: string) => void;
+  onUpdateClipSection: (clipSectionId: FrontendId, name: string) => void;
+}) => {
+  const [state, dispatch] = useEffectReducer<
+    videoStateReducer.State,
+    videoStateReducer.Action,
+    videoStateReducer.Effect
+  >(
+    makeVideoEditorReducer(
+      props.items.map((item) => item.frontendId),
+      props.clips.map((clip) => clip.frontendId)
+    ),
+    {
+      showLastFrameOfVideo: true,
+      runningState: "paused",
+      currentClipId: props.clips[0]?.frontendId,
+      currentTimeInClip: 0,
+      selectedClipsSet: new Set<FrontendId>(),
+      clipIdsPreloaded: new Set<FrontendId>(
+        [props.clips[0]?.frontendId, props.clips[1]?.frontendId].filter(
+          (id) => id !== undefined
+        )
+      ),
+      playbackRate: 1,
+    },
+    {
+      "archive-clips": (_state, effect, _dispatch) => {
+        props.onClipsRemoved(effect.clipIds);
+      },
+      "retranscribe-clips": (_state, effect, _dispatch) => {
+        props.onClipsRetranscribe(effect.clipIds);
+      },
+      "toggle-beat-for-clip": (_state, effect, _dispatch) => {
+        props.onToggleBeatForClip(effect.clipId);
+      },
+      "move-clip": (_state, effect, _dispatch) => {
+        props.onMoveClip(effect.clipId, effect.direction);
+      },
+    }
+  );
+
+  return {
+    state,
+    dispatch,
+  };
+};
 
 export const VideoEditor = (props: {
-  obsConnectorState: OBSConnectionState;
+  obsConnectorState: OBSConnectionOuterState;
   items: TimelineItem[];
   videoPath: string;
   lessonPath?: string;
@@ -71,43 +127,17 @@ export const VideoEditor = (props: {
     return `Section ${existingClipSectionCount + 1}`;
   };
 
-  const [state, dispatch] = useEffectReducer<
-    videoStateReducer.State,
-    videoStateReducer.Action,
-    videoStateReducer.Effect
-  >(
-    makeVideoEditorReducer(
-      props.items.map((item) => item.frontendId),
-      clips.map((clip) => clip.frontendId)
-    ),
-    {
-      showLastFrameOfVideo: true,
-      runningState: "paused",
-      currentClipId: clips[0]?.frontendId,
-      currentTimeInClip: 0,
-      selectedClipsSet: new Set<FrontendId>(),
-      clipIdsPreloaded: new Set<FrontendId>(
-        [clips[0]?.frontendId, clips[1]?.frontendId].filter(
-          (id) => id !== undefined
-        )
-      ),
-      playbackRate: 1,
-    },
-    {
-      "archive-clips": (_state, effect, _dispatch) => {
-        props.onClipsRemoved(effect.clipIds);
-      },
-      "retranscribe-clips": (_state, effect, _dispatch) => {
-        props.onClipsRetranscribe(effect.clipIds);
-      },
-      "toggle-beat-for-clip": (_state, effect, _dispatch) => {
-        props.onToggleBeatForClip(effect.clipId);
-      },
-      "move-clip": (_state, effect, _dispatch) => {
-        props.onMoveClip(effect.clipId, effect.direction);
-      },
-    }
-  );
+  const { state, dispatch } = useVideoEditor({
+    items: props.items,
+    clips: clips,
+    insertionPoint: props.insertionPoint,
+    onClipsRemoved: props.onClipsRemoved,
+    onClipsRetranscribe: props.onClipsRetranscribe,
+    onToggleBeatForClip: props.onToggleBeatForClip,
+    onMoveClip: props.onMoveClip,
+    onAddClipSection: props.onAddClipSection,
+    onUpdateClipSection: props.onUpdateClipSection,
+  });
 
   const currentClipIndex = clips.findIndex(
     (clip) => clip.frontendId === state.currentClipId
@@ -230,124 +260,126 @@ export const VideoEditor = (props: {
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
-      <VideoPlayerPanel
-        videoPath={props.videoPath}
-        videoId={props.videoId}
-        repoName={props.repoName}
-        lessonPath={props.lessonPath}
-        repoId={props.repoId}
-        lessonId={props.lessonId}
-        totalDuration={totalDuration}
-        areAnyClipsDangerous={areAnyClipsDangerous}
-        items={props.items}
-        clips={clips}
-        viewMode={viewMode}
-        databaseClipToShowLastFrameOf={databaseClipToShowLastFrameOf}
-        clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-        runningState={state.runningState}
-        currentClipId={currentClipId}
-        currentClipProfile={currentClip?.profile ?? undefined}
-        currentTimeInClip={state.currentTimeInClip}
-        selectedClipsSet={state.selectedClipsSet}
-        clipIdsPreloaded={state.clipIdsPreloaded}
-        playbackRate={state.playbackRate}
-        obsConnectorState={props.obsConnectorState}
-        liveMediaStream={props.liveMediaStream}
-        speechDetectorState={props.speechDetectorState}
-        allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
-        allClipsHaveText={allClipsHaveText}
-        exportVideoClipsFetcher={exportVideoClipsFetcher}
-        exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
-        isExportModalOpen={isExportModalOpen}
-        setIsExportModalOpen={setIsExportModalOpen}
-        isCopied={isCopied}
-        copyTranscriptToClipboard={copyTranscriptToClipboard}
-        youtubeChapters={youtubeChapters}
-        isChaptersCopied={isChaptersCopied}
-        copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
-        isAddVideoModalOpen={isAddVideoModalOpen}
-        setIsAddVideoModalOpen={setIsAddVideoModalOpen}
-        hasExplainerFolder={props.hasExplainerFolder}
-        videoCount={props.videoCount}
-        dispatch={dispatch}
-        onClipFinished={() => {
-          dispatch({ type: "clip-finished" });
-        }}
-        onUpdateCurrentTime={(time) => {
-          dispatch({ type: "update-clip-current-time", time });
-        }}
-        onSectionClick={(sectionId, index) => {
-          // Select the section
-          dispatch({
-            type: "click-clip",
-            clipId: sectionId,
-            ctrlKey: false,
-            shiftKey: false,
-          });
+      <VideoEditorContext.Provider
+        value={{ currentTimeInClip: state.currentTimeInClip }}
+      >
+        <VideoPlayerPanel
+          videoPath={props.videoPath}
+          videoId={props.videoId}
+          repoName={props.repoName}
+          lessonPath={props.lessonPath}
+          repoId={props.repoId}
+          lessonId={props.lessonId}
+          totalDuration={totalDuration}
+          areAnyClipsDangerous={areAnyClipsDangerous}
+          items={props.items}
+          clips={clips}
+          viewMode={viewMode}
+          databaseClipToShowLastFrameOf={databaseClipToShowLastFrameOf}
+          clipsToAggressivelyPreload={clipsToAggressivelyPreload}
+          runningState={state.runningState}
+          currentClipId={currentClipId}
+          currentClipProfile={currentClip?.profile ?? undefined}
+          selectedClipsSet={state.selectedClipsSet}
+          clipIdsPreloaded={state.clipIdsPreloaded}
+          playbackRate={state.playbackRate}
+          obsConnectorState={props.obsConnectorState}
+          liveMediaStream={props.liveMediaStream}
+          speechDetectorState={props.speechDetectorState}
+          allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
+          allClipsHaveText={allClipsHaveText}
+          exportVideoClipsFetcher={exportVideoClipsFetcher}
+          exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
+          isExportModalOpen={isExportModalOpen}
+          setIsExportModalOpen={setIsExportModalOpen}
+          isCopied={isCopied}
+          copyTranscriptToClipboard={copyTranscriptToClipboard}
+          youtubeChapters={youtubeChapters}
+          isChaptersCopied={isChaptersCopied}
+          copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
+          isAddVideoModalOpen={isAddVideoModalOpen}
+          setIsAddVideoModalOpen={setIsAddVideoModalOpen}
+          hasExplainerFolder={props.hasExplainerFolder}
+          videoCount={props.videoCount}
+          dispatch={dispatch}
+          onClipFinished={() => {
+            dispatch({ type: "clip-finished" });
+          }}
+          onUpdateCurrentTime={(time) => {
+            dispatch({ type: "update-clip-current-time", time });
+          }}
+          onSectionClick={(sectionId, index) => {
+            // Select the section
+            dispatch({
+              type: "click-clip",
+              clipId: sectionId,
+              ctrlKey: false,
+              shiftKey: false,
+            });
 
-          // Scroll to the section in the timeline after React finishes re-rendering
-          // Use the index to find the section since IDs change on re-render
-          requestAnimationFrame(() => {
-            const allSections = document.querySelectorAll('[id^="section-"]');
-            if (allSections[index]) {
-              allSections[index].scrollIntoView({
-                behavior: "instant",
-                block: "center",
-              });
-            }
-          });
-        }}
-      />
+            // Scroll to the section in the timeline after React finishes re-rendering
+            // Use the index to find the section since IDs change on re-render
+            requestAnimationFrame(() => {
+              const allSections = document.querySelectorAll('[id^="section-"]');
+              if (allSections[index]) {
+                allSections[index].scrollIntoView({
+                  behavior: "instant",
+                  block: "center",
+                });
+              }
+            });
+          }}
+        />
 
-      {/* Clip Section Naming Modal */}
-      <ClipSectionNamingModalComponent
-        modalState={clipSectionNamingModal}
-        onClose={() => setClipSectionNamingModal(null)}
-        onAddClipSection={props.onAddClipSection}
-        onUpdateClipSection={props.onUpdateClipSection}
-        onAddClipSectionAt={props.onAddClipSectionAt}
-      />
+        {/* Clip Section Naming Modal */}
+        <ClipSectionNamingModalComponent
+          modalState={clipSectionNamingModal}
+          onClose={() => setClipSectionNamingModal(null)}
+          onAddClipSection={props.onAddClipSection}
+          onUpdateClipSection={props.onUpdateClipSection}
+          onAddClipSectionAt={props.onAddClipSectionAt}
+        />
 
-      {/* Clips Section - Shows second on mobile, first on desktop */}
-      <ClipTimeline
-        items={props.items}
-        clips={clips}
-        insertionPoint={props.insertionPoint}
-        selectedClipsSet={state.selectedClipsSet}
-        currentClipId={currentClipId}
-        currentTimeInClip={state.currentTimeInClip}
-        clipComputedProps={clipComputedProps}
-        clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
-        generateDefaultClipSectionName={generateDefaultClipSectionName}
-        onAddIntroSection={() => props.onAddClipSection("Intro")}
-        onSetInsertionPoint={props.onSetInsertionPoint}
-        onMoveClip={props.onMoveClip}
-        onToggleBeatForClip={props.onToggleBeatForClip}
-        onEditSection={(sectionId, currentName) => {
-          setClipSectionNamingModal({
-            mode: "edit",
-            clipSectionId: sectionId,
-            currentName,
-          });
-        }}
-        onAddSectionBefore={(itemId, defaultName) => {
-          setClipSectionNamingModal({
-            mode: "add-at",
-            position: "before",
-            itemId,
-            defaultName,
-          });
-        }}
-        onAddSectionAfter={(itemId, defaultName) => {
-          setClipSectionNamingModal({
-            mode: "add-at",
-            position: "after",
-            itemId,
-            defaultName,
-          });
-        }}
-        dispatch={dispatch}
-      />
+        {/* Clips Section - Shows second on mobile, first on desktop */}
+        <ClipTimeline
+          items={props.items}
+          clips={clips}
+          insertionPoint={props.insertionPoint}
+          selectedClipsSet={state.selectedClipsSet}
+          currentClipId={currentClipId}
+          clipComputedProps={clipComputedProps}
+          clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
+          generateDefaultClipSectionName={generateDefaultClipSectionName}
+          onAddIntroSection={() => props.onAddClipSection("Intro")}
+          onSetInsertionPoint={props.onSetInsertionPoint}
+          onMoveClip={props.onMoveClip}
+          onToggleBeatForClip={props.onToggleBeatForClip}
+          onEditSection={useCallback((sectionId, currentName) => {
+            setClipSectionNamingModal({
+              mode: "edit",
+              clipSectionId: sectionId,
+              currentName,
+            });
+          }, [])}
+          onAddSectionBefore={useCallback((itemId, defaultName) => {
+            setClipSectionNamingModal({
+              mode: "add-at",
+              position: "before",
+              itemId,
+              defaultName,
+            });
+          }, [])}
+          onAddSectionAfter={useCallback((itemId, defaultName) => {
+            setClipSectionNamingModal({
+              mode: "add-at",
+              position: "after",
+              itemId,
+              defaultName,
+            });
+          }, [])}
+          dispatch={dispatch}
+        />
+      </VideoEditorContext.Provider>
     </div>
   );
 };

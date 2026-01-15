@@ -10,6 +10,7 @@ import type {
 } from "../clip-state-reducer";
 import type { ClipComputedProps } from "../types";
 import type { videoStateReducer } from "../video-state-reducer";
+import { useCallback } from "react";
 
 /**
  * ClipTimeline component displays the main timeline of clips and clip sections.
@@ -27,7 +28,6 @@ export const ClipTimeline = (props: {
   insertionPoint: FrontendInsertionPoint;
   selectedClipsSet: Set<FrontendId>;
   currentClipId: FrontendId | undefined;
-  currentTimeInClip: number;
   clipComputedProps: ClipComputedProps;
   clipIdsBeingTranscribed: Set<FrontendId>;
   generateDefaultClipSectionName: () => string;
@@ -70,21 +70,21 @@ export const ClipTimeline = (props: {
                     dispatch={props.dispatch}
                     onSetInsertionPoint={props.onSetInsertionPoint}
                     onMoveClip={props.onMoveClip}
-                    onEditSection={() => {
+                    onEditSection={useCallback(() => {
                       props.onEditSection(item.frontendId, item.name);
-                    }}
-                    onAddSectionBefore={() => {
+                    }, [])}
+                    onAddSectionBefore={useCallback(() => {
                       props.onAddSectionBefore(
                         item.frontendId,
                         props.generateDefaultClipSectionName()
                       );
-                    }}
-                    onAddSectionAfter={() => {
+                    }, [])}
+                    onAddSectionAfter={useCallback(() => {
                       props.onAddSectionAfter(
                         item.frontendId,
                         props.generateDefaultClipSectionName()
                       );
-                    }}
+                    }, [])}
                   />
                 );
               }
@@ -105,7 +105,6 @@ export const ClipTimeline = (props: {
                     isLastItem={isLastItem}
                     isSelected={props.selectedClipsSet.has(clip.frontendId)}
                     isCurrentClip={clip.frontendId === props.currentClipId}
-                    currentTimeInClip={props.currentTimeInClip}
                     timecode={timecode}
                     nextLevenshtein={nextLevenshtein}
                     clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}

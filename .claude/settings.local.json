@@ -25,7 +25,11 @@
       "Bash(wc:*)",
       "Bash(tree:*)",
       "Bash(git -C /home/mattpocock/repos/matt/course-video-manager diff plans/backlog/)",
-      "Bash(git -C /home/mattpocock/repos/matt/course-video-manager log --oneline -5)"
+      "Bash(git -C /home/mattpocock/repos/matt/course-video-manager log --oneline -5)",
+      "Bash(git revert:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rm:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": [],
     "ask": []

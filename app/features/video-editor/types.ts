@@ -1,5 +1,5 @@
 import type { FrontendId } from "./clip-state-reducer";
-import type { OBSConnectionState } from "./obs-connector";
+import type { OBSConnectionOuterState } from "./obs-connector";
 import type { FrontendSpeechDetectorState } from "./use-speech-detector";
 
 /**
@@ -46,7 +46,7 @@ export type ClipSectionDividerProps = {
  */
 export type LiveMediaStreamProps = {
   mediaStream: MediaStream;
-  obsConnectorState: OBSConnectionState;
+  obsConnectorState: OBSConnectionOuterState;
   speechDetectorState: FrontendSpeechDetectorState;
   showCenterLine: boolean;
 };

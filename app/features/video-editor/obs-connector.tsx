@@ -1,6 +1,6 @@
 import type { DB } from "@/db/schema";
 import { OBSWebSocket } from "obs-websocket-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
 import type { ApiInsertionPoint } from "./clip-state-reducer";
 import {
@@ -9,26 +9,39 @@ import {
 } from "./use-speech-detector";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 
-export type OBSConnectionState =
-  | {
-      type: "obs-not-running";
-    }
-  | {
-      type: "checking-obs-connection-status";
-    }
-  | {
-      type: "obs-connected";
-      profile: string;
-      scene: string;
-      latestOutputPath: string | null;
-    }
-  | {
-      type: "obs-recording";
-      profile: string;
-      scene: string;
-      latestOutputPath: string;
-      hasSpeechBeenDetected: boolean;
-    };
+export type OBSNotRunningState = {
+  type: "obs-not-running";
+};
+
+export type OBSCheckingConnectionStatusState = {
+  type: "checking-obs-connection-status";
+};
+
+export type OBSConnectedState = {
+  type: "obs-connected";
+  profile: string;
+  scene: string;
+  latestOutputPath: string | null;
+};
+
+export type OBSRecordingState = {
+  type: "obs-recording";
+  profile: string;
+  scene: string;
+  latestOutputPath: string;
+  hasSpeechBeenDetected: boolean;
+};
+
+export type OBSConnectionOuterState =
+  | OBSNotRunningState
+  | OBSConnectedState
+  | OBSRecordingState;
+
+export type OBSConnectionInnerState =
+  | OBSNotRunningState
+  | OBSCheckingConnectionStatusState
+  | OBSConnectedState
+  | OBSRecordingState;
 
 const createNotRunningListener = (
   websocket: OBSWebSocket,
@@ -46,7 +59,7 @@ const createNotRunningListener = (
 };
 
 export const useConnectToOBSVirtualCamera = (props: {
-  state: OBSConnectionState;
+  state: OBSConnectionOuterState;
   websocket: OBSWebSocket;
 }) => {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
@@ -212,7 +225,7 @@ export const useRunOBSImportRepeatedly = (props: {
 };
 
 export namespace useOBSConnector {
-  export type State = OBSConnectionState;
+  export type State = OBSConnectionInnerState;
   export type Action =
     | {
         type: "obs-connected";
@@ -380,6 +393,18 @@ const obsConnectorReducer: EffectReducer<
   }
 };
 
+const innerToOuterState = (
+  state: OBSConnectionInnerState
+): OBSConnectionOuterState => {
+  if (state.type === "checking-obs-connection-status") {
+    return {
+      type: "obs-not-running",
+    };
+  }
+
+  return state;
+};
+
 export const useOBSConnector = (props: {
   videoId: string;
   insertionPoint: ApiInsertionPoint;
@@ -512,8 +537,10 @@ export const useOBSConnector = (props: {
     onNewDatabaseClips: props.onNewDatabaseClips,
   });
 
+  const outerState = useMemo(() => innerToOuterState(state), [state]);
+
   const mediaStream = useConnectToOBSVirtualCamera({
-    state,
+    state: outerState,
     websocket,
   });
 
@@ -542,9 +569,13 @@ export const useOBSConnector = (props: {
     },
   });
 
-  return {
-    state,
-    mediaStream,
-    speechDetectorState,
-  };
+  const output = useMemo(() => {
+    return {
+      state: outerState,
+      mediaStream,
+      speechDetectorState,
+    };
+  }, [JSON.stringify(outerState), mediaStream, speechDetectorState]);
+
+  return output;
 };

@@ -19,7 +19,7 @@ import type {
   TimelineItem,
 } from "../clip-state-reducer";
 import { isClipSection } from "../clip-utils";
-import type { OBSConnectionState } from "../obs-connector";
+import type { OBSConnectionOuterState } from "../obs-connector";
 import type { FrontendSpeechDetectorState } from "../use-speech-detector";
 import { PreloadableClipManager } from "../preloadable-clip";
 import type { FetcherWithComponents } from "react-router";
@@ -50,13 +50,12 @@ export const VideoPlayerPanel = (props: {
   runningState: "playing" | "paused";
   currentClipId: FrontendId | undefined;
   currentClipProfile: string | undefined;
-  currentTimeInClip: number;
   selectedClipsSet: Set<FrontendId>;
   clipIdsPreloaded: Set<FrontendId>;
   playbackRate: number;
 
   // OBS and media
-  obsConnectorState: OBSConnectionState;
+  obsConnectorState: OBSConnectionOuterState;
   liveMediaStream: MediaStream | null;
   speechDetectorState: FrontendSpeechDetectorState;
 
