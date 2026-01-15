@@ -695,3 +695,28 @@
 - Files changed:
   - app/features/video-editor/components/clip-section-naming-modal.tsx (new file, 138 lines)
   - app/features/video-editor/video-editor.tsx:1-8,45,696-803 (removed Dialog imports, removed Input/Label imports, added import, replaced inline modal with component)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ActionsDropdown component
+- Extracted ActionsDropdown component from video-editor.tsx into separate file
+- Component handles the Actions dropdown menu with all export, writing, and utility actions
+- Implementation details:
+  - Created app/features/video-editor/components/actions-dropdown.tsx with ActionsDropdown component
+  - Includes Write Article navigation, Copy Transcript, Copy YouTube Chapters
+  - Integrates ExportModal component for video export with short title
+  - Includes DaVinci Resolve export action
+  - Conditionally shows "Add New Video" option for lesson-attached videos
+  - Removed unused imports from video-editor.tsx (DropdownMenu components, Plus, FilmIcon, CopyIcon, CheckIcon, ChevronDown)
+  - Removed ExportModal import from video-editor.tsx (now imported within ActionsDropdown)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives all callbacks and state as props (no Context needed)
+  - Uses FetcherWithComponents type for proper React Router v7 typing
+  - ExportModal remains nested within ActionsDropdown since it's only used there
+  - Maintains all existing behavior and visual styling
+  - video-editor.tsx reduced from 1,163 to 1,033 lines (130 lines saved)
+  - Total reduction so far: 1,592 → 1,033 lines (559 lines saved / 35% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/actions-dropdown.tsx (new file, 176 lines)
+  - app/features/video-editor/video-editor.tsx:10-15,28,36-50,507-637 (removed imports, added ActionsDropdown import and usage)

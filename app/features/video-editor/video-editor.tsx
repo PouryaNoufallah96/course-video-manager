@@ -8,12 +8,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -31,29 +25,24 @@ import {
   RecordingSignalIndicator,
 } from "./components/timeline-indicators";
 import { LiveMediaStream } from "./components/live-media-stream";
-import { ExportModal } from "./components/export-modal";
 import { TableOfContents } from "./components/table-of-contents";
 import { ClipSectionDivider } from "./components/clip-section-divider";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
+import { ActionsDropdown } from "./components/actions-dropdown";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
-  CheckIcon,
-  ChevronDown,
   ChevronLeftIcon,
   ChevronRightIcon,
   CircleQuestionMarkIcon,
   Columns2,
-  CopyIcon,
-  FilmIcon,
   Loader2,
   MonitorIcon,
   PauseIcon,
   PencilIcon,
-  Plus,
   PlusIcon,
   RefreshCwIcon,
   Trash2Icon,
@@ -514,141 +503,22 @@ export const VideoEditor = (props: {
                   )}
                 </Tooltip>
 
-                <DropdownMenu>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="secondary"
-                            disabled={!allClipsHaveSilenceDetected}
-                          >
-                            {exportVideoClipsFetcher.state === "submitting" ||
-                            exportToDavinciResolveFetcher.state ===
-                              "submitting" ? (
-                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                            ) : null}
-                            Actions
-                            <ChevronDown className="w-4 h-4 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </span>
-                    </TooltipTrigger>
-                    {!allClipsHaveSilenceDetected && (
-                      <TooltipContent>
-                        <p>Waiting for silence detection to complete</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <DropdownMenuItem asChild>
-                      <Link to={`/videos/${props.videoId}/write`}>
-                        <PencilIcon className="w-4 h-4 mr-2" />
-                        <div className="flex flex-col">
-                          <span className="font-medium">Write Article</span>
-                          <span className="text-xs text-muted-foreground">
-                            Go to article writing interface
-                          </span>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <DropdownMenuItem
-                            disabled={!allClipsHaveText}
-                            onSelect={copyTranscriptToClipboard}
-                          >
-                            {isCopied ? (
-                              <CheckIcon className="w-4 h-4 mr-2" />
-                            ) : (
-                              <CopyIcon className="w-4 h-4 mr-2" />
-                            )}
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                Copy Transcript
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Copy all transcript to clipboard
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </div>
-                      </TooltipTrigger>
-                      {!allClipsHaveText && (
-                        <TooltipContent side="left">
-                          <p>Waiting for transcription to complete</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-
-                    {youtubeChapters.length > 0 && (
-                      <DropdownMenuItem
-                        onSelect={copyYoutubeChaptersToClipboard}
-                      >
-                        {isChaptersCopied ? (
-                          <CheckIcon className="w-4 h-4 mr-2" />
-                        ) : (
-                          <CopyIcon className="w-4 h-4 mr-2" />
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            Copy YouTube Chapters
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            Copy chapter timestamps to clipboard
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    )}
-
-                    <ExportModal
-                      isOpen={isExportModalOpen}
-                      setIsOpen={setIsExportModalOpen}
-                      exportVideoClipsFetcher={exportVideoClipsFetcher}
-                      videoId={props.videoId}
-                      youtubeChapters={youtubeChapters}
-                      isChaptersCopied={isChaptersCopied}
-                      copyYoutubeChaptersToClipboard={
-                        copyYoutubeChaptersToClipboard
-                      }
-                    />
-
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        exportToDavinciResolveFetcher.submit(null, {
-                          method: "post",
-                          action: `/videos/${props.videoId}/export-to-davinci-resolve`,
-                        });
-                      }}
-                    >
-                      <FilmIcon className="w-4 h-4 mr-2" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">DaVinci Resolve</span>
-                        <span className="text-xs text-muted-foreground">
-                          Create a new timeline with clips
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-
-                    {props.lessonId && (
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setIsAddVideoModalOpen(true);
-                        }}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        <div className="flex flex-col">
-                          <span className="font-medium">Add New Video</span>
-                          <span className="text-xs text-muted-foreground">
-                            Add another video to this lesson
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <ActionsDropdown
+                  allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
+                  allClipsHaveText={allClipsHaveText}
+                  exportVideoClipsFetcher={exportVideoClipsFetcher}
+                  exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
+                  videoId={props.videoId}
+                  lessonId={props.lessonId}
+                  isExportModalOpen={isExportModalOpen}
+                  setIsExportModalOpen={setIsExportModalOpen}
+                  isCopied={isCopied}
+                  copyTranscriptToClipboard={copyTranscriptToClipboard}
+                  youtubeChapters={youtubeChapters}
+                  isChaptersCopied={isChaptersCopied}
+                  copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
+                  onAddVideoClick={() => setIsAddVideoModalOpen(true)}
+                />
               </TooltipProvider>
             </div>
 
