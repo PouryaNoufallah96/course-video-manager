@@ -7,10 +7,7 @@ if [ -z "$1" ]; then
 fi
 
 for ((i=1; i<=$1; i++)); do
-  result=$(docker sandbox run --credentials host claude -p "@progress.txt @plans/backlog/prompt.md \
-  Once you've completed your task, run gh issue list again to check the status of the issues. \
-  Some issues may have been added while you were working on your task. 
-  If there is nothing to do, output <promise>COMPLETE</promise>.")
+  result=$(docker sandbox run --credentials host claude -p "@progress.txt @plans/backlog/prompt.md")
 
   echo "$result"
 
