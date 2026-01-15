@@ -505,3 +505,18 @@
   - package.json (added babel-plugin-react-compiler, vite-plugin-babel, @babel/preset-typescript to devDependencies)
   - vite.config.ts:4,8-18 (added babel import and configuration)
   - pnpm-lock.yaml (updated with new dependencies)
+
+## Issue #67 - Refactor useKeyboardShortcuts hook to use video state reducer type
+- Removed duplicate type definition from useKeyboardShortcuts hook
+- Hook now uses videoStateReducer.Action type directly from video-state-reducer.ts
+- Implementation details:
+  - Added import for videoStateReducer type from video-state-reducer.ts
+  - Replaced inline union type with videoStateReducer.Action type parameter
+  - Removed 16 lines of duplicate type definitions (lines 21-37 replaced with single type reference)
+- Key decisions:
+  - Single source of truth for action types improves maintainability
+  - TypeScript will now catch mismatches if hook dispatches actions not in reducer
+  - No runtime behavior changes - purely a type-level refactor
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/hooks/use-keyboard-shortcuts.ts:2,22

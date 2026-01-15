@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { videoStateReducer } from "../video-state-reducer";
 
 /**
  * Hook that handles keyboard shortcuts for the video editor.
@@ -18,23 +19,7 @@ import { useEffect } from "react";
  * or buttons (unless they have the "allow-keydown" class).
  */
 export function useKeyboardShortcuts(
-  dispatch: (action: {
-    type:
-      | "press-space-bar"
-      | "press-delete"
-      | "press-return"
-      | "press-arrow-left"
-      | "press-arrow-right"
-      | "press-arrow-up"
-      | "press-arrow-down"
-      | "press-alt-arrow-up"
-      | "press-alt-arrow-down"
-      | "press-l"
-      | "press-k"
-      | "press-home"
-      | "press-end"
-      | "beat-toggle-key-pressed";
-  }) => void
+  dispatch: (action: videoStateReducer.Action) => void
 ) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
