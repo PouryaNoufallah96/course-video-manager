@@ -538,3 +538,21 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/videos.$videoId.write.tsx:467-552
+
+## Issue #65 - Add intro section button to pre-recording checklist
+- Added "Add Intro Section" button at bottom of pre-recording checklist
+- Button creates a clip section named "Intro" when clicked
+- Implementation details:
+  - Added Button component at bottom of checklist (after the ordered list)
+  - Button calls props.onAddClipSection("Intro") which creates new section
+  - Styled as full-width outline button for visual consistency
+  - Added mb-6 margin to ordered list to space it from the button
+  - Button only appears when clips.length === 0 (same condition as checklist)
+- Key decisions:
+  - Section name hardcoded as "Intro" per requirements (not user-editable)
+  - Uses existing onAddClipSection handler - no new state management needed
+  - Section appears in timeline immediately and can be edited/moved/deleted like any section
+  - Checklist remains visible until first clip is added
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/video-editor.tsx:914,928-934

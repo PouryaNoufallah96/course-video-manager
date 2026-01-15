@@ -911,7 +911,7 @@ export const VideoEditor = (props: {
                 <CircleQuestionMarkIcon className="size-6" />
                 Pre-recording checklist
               </h2>
-              <ol className="space-y-3 text-base">
+              <ol className="space-y-3 text-base mb-6">
                 <li className="flex items-center gap-3">
                   <MonitorIcon className="size-5 flex-shrink-0 text-gray-300" />
                   <span>Close the windows</span>
@@ -925,6 +925,13 @@ export const VideoEditor = (props: {
                   <span>Check bookshelf books are standing up properly</span>
                 </li>
               </ol>
+              <Button
+                onClick={() => props.onAddClipSection("Intro")}
+                className="w-full"
+                variant="outline"
+              >
+                Add Intro Section
+              </Button>
             </div>
           )}
 
