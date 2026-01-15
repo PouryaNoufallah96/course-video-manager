@@ -126,3 +126,25 @@
   - TypeScript type checking passes
 - Next steps:
   - Task 3: Create loader to fetch files for standalone video write page
+
+### Task 3: Create loader to fetch files for standalone video write page
+- Modified loader in videos.$videoId.write.tsx to fetch standalone video files
+- Implementation details:
+  - Imports getStandaloneVideoFilePath utility
+  - For standalone videos, checks if directory exists
+  - If directory exists, reads all files and returns metadata
+  - Files returned with same structure as lesson-connected videos (path, size, defaultEnabled)
+  - defaultEnabled based on file extension matching DEFAULT_CHECKED_EXTENSIONS
+  - Only includes actual files, not directories
+- Key decisions:
+  - Gracefully handles missing directory (returns empty files array)
+  - Uses Effect FileSystem API consistent with rest of codebase
+  - Follows same pattern as lesson-connected video file loading
+  - File tree will automatically show standalone files in UI (no UI changes needed)
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (modified loader)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 4: Create UI component for managing standalone video files (modal, file tree interactions)

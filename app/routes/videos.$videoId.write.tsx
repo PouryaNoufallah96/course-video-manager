@@ -75,6 +75,7 @@ import {
   DEFAULT_CHECKED_EXTENSIONS,
   DEFAULT_UNCHECKED_PATHS,
 } from "@/services/text-writing-agent";
+import { getStandaloneVideoFilePath } from "@/services/standalone-video-files";
 
 const partsToText = (parts: UIMessage["parts"]) => {
   return parts
@@ -174,10 +175,51 @@ export const loader = async (args: Route.LoaderArgs) => {
       }
     }
 
-    // For standalone videos (no lesson), return minimal data
+    // For standalone videos (no lesson), fetch standalone video files
     if (!lesson) {
       const nextVideoId = yield* db.getNextVideoId(videoId);
       const previousVideoId = yield* db.getPreviousVideoId(videoId);
+
+      // Get the standalone video files directory
+      const standaloneVideoDir = getStandaloneVideoFilePath(videoId);
+
+      // Check if directory exists
+      const dirExists = yield* fs.exists(standaloneVideoDir);
+
+      let standaloneFiles: Array<{
+        path: string;
+        size: number;
+        defaultEnabled: boolean;
+      }> = [];
+
+      if (dirExists) {
+        // Read all files from the standalone video directory
+        const filesInDirectory = yield* fs.readDirectory(standaloneVideoDir);
+
+        standaloneFiles = yield* Effect.forEach(
+          filesInDirectory,
+          (filename) => {
+            return Effect.gen(function* () {
+              const filePath = getStandaloneVideoFilePath(videoId, filename);
+              const stat = yield* fs.stat(filePath);
+
+              if (stat.type !== "File") {
+                return null;
+              }
+
+              const extension = path.extname(filename).slice(1);
+              const defaultEnabled =
+                DEFAULT_CHECKED_EXTENSIONS.includes(extension);
+
+              return {
+                path: filename,
+                size: Number(stat.size),
+                defaultEnabled,
+              };
+            });
+          }
+        ).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
+      }
 
       return {
         videoPath: video.path,
@@ -186,7 +228,7 @@ export const loader = async (args: Route.LoaderArgs) => {
         repoId: null,
         lessonId: null,
         fullPath: null,
-        files: [],
+        files: standaloneFiles,
         nextVideoId,
         previousVideoId,
         isStandalone: true,
