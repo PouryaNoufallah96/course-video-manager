@@ -556,3 +556,30 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/video-editor.tsx:914,928-934
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ExportModal component
+- Extracted ExportModal component from video-editor.tsx into separate file
+- Component handles video export with optional YouTube/TikTok short title
+- Implementation details:
+  - Created app/features/video-editor/components/export-modal.tsx with ExportModal component
+  - Component includes dialog trigger (DropdownMenuItem) and content
+  - Displays form for Short Title input (queues for YouTube/TikTok if provided)
+  - Shows YouTube chapters (generated from clip sections) with copy button
+  - Uses exportVideoClipsFetcher for form submission
+  - Handles modal open/close state through props
+  - Displays copy feedback with CheckIcon when chapters are copied
+  - Submit button shows loading state during submission
+  - Removed DownloadIcon and DialogTrigger from video-editor.tsx imports (no longer needed)
+  - Updated video-editor.tsx to import ExportModal and pass all required props
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component is self-contained with all UI logic encapsulated
+  - Props include all required callbacks and state (no Context needed)
+  - Maintains all existing behavior and visual styling
+  - Dialog trigger (DropdownMenuItem) included in component for complete encapsulation
+  - video-editor.tsx reduced from 1,392 to 1,308 lines (84 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/export-modal.tsx (new file, 131 lines)
+  - app/features/video-editor/video-editor.tsx:3-7,44,47-67,614-707 (added import, removed unused imports, replaced inline modal with component)

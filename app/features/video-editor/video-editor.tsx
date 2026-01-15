@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   ContextMenu,
@@ -42,6 +41,7 @@ import {
   RecordingSignalIndicator,
 } from "./components/timeline-indicators";
 import { LiveMediaStream } from "./components/live-media-stream";
+import { ExportModal } from "./components/export-modal";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -55,7 +55,6 @@ import {
   CircleQuestionMarkIcon,
   Columns2,
   CopyIcon,
-  DownloadIcon,
   FilmIcon,
   Loader2,
   MonitorIcon,
@@ -611,100 +610,17 @@ export const VideoEditor = (props: {
                       </DropdownMenuItem>
                     )}
 
-                    <Dialog
-                      open={isExportModalOpen}
-                      onOpenChange={setIsExportModalOpen}
-                    >
-                      <DialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <DownloadIcon className="w-4 h-4 mr-2" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">Export</span>
-                            <span className="text-xs text-muted-foreground">
-                              Export video clips to file
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Export</DialogTitle>
-                        </DialogHeader>
-                        <exportVideoClipsFetcher.Form
-                          method="post"
-                          action={`/api/videos/${props.videoId}/export`}
-                          className="space-y-4 py-4"
-                          onSubmit={async (e) => {
-                            e.preventDefault();
-                            await exportVideoClipsFetcher.submit(
-                              e.currentTarget
-                            );
-                            setIsExportModalOpen(false);
-                          }}
-                        >
-                          <div className="space-y-2">
-                            <Label htmlFor="shorts-directory-output-name">
-                              Short Title
-                            </Label>
-                            <Input
-                              id="shorts-directory-output-name"
-                              placeholder="Leave empty for normal export only..."
-                              name="shortsDirectoryOutputName"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              If provided, the video will be queued for YouTube
-                              and TikTok under the given title.
-                            </p>
-                          </div>
-                          {youtubeChapters.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <Label>YouTube Chapters</Label>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={copyYoutubeChaptersToClipboard}
-                                  className="h-7 px-2"
-                                >
-                                  {isChaptersCopied ? (
-                                    <CheckIcon className="w-4 h-4 mr-1" />
-                                  ) : (
-                                    <CopyIcon className="w-4 h-4 mr-1" />
-                                  )}
-                                  {isChaptersCopied ? "Copied" : "Copy"}
-                                </Button>
-                              </div>
-                              <div className="bg-muted rounded-md p-3 text-sm font-mono">
-                                {youtubeChapters.map((chapter, index) => (
-                                  <div key={index}>
-                                    {chapter.timestamp} {chapter.name}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => setIsExportModalOpen(false)}
-                              type="button"
-                            >
-                              Cancel
-                            </Button>
-                            <Button type="submit">
-                              {exportVideoClipsFetcher.state ===
-                              "submitting" ? (
-                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                              ) : (
-                                <DownloadIcon className="w-4 h-4 mr-1" />
-                              )}
-                              Export
-                            </Button>
-                          </div>
-                        </exportVideoClipsFetcher.Form>
-                      </DialogContent>
-                    </Dialog>
+                    <ExportModal
+                      isOpen={isExportModalOpen}
+                      setIsOpen={setIsExportModalOpen}
+                      exportVideoClipsFetcher={exportVideoClipsFetcher}
+                      videoId={props.videoId}
+                      youtubeChapters={youtubeChapters}
+                      isChaptersCopied={isChaptersCopied}
+                      copyYoutubeChaptersToClipboard={
+                        copyYoutubeChaptersToClipboard
+                      }
+                    />
 
                     <DropdownMenuItem
                       onSelect={() => {
