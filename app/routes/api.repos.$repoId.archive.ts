@@ -6,7 +6,12 @@ import { withDatabaseDump } from "@/services/dump-service";
 import { data } from "react-router";
 
 const archiveRepoSchema = Schema.Struct({
-  archived: Schema.Boolean,
+  archived: Schema.Literal("true", "false").pipe(
+    Schema.transform(Schema.Boolean, {
+      decode: (s) => s === "true",
+      encode: (b) => (b ? "true" : "false") as "true" | "false",
+    })
+  ),
 });
 
 export const action = async (args: Route.ActionArgs) => {

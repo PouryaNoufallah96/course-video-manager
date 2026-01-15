@@ -141,3 +141,16 @@
 - Files changed:
   - app/routes/_index.tsx:51,267,329-364,410-416 (added Archive icon, archiveRepoFetcher, context menu, sidebar link)
   - app/routes/archived-repos.tsx (new page)
+
+## Issue #53 - Fix repo archiving 400 error
+- Fixed bug where archiving/unarchiving repos returned 400 error
+- Root cause: UI was submitting archived as string ("true"/"false") but schema expected boolean
+- Solution: Updated schema to accept string literals "true"/"false" and transform to boolean
+- Implementation details:
+  - Changed schema from `Schema.Boolean` to `Schema.Literal("true", "false").pipe(Schema.transform(Schema.Boolean, ...))`
+  - Transform decodes "true" to true and "false" to false
+  - Transform encodes boolean back to string literal for type safety
+- Key decision: Fix schema to accept form data strings rather than changing UI to convert strings to booleans
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/api.repos.$repoId.archive.ts:8-15
