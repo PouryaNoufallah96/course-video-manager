@@ -508,3 +508,40 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #81 is complete - clipboard paste is now the only creation method
+
+
+## Issue #82 - Add clipboard paste functionality to lesson videos
+- Added clipboard paste functionality for lesson-connected videos
+- Implementation details:
+  - Created app/routes/api.lesson-files.create.ts API route
+    - Validates video exists and is lesson-connected (lessonId !== null)
+    - Constructs file path in lesson directory (repo/section/lesson)
+    - Handles both text content and base64 image data (same as standalone)
+    - Writes files to lesson directory using Effect FileSystem API
+    - Returns 409 if file already exists
+  - Created app/components/lesson-file-paste-modal.tsx component
+    - Identical UI/UX to StandaloneFilePasteModal
+    - Smart sequential filename generation (notes.md, notes-1.md, diagram-1.png, etc.)
+    - Clipboard paste detection (text vs image)
+    - Image preview for pasted images
+    - Submits to /api/lesson-files/create endpoint
+  - Updated app/routes/videos.$videoId.write.tsx
+    - Added LessonFilePasteModal import
+    - Added isLessonPasteModalOpen state
+    - Added handleLessonPasteModalClose handler
+    - Added "Add from Clipboard" button to lesson files section (matches standalone UI)
+    - Renders LessonFilePasteModal for lesson-connected videos
+- Key decisions:
+  - No edit or delete functionality for lesson files (as specified in issue)
+  - Files save directly to lesson directory (not a separate standalone directory)
+  - Reuses same filename generation logic as standalone files
+  - Revalidates after file creation to refresh file list
+- Files changed:
+  - app/routes/api.lesson-files.create.ts (new API route)
+  - app/components/lesson-file-paste-modal.tsx (new component)
+  - app/routes/videos.$videoId.write.tsx (integrated paste modal)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #82 is complete - lesson videos now have clipboard paste functionality

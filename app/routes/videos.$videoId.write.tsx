@@ -75,6 +75,7 @@ import { StandaloneFileTree } from "@/components/StandaloneFileTree";
 import { StandaloneFileManagementModal } from "@/components/standalone-file-management-modal";
 import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-modal";
 import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
+import { LessonFilePasteModal } from "@/components/lesson-file-paste-modal";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
@@ -442,6 +443,9 @@ export function InnerComponent(props: Route.ComponentProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<string>("");
 
+  // Lesson file paste modal state
+  const [isLessonPasteModalOpen, setIsLessonPasteModalOpen] = useState(false);
+
   // Get last assistant message
   const lastAssistantMessage = messages
     .slice()
@@ -534,6 +538,14 @@ export function InnerComponent(props: Route.ComponentProps) {
 
   const handleDeleteModalClose = (open: boolean) => {
     setIsDeleteModalOpen(open);
+    if (!open) {
+      // Revalidate to refresh the file list
+      revalidator.revalidate();
+    }
+  };
+
+  const handleLessonPasteModalClose = (open: boolean) => {
+    setIsLessonPasteModalOpen(open);
     if (!open) {
       // Revalidate to refresh the file list
       revalidator.revalidate();
@@ -687,6 +699,15 @@ export function InnerComponent(props: Route.ComponentProps) {
                 >
                   Files
                 </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7"
+                  onClick={() => setIsLessonPasteModalOpen(true)}
+                >
+                  <ClipboardIcon className="h-3 w-3 mr-1" />
+                  Add from Clipboard
+                </Button>
               </div>
               <FileTree
                 files={files}
@@ -1045,6 +1066,15 @@ export function InnerComponent(props: Route.ComponentProps) {
             onOpenChange={handleDeleteModalClose}
           />
         </>
+      )}
+      {/* Lesson file modals */}
+      {!isStandalone && (
+        <LessonFilePasteModal
+          videoId={videoId}
+          open={isLessonPasteModalOpen}
+          onOpenChange={handleLessonPasteModalClose}
+          existingFiles={files}
+        />
       )}
     </div>
   );
