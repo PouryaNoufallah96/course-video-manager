@@ -1,4 +1,5 @@
-import type { ClipSectionNamingModal } from "./types";
+import { formatSecondsToTimeCode } from "@/services/utils";
+import type { ClipSectionNamingModal, ClipComputedProps } from "./types";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { VideoPlayerPanel } from "./components/video-player-panel";
 import { ClipTimeline } from "./components/clip-timeline";
@@ -6,28 +7,23 @@ import { ErrorOverlay } from "./components/error-overlay";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import { useClipboardOperations } from "./hooks/use-clipboard-operations";
-import {
-  useClipComputedProps,
-  useAreAnyClipsDangerous,
-} from "./hooks/use-clip-computed-props";
 import { useMemo, useState } from "react";
 import { useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
 import { useContextSelector } from "use-context-selector";
-import type { FrontendId } from "./clip-state-reducer";
-import { isClip } from "./clip-utils";
+import type {
+  Clip,
+  ClipOnDatabase,
+  FrontendId,
+  FrontendInsertionPoint,
+} from "./clip-state-reducer";
+import { calculateTextSimilarity, isClip } from "./clip-utils";
 import {
   makeVideoEditorReducer,
   type videoStateReducer,
 } from "./video-state-reducer";
 import { ClipStateContext } from "./clip-state-context";
 import { VideoStateContext } from "./video-state-context";
-import {
-  DANGEROUS_TEXT_SIMILARITY_THRESHOLD,
-  getDatabaseClipBeforeInsertionPoint,
-  calculateViewMode,
-  calculateTotalDuration,
-} from "./video-editor-utils";
 
 export const VideoEditor = () => {
   // Access ClipStateContext values
@@ -157,7 +153,7 @@ export const VideoEditor = () => {
     state.currentClipId,
     nextClip?.frontendId,
     selectedClipId,
-  ].filter((id) => id !== undefined);
+  ].filter((id) => id !== undefined) as FrontendId[];
 
   const currentClipId = state.currentClipId;
 
@@ -188,13 +184,22 @@ export const VideoEditor = () => {
     youtubeChapters,
   } = useClipboardOperations(items);
 
-  const totalDuration = calculateTotalDuration(clips);
+  const totalDuration = clips.reduce((acc, clip) => {
+    if (clip.type === "on-database") {
+      return acc + (clip.sourceEndTime - clip.sourceStartTime);
+    }
+    return acc;
+  }, 0);
 
-  const viewMode = calculateViewMode(
-    state.showLastFrameOfVideo,
-    liveMediaStream,
-    state.runningState
-  );
+  let viewMode: "video-player" | "live-stream" | "last-frame" = "video-player";
+
+  if (state.showLastFrameOfVideo) {
+    viewMode = "last-frame";
+  } else if (!liveMediaStream || state.runningState === "playing") {
+    viewMode = "video-player";
+  } else {
+    viewMode = "live-stream";
+  }
 
   const databaseClipToShowLastFrameOf = getDatabaseClipBeforeInsertionPoint(
     clips,
@@ -212,12 +217,39 @@ export const VideoEditor = () => {
   );
 
   // Create a map of clip frontendId -> computed properties (timecode, levenshtein)
-  const clipComputedProps = useClipComputedProps(clips);
-  const areAnyClipsDangerous = useAreAnyClipsDangerous(
-    clips,
-    clipComputedProps,
-    DANGEROUS_TEXT_SIMILARITY_THRESHOLD
-  );
+  const clipComputedProps = useMemo(() => {
+    let timecode = 0;
+    const map: ClipComputedProps = new Map();
+
+    clips.forEach((clip, index) => {
+      if (clip.type === "optimistically-added") {
+        map.set(clip.frontendId, { timecode: "", nextLevenshtein: 0 });
+        return;
+      }
+
+      const nextClip = clips[index + 1];
+
+      const nextLevenshtein =
+        nextClip?.type === "on-database" && nextClip?.text
+          ? calculateTextSimilarity(clip.text, nextClip.text)
+          : 0;
+
+      const timecodeString = formatSecondsToTimeCode(timecode);
+
+      const duration = clip.sourceEndTime - clip.sourceStartTime;
+      timecode += duration;
+
+      map.set(clip.frontendId, { timecode: timecodeString, nextLevenshtein });
+    });
+
+    return map;
+  }, [clips]);
+
+  const areAnyClipsDangerous = clips.some((clip) => {
+    if (clip.type !== "on-database") return false;
+    const props = clipComputedProps.get(clip.frontendId);
+    return props && props.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD;
+  });
 
   // Show error overlay if there's a fatal error
   if (error) {
@@ -361,4 +393,27 @@ export const VideoEditor = () => {
       </div>
     </VideoStateContext.Provider>
   );
+};
+
+const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
+
+export const getDatabaseClipBeforeInsertionPoint = (
+  clips: Clip[],
+  insertionPoint: FrontendInsertionPoint
+): ClipOnDatabase | undefined => {
+  if (insertionPoint.type === "start") {
+    return undefined;
+  }
+
+  if (insertionPoint.type === "end") {
+    return clips.findLast((clip) => clip.type === "on-database");
+  }
+
+  if (insertionPoint.type === "after-clip") {
+    return clips.find(
+      (clip) =>
+        clip.frontendId === insertionPoint.frontendClipId &&
+        clip.type === "on-database"
+    ) as ClipOnDatabase | undefined;
+  }
 };

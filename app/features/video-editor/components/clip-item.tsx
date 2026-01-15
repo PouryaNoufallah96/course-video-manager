@@ -8,7 +8,6 @@ import {
 import { cn } from "@/lib/utils";
 import type { Clip, FrontendId } from "../clip-state-reducer";
 import type { videoStateReducer } from "../video-state-reducer";
-import { DANGEROUS_TEXT_SIMILARITY_THRESHOLD } from "../video-editor-utils";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -21,6 +20,8 @@ import {
   RefreshCwIcon,
   Trash2Icon,
 } from "lucide-react";
+
+const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
 
 /**
  * Props for the ClipItem component
