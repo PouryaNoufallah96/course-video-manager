@@ -1,6 +1,6 @@
-# FETCH ISSUES
+# ISSUES
 
-Fetch the issues from the repo via the GitHub CLI. Tasks will be available as open issues. Fetch the body of the issues, as well as any comments.
+Issues JSON is provided at start of context. Parse it to get open issues with their bodies and comments.
 
 # TASK BREAKDOWN
 
