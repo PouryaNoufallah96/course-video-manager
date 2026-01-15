@@ -484,3 +484,24 @@
 - Files changed:
   - app/features/video-editor/components/live-media-stream.tsx (new file, 94 lines)
   - app/features/video-editor/video-editor.tsx:34-44,47-70,1366-1438 (removed LiveMediaStreamProps import, added component import, removed unused imports, removed component definition)
+
+## Issue #68 - Add React Compiler to the repo
+- Added React Compiler (babel-plugin-react-compiler) to improve memoization and performance
+- Configured via vite-plugin-babel since React Router 7 doesn't support babel config in reactRouter plugin
+- Implementation details:
+  - Installed babel-plugin-react-compiler@1.0.0 and vite-plugin-babel@1.4.1
+  - Installed @babel/preset-typescript@7.28.5 for TypeScript support in Babel
+  - Added babel plugin to vite.config.ts with filter for .js/.ts/.jsx/.tsx files
+  - Configured React Compiler with target: "19" for React 19
+  - Babel plugin runs first in the plugin pipeline before tailwindcss and reactRouter
+- Key decisions:
+  - Used vite-plugin-babel approach as React Router plugin doesn't accept babel config
+  - Applied filter /\.[jt]sx?$/ to only process JavaScript and TypeScript files
+  - Set target to "19" since project uses React 19.1.0
+  - Only enabled in non-test environment (matches existing pattern in vite config)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - package.json (added babel-plugin-react-compiler, vite-plugin-babel, @babel/preset-typescript to devDependencies)
+  - vite.config.ts:4,8-18 (added babel import and configuration)
+  - pnpm-lock.yaml (updated with new dependencies)

@@ -17,6 +17,7 @@ Pick the next task. Prioritize from this list (where 1 is highest priority):
 3. Unknown unknowns and spike work
 4. Standard features
 5. Polish and quick wins
+6. Refactors
 
 # EXPLORATION
 
