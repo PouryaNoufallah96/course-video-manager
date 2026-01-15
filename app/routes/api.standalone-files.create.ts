@@ -46,14 +46,48 @@ export const action = async (args: Route.ActionArgs) => {
       const arrayBuffer = yield* Effect.promise(() => file.arrayBuffer());
       fileData = new Uint8Array(arrayBuffer);
     } else if (typeof textContent === "string") {
-      // Fallback: handle text content for edit mode
-      if (typeof filenameOverride !== "string" || !filenameOverride) {
-        return yield* Effect.die(
-          data("filename is required for text content", { status: 400 })
-        );
+      // Check if this is base64 image data (from paste modal)
+      if (textContent.startsWith("data:")) {
+        // Parse base64 data URL
+        const match = textContent.match(/^data:([^;]+);base64,(.+)$/);
+        if (!match) {
+          return yield* Effect.die(
+            data("Invalid base64 data URL format", { status: 400 })
+          );
+        }
+
+        const base64Data = match[2];
+        if (!base64Data) {
+          return yield* Effect.die(
+            data("Missing base64 data", { status: 400 })
+          );
+        }
+
+        if (typeof filenameOverride !== "string" || !filenameOverride) {
+          return yield* Effect.die(
+            data("filename is required for base64 content", { status: 400 })
+          );
+        }
+
+        filename = filenameOverride;
+
+        // Decode base64 to binary
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        fileData = bytes;
+      } else {
+        // Plain text content
+        if (typeof filenameOverride !== "string" || !filenameOverride) {
+          return yield* Effect.die(
+            data("filename is required for text content", { status: 400 })
+          );
+        }
+        filename = filenameOverride;
+        fileData = new TextEncoder().encode(textContent);
       }
-      filename = filenameOverride;
-      fileData = new TextEncoder().encode(textContent);
     } else {
       return yield* Effect.die(
         data("Either file or content must be provided", { status: 400 })
