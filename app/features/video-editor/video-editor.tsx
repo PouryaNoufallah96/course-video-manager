@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatSecondsToTimeCode } from "@/services/utils";
-import levenshtein from "js-levenshtein";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -64,12 +63,16 @@ import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
   ClipOnDatabase,
-  ClipSection,
   EditorError,
   FrontendId,
   FrontendInsertionPoint,
   TimelineItem,
 } from "./clip-state-reducer";
+import {
+  calculateTextSimilarity,
+  isClip,
+  isClipSection,
+} from "./clip-utils";
 import { type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
@@ -78,24 +81,6 @@ import {
   type videoStateReducer,
 } from "./video-state-reducer";
 import { INSERTION_POINT_ID } from "./constants";
-
-function calculateTextSimilarity(str1: string, str2: string): number {
-  const distance = levenshtein(str1, str2);
-  const maxLength = Math.max(str1.length, str2.length);
-
-  // Handle edge case of empty strings
-  if (maxLength === 0) return 100;
-
-  const similarity = (1 - distance / maxLength) * 100;
-  return Math.max(0, Math.round(similarity * 100) / 100); // Round to 2 decimal places
-}
-
-const isClip = (item: TimelineItem): item is Clip =>
-  item.type === "on-database" || item.type === "optimistically-added";
-
-const isClipSection = (item: TimelineItem): item is ClipSection =>
-  item.type === "clip-section-on-database" ||
-  item.type === "clip-section-optimistically-added";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;

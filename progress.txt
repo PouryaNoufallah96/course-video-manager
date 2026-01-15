@@ -356,3 +356,23 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/components/app-sidebar.tsx:132
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 1: Extract clip-utils.ts
+- Extracted clip utility functions from video-editor.tsx into new clip-utils.ts file
+- Moved calculateTextSimilarity, isClip, and isClipSection functions
+- Implementation details:
+  - Created app/features/video-editor/clip-utils.ts with 3 utility functions
+  - calculateTextSimilarity uses Levenshtein distance to calculate text similarity percentage
+  - isClip and isClipSection are type guards for TimelineItem discrimination
+  - Added JSDoc comments for better documentation
+  - Updated video-editor.tsx to import from clip-utils instead of defining locally
+  - Removed unused ClipSection type import from video-editor.tsx
+- Key decisions:
+  - Created separate clip-utils.ts file instead of adding to existing utils.ts
+  - Maintained all existing function signatures and behavior (no breaking changes)
+  - Type guards remain as arrow functions for consistency with existing code style
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/clip-utils.ts (new file)
+  - app/features/video-editor/video-editor.tsx:33-34,63-76 (removed function definitions, added import)
