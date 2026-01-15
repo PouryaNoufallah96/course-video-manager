@@ -65,11 +65,14 @@ import {
   AlignLeftIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { data, Link, useFetcher } from "react-router";
+import { data, Link, useFetcher, useRevalidator } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
 import path from "path";
 import { FileSystem } from "@effect/platform";
 import { FileTree } from "@/components/FileTree";
+import { StandaloneFileTree } from "@/components/StandaloneFileTree";
+import { StandaloneFileManagementModal } from "@/components/standalone-file-management-modal";
+import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
@@ -427,6 +430,17 @@ export function InnerComponent(props: Route.ComponentProps) {
 
   const writeToReadmeFetcher = useFetcher();
   const [isCopied, setIsCopied] = useState(false);
+  const revalidator = useRevalidator();
+
+  // Standalone file management state
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [fileModalMode, setFileModalMode] = useState<"create" | "edit">(
+    "create"
+  );
+  const [selectedFilename, setSelectedFilename] = useState<string>("");
+  const [selectedFileContent, setSelectedFileContent] = useState<string>("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<string>("");
 
   // Get last assistant message
   const lastAssistantMessage = messages
@@ -478,6 +492,52 @@ export function InnerComponent(props: Route.ComponentProps) {
     );
 
     setText("");
+  };
+
+  const handleAddFile = () => {
+    setFileModalMode("create");
+    setSelectedFilename("");
+    setSelectedFileContent("");
+    setIsFileModalOpen(true);
+  };
+
+  const handleEditFile = async (filename: string) => {
+    // Fetch file content
+    try {
+      const response = await fetch(
+        `/api/standalone-files/read?videoId=${videoId}&filename=${encodeURIComponent(filename)}`
+      );
+      if (response.ok) {
+        const content = await response.text();
+        setFileModalMode("edit");
+        setSelectedFilename(filename);
+        setSelectedFileContent(content);
+        setIsFileModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Failed to read file:", error);
+    }
+  };
+
+  const handleDeleteFile = (filename: string) => {
+    setFileToDelete(filename);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleFileModalClose = (open: boolean) => {
+    setIsFileModalOpen(open);
+    if (!open) {
+      // Revalidate to refresh the file list
+      revalidator.revalidate();
+    }
+  };
+
+  const handleDeleteModalClose = (open: boolean) => {
+    setIsDeleteModalOpen(open);
+    if (!open) {
+      // Revalidate to refresh the file list
+      revalidator.revalidate();
+    }
   };
 
   return (
@@ -605,6 +665,28 @@ export function InnerComponent(props: Route.ComponentProps) {
               enabledFiles={enabledFiles}
               onEnabledFilesChange={setEnabledFiles}
             />
+          )}
+          {/* Standalone file tree with management UI */}
+          {isStandalone && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-sm font-semibold">Files</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddFile}
+                  className="h-7"
+                >
+                  <PlusIcon className="h-3 w-3 mr-1" />
+                  Add File
+                </Button>
+              </div>
+              <StandaloneFileTree
+                files={files}
+                onEditFile={handleEditFile}
+                onDeleteFile={handleDeleteFile}
+              />
+            </div>
           )}
         </div>
 
@@ -885,6 +967,25 @@ export function InnerComponent(props: Route.ComponentProps) {
           </div>
         </div>
       </div>
+      {/* Standalone file modals */}
+      {isStandalone && (
+        <>
+          <StandaloneFileManagementModal
+            videoId={videoId}
+            mode={fileModalMode}
+            filename={selectedFilename}
+            content={selectedFileContent}
+            open={isFileModalOpen}
+            onOpenChange={handleFileModalClose}
+          />
+          <DeleteStandaloneFileModal
+            videoId={videoId}
+            filename={fileToDelete}
+            open={isDeleteModalOpen}
+            onOpenChange={handleDeleteModalClose}
+          />
+        </>
+      )}
     </div>
   );
 }

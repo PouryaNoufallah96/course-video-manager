@@ -148,3 +148,56 @@
   - TypeScript type checking passes
 - Next steps:
   - Task 4: Create UI component for managing standalone video files (modal, file tree interactions)
+
+### Task 4: Create UI component for managing standalone video files
+- Created complete file management UI for standalone videos
+- Implementation details:
+  - Created StandaloneFileManagementModal component (handles create/edit modes)
+    - Single modal with mode prop ("create" or "edit")
+    - Filename input (disabled in edit mode)
+    - Content textarea (monospace font for code)
+    - Form submission via useFetcher to create/update API routes
+    - Auto-revalidates after submission to refresh file list
+  - Created StandaloneFileTree component (simple flat list)
+    - Displays files with filename and size
+    - Edit button (opens modal with file content)
+    - Delete button (opens confirmation dialog)
+    - Hover effects to show/hide buttons
+    - Empty state message when no files
+  - Created DeleteStandaloneFileModal component
+    - Confirmation dialog with destructive styling
+    - Shows filename being deleted
+    - Form submission via useFetcher to delete API route
+  - Created api.standalone-files.read.ts route
+    - Loader that reads file content from filesystem
+    - Query params: videoId, filename
+    - Returns plain text response
+    - Validates video exists and is standalone
+  - Modified videos.$videoId.write.tsx to integrate components
+    - Added state for modal management (isFileModalOpen, fileModalMode, etc.)
+    - Added handleAddFile, handleEditFile, handleDeleteFile handlers
+    - Added "Add File" button above file tree for standalone videos
+    - Renders StandaloneFileTree instead of FileTree for standalone videos
+    - Renders both modals at bottom of component
+    - Uses useRevalidator to refresh file list after operations
+- Key decisions:
+  - File tree only appears for standalone videos (isStandalone === true)
+  - Files displayed in flat list (no directory nesting for MVP)
+  - Edit fetches file content on-demand (not pre-loaded in loader)
+  - Modal closes automatically after successful submission
+  - Revalidation triggered after modal close to update file list
+  - Monospace font in textarea for better code editing experience
+  - Filename field disabled in edit mode (no rename support in MVP)
+- Files changed:
+  - app/components/standalone-file-management-modal.tsx (new component)
+  - app/components/StandaloneFileTree.tsx (new component)
+  - app/components/delete-standalone-file-modal.tsx (new component)
+  - app/routes/api.standalone-files.read.ts (new API route)
+  - app/routes/videos.$videoId.write.tsx (integrated all components)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+  - Code formatting passes
+- Next steps:
+  - Task 4 is complete
+  - Issue #75 is complete - all user stories implemented
