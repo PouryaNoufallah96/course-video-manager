@@ -681,8 +681,34 @@ export function InnerComponent(props: Route.ComponentProps) {
                   Add File
                 </Button>
               </div>
+              {files.length > 0 && (
+                <div className="flex gap-2 px-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setEnabledFiles(new Set(files.map((f) => f.path)));
+                    }}
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setEnabledFiles(new Set());
+                    }}
+                  >
+                    Deselect All
+                  </Button>
+                </div>
+              )}
               <StandaloneFileTree
                 files={files}
+                enabledFiles={enabledFiles}
+                onEnabledFilesChange={setEnabledFiles}
                 onEditFile={handleEditFile}
                 onDeleteFile={handleDeleteFile}
               />

@@ -201,3 +201,43 @@
 - Next steps:
   - Task 4 is complete
   - Issue #75 is complete - all user stories implemented
+
+
+## Issue #76 - Add/Remove Standalone Video Files to Context
+### Task 1: Add checkbox functionality to standalone files
+- Added checkbox UI to StandaloneFileTree component (similar to FileTree)
+- Implementation details:
+  - Updated StandaloneFileTree to accept enabledFiles and onEnabledFilesChange props
+  - Added Checkbox component import and usage
+  - Added handleToggle function to manage selection state
+  - Each file row now shows checkbox before filename
+  - Checkbox state synced with enabledFiles Set
+- Added "Select All" and "Deselect All" buttons above file tree
+  - Buttons only visible when files exist
+  - "Select All" adds all file paths to enabledFiles
+  - "Deselect All" clears all selections
+- Updated videos.$videoId.write.tsx to wire up state
+  - Passed enabledFiles and onEnabledFilesChange to StandaloneFileTree
+  - enabledFiles state now properly initialized from defaultEnabled
+- Updated acquireTextWritingContext to load standalone video files
+  - Added import for getStandaloneVideoFilePath
+  - Added else branch to handle standalone videos (no lesson)
+  - Loads files from standalone video directory
+  - Filters files based on enabledFiles parameter
+  - Handles both text and image files (same as lesson files)
+  - Files properly included in AI context when selected
+- Key decisions:
+  - Followed exact same pattern as FileTree component for consistency
+  - Checkbox appears before filename (same as lesson files)
+  - Select All/Deselect All buttons match UI style of "Add File" button
+  - Standalone files now fully integrated into context system
+- Files changed:
+  - app/components/StandaloneFileTree.tsx (added checkbox functionality)
+  - app/routes/videos.$videoId.write.tsx (added Select All/Deselect All buttons, wired up enabledFiles)
+  - app/services/text-writing-agent.ts (added standalone file loading logic)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 1 is complete
+  - Issue #76 is complete - standalone files now have same context functionality as lesson files

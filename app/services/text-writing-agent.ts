@@ -19,6 +19,7 @@ import { DBService } from "./db-service";
 import path from "node:path";
 import { FileSystem } from "@effect/platform";
 import { formatSecondsToTimeCode } from "./utils";
+import { getStandaloneVideoFilePath } from "./standalone-video-files";
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
 
@@ -177,7 +178,7 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
 
     const lesson = video.lesson;
 
-    // For standalone videos (no lesson), return empty files but include transcript
+    // Initialize file arrays
     let textFiles: { path: string; content: string }[] = [];
     let imageFiles: { path: string; content: Uint8Array<ArrayBufferLike> }[] =
       [];
@@ -268,6 +269,79 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
           path: f.path,
           content: f.content,
         }));
+    } else {
+      // For standalone videos, load standalone video files
+      const standaloneVideoDir = getStandaloneVideoFilePath(props.videoId);
+      const dirExists = yield* fs.exists(standaloneVideoDir);
+
+      if (dirExists) {
+        const filesInDirectory = yield* fs.readDirectory(standaloneVideoDir);
+
+        // Filter files based on enabledFiles
+        const filteredFiles = filesInDirectory.filter((filename) => {
+          return (
+            props.enabledFiles === undefined ||
+            props.enabledFiles.includes(filename)
+          );
+        });
+
+        const allFiles = yield* Effect.forEach(filteredFiles, (filename) => {
+          return Effect.gen(function* () {
+            const filePath = getStandaloneVideoFilePath(
+              props.videoId,
+              filename
+            );
+            const stat = yield* fs.stat(filePath);
+
+            if (stat.type !== "File") {
+              return NOT_A_FILE;
+            }
+
+            const imageExtensions = [
+              ".png",
+              ".jpg",
+              ".jpeg",
+              ".gif",
+              ".svg",
+              ".webp",
+              ".bmp",
+            ];
+            const isImage = imageExtensions.some((ext) =>
+              filename.toLowerCase().endsWith(ext)
+            );
+
+            if (isImage) {
+              const fileContent = yield* fs.readFile(filePath);
+              return {
+                type: "image" as const,
+                path: filename,
+                content: fileContent,
+              };
+            } else {
+              const fileContent = yield* fs.readFileString(filePath);
+              return {
+                type: "text" as const,
+                filePath: filename,
+                fileContent,
+              };
+            }
+          });
+        }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
+
+        textFiles = allFiles
+          .filter((f) => f.type === "text")
+          .map((f) => ({
+            path: f.filePath,
+            content: f.fileContent,
+          }));
+
+        imageFiles = allFiles
+          .filter((f) => f.type === "image")
+          .map((f) => ({
+            path: f.path,
+            content: f.content,
+          }));
+      }
     }
 
     const includeTranscript = props.includeTranscript ?? true;
