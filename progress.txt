@@ -247,3 +247,21 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/archived-repos.tsx:219-229
+
+## Issue #60 - Restore + button next to Repos, confirm removal of large Add repo button
+- Restored the + icon button next to "Repos" in sidebar header on both pages
+- Confirmed that large "Add Repo" button at bottom (below Separator) is already removed
+- Implementation details:
+  - Added back the wrapper div with "flex items-center justify-between" layout
+  - Added Plus icon button (h-7 w-7, ghost variant) that opens AddRepoModal
+  - Matches the Videos section pattern for consistency
+  - Updated both _index.tsx and archived-repos.tsx
+- Key decisions:
+  - The large wide "Add Repo" button was previously removed from sidebar bottom
+  - Small + icon provides quick access while maintaining clean UI
+  - Consistent pattern across Repos and Videos sections
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/routes/_index.tsx:311-325
+  - app/routes/archived-repos.tsx:79-93

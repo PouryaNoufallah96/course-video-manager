@@ -308,11 +308,21 @@ export default function Component(props: Route.ComponentProps) {
           <div className="space-y-2 flex-1 overflow-y-auto">
             {/* Repos */}
             <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
-                <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
-                <FolderGit2 className="w-5 h-5" />
-                Repos
-              </CollapsibleTrigger>
+              <div className="flex items-center justify-between">
+                <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
+                  <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
+                  <FolderGit2 className="w-5 h-5" />
+                  Repos
+                </CollapsibleTrigger>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setIsAddRepoModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
               <CollapsibleContent>
                 <div className="ml-6 mt-2 space-y-1">
                   {repos.map((repo) => (
