@@ -265,3 +265,26 @@
 - Files changed:
   - app/routes/_index.tsx:311-325
   - app/routes/archived-repos.tsx:79-93
+
+## Issue #58 - Extract sidebar into shared component
+- Created AppSidebar component to eliminate duplication between pages
+- Sidebar was duplicated between _index.tsx and archived-repos.tsx
+- Implementation details:
+  - Created app/components/app-sidebar.tsx with all sidebar logic
+  - Component accepts repos, standaloneVideos, selectedRepoId, and modal state as props
+  - Repos, Videos, and Diagram Playground navigation in shared component
+  - Archive functionality and modals included in component
+  - Updated both _index.tsx and archived-repos.tsx to use AppSidebar
+  - Removed duplicate sidebar code (140+ lines per file)
+  - Cleaned up unused imports (Collapsible, Separator, various icons)
+- Key decisions:
+  - Navigation to repos uses absolute path (/?repoId=) for consistency across pages
+  - All modal state management remains in parent components for flexibility
+  - Component is self-contained with its own archiveRepoFetcher
+  - Maintains exact same UI and behavior as before
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/components/app-sidebar.tsx (new file, 213 lines)
+  - app/routes/_index.tsx (removed 140 lines, added AppSidebar usage)
+  - app/routes/archived-repos.tsx (removed 140 lines, added AppSidebar usage)
