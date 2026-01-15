@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 export function StandaloneFileManagementModal(props: {
   videoId: string;
   mode: "create" | "edit";
+  uploadMode?: "text" | "file";
   filename?: string;
   content?: string;
   open: boolean;
@@ -33,6 +34,8 @@ export function StandaloneFileManagementModal(props: {
   }, [props.filename, props.content, props.open]);
 
   const isCreate = props.mode === "create";
+  const uploadMode = props.uploadMode || "file";
+  const isTextMode = uploadMode === "text";
   const actionUrl = isCreate
     ? "/api/standalone-files/create"
     : "/api/standalone-files/update";
@@ -74,7 +77,7 @@ export function StandaloneFileManagementModal(props: {
           {!isCreate && (
             <input type="hidden" name="oldFilename" value={props.filename} />
           )}
-          {isCreate ? (
+          {isCreate && !isTextMode ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="file">File</Label>
@@ -117,7 +120,7 @@ export function StandaloneFileManagementModal(props: {
                   value={filename}
                   onChange={(e) => setFilename(e.target.value)}
                   required
-                  disabled
+                  disabled={!isCreate}
                 />
               </div>
               <div className="space-y-2">
@@ -150,7 +153,11 @@ export function StandaloneFileManagementModal(props: {
               {fetcher.state === "submitting" ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : isCreate ? (
-                "Upload File"
+                isTextMode ? (
+                  "Create File"
+                ) : (
+                  "Upload File"
+                )
               ) : (
                 "Save Changes"
               )}

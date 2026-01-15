@@ -323,3 +323,31 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #78 is complete - users can now upload images, PDFs, and other binary files
+
+
+## Issue #79 - Add text vs file upload options
+- Converted "Add File" button to dropdown menu with two options
+- Implementation details:
+  - Modified videos.$videoId.write.tsx to replace button with DropdownMenu
+  - Added two menu items: "Add from Text" and "Add from File"
+  - Added fileUploadMode state to track which mode is selected
+  - Updated handleAddFile to accept mode parameter ("text" | "file")
+  - Added uploadMode prop to StandaloneFileManagementModal
+  - Updated modal to conditionally render file upload UI or text input UI
+  - In text mode: shows filename input (enabled) and textarea for content
+  - In file mode: shows file input and optional filename override
+  - API route already supported both modes (text content and file uploads)
+- Key decisions:
+  - Used existing dropdown menu pattern from codebase (similar to README dropdown)
+  - Kept FormData for both modes (API route handles both elegantly)
+  - Text mode creates files with text content, file mode uploads files from disk
+  - Edit mode continues to work as before (always uses text mode)
+  - Filename input enabled in text create mode, disabled in edit mode
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (added dropdown menu, updated handlers)
+  - app/components/standalone-file-management-modal.tsx (added uploadMode prop and conditional rendering)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #79 is complete - users can now choose between pasting text or uploading files

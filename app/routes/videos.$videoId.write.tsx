@@ -437,6 +437,7 @@ export function InnerComponent(props: Route.ComponentProps) {
   const [fileModalMode, setFileModalMode] = useState<"create" | "edit">(
     "create"
   );
+  const [fileUploadMode, setFileUploadMode] = useState<"text" | "file">("file");
   const [selectedFilename, setSelectedFilename] = useState<string>("");
   const [selectedFileContent, setSelectedFileContent] = useState<string>("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -494,10 +495,11 @@ export function InnerComponent(props: Route.ComponentProps) {
     setText("");
   };
 
-  const handleAddFile = () => {
+  const handleAddFile = (mode: "text" | "file") => {
     setFileModalMode("create");
     setSelectedFilename("");
     setSelectedFileContent("");
+    setFileUploadMode(mode);
     setIsFileModalOpen(true);
   };
 
@@ -510,6 +512,7 @@ export function InnerComponent(props: Route.ComponentProps) {
       if (response.ok) {
         const content = await response.text();
         setFileModalMode("edit");
+        setFileUploadMode("text"); // Edit mode always uses text
         setSelectedFilename(filename);
         setSelectedFileContent(content);
         setIsFileModalOpen(true);
@@ -724,15 +727,35 @@ export function InnerComponent(props: Route.ComponentProps) {
                 >
                   Files
                 </label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddFile}
-                  className="h-7"
-                >
-                  <PlusIcon className="h-3 w-3 mr-1" />
-                  Add File
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-7">
+                      <PlusIcon className="h-3 w-3 mr-1" />
+                      Add File
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => handleAddFile("text")}>
+                      <FileTextIcon className="h-4 w-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Add from Text</span>
+                        <span className="text-xs text-muted-foreground">
+                          Paste text content
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleAddFile("file")}>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Add from File</span>
+                        <span className="text-xs text-muted-foreground">
+                          Upload a file from disk
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <StandaloneFileTree
                 files={files}
@@ -1028,6 +1051,7 @@ export function InnerComponent(props: Route.ComponentProps) {
           <StandaloneFileManagementModal
             videoId={videoId}
             mode={fileModalMode}
+            uploadMode={fileUploadMode}
             filename={selectedFilename}
             content={selectedFileContent}
             open={isFileModalOpen}
