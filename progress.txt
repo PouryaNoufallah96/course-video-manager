@@ -817,3 +817,39 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #95 is complete - article mode no longer includes placeholder link instructions
+
+
+## Issue #96 - Interview Me Mode
+- Added "Interview Me" mode to the article writer for generating content through Q&A interviews
+- Implementation details:
+  - Added "interview" to modeSchema in videos.$videoId.completions.ts
+  - Created app/prompts/generate-interview.ts with interview-specific prompt
+    - Prompt instructs AI to ask ONE question at a time
+    - AI acts as interviewer, user answers questions
+    - Covers context, specifics, edge cases, and practical advice
+    - Open-ended questions to encourage detailed responses
+  - Added interview case to text-writing-agent.ts switch statement
+  - Added "interview" to modeToLabel mapping ("Interview Me")
+  - Added SelectItem with MicIcon for interview mode in mode selector
+  - Added MicIcon to lucide-react imports
+  - Implemented copy dropdown menu for interview mode:
+    - Copy button becomes dropdown with ChevronDown indicator
+    - "Copy Conversation History" - formats as Q&A (Q: assistant, A: user)
+    - "Copy Last Message" - copies just the last assistant message
+  - Added formatConversationAsQA() function for Q&A formatting
+  - Added copyConversationHistory() function
+- Key decisions:
+  - Interview mode uses Q&A format where AI questions are "Q:" and user answers are "A:"
+  - Copy dropdown only appears in interview mode, other modes keep simple copy button
+  - Prompt designed to generate content for documentation/articles/AI assistants
+  - AI introduces itself and asks first question, then follows up based on answers
+- Files changed:
+  - app/routes/videos.$videoId.completions.ts (added interview to mode schema)
+  - app/prompts/generate-interview.ts (new prompt file)
+  - app/services/text-writing-agent.ts (added interview case, import)
+  - app/routes/videos.$videoId.write.tsx (added UI, copy dropdown, formatConversationAsQA)
+- Testing:
+  - All 25 tests pass (24 passed, 1 skipped/todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #96 is complete - Interview Me mode fully implemented

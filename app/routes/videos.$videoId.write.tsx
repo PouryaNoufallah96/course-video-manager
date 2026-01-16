@@ -66,6 +66,7 @@ import {
   ClipboardIcon,
   MailIcon,
   AlertTriangleIcon,
+  MicIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -347,6 +348,7 @@ const modeToLabel: Record<Mode, string> = {
   "youtube-thumbnail": "YouTube Thumbnail",
   "youtube-description": "YouTube Description",
   newsletter: "Newsletter",
+  interview: "Interview Me",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -471,6 +473,35 @@ export function InnerComponent(props: Route.ComponentProps) {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
+    }
+  };
+
+  // Format conversation history as Q&A for interview mode
+  const formatConversationAsQA = () => {
+    const qaMessages: string[] = [];
+
+    for (const message of messages) {
+      const text = partsToText(message.parts);
+      if (!text) continue;
+
+      if (message.role === "assistant") {
+        qaMessages.push(`Q: ${text}`);
+      } else if (message.role === "user") {
+        qaMessages.push(`A: ${text}`);
+      }
+    }
+
+    return qaMessages.join("\n\n");
+  };
+
+  const copyConversationHistory = async () => {
+    try {
+      const qaText = formatConversationAsQA();
+      await navigator.clipboard.writeText(qaText);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy conversation history:", error);
     }
   };
 
@@ -977,6 +1008,17 @@ export function InnerComponent(props: Route.ComponentProps) {
                         </div>
                       </div>
                     </SelectItem>
+                    <SelectItem value="interview">
+                      <div className="flex items-start gap-2">
+                        <MicIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Interview Me</div>
+                          <div className="text-xs text-muted-foreground">
+                            Get interviewed about the topic to generate content
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -1005,24 +1047,64 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={copyToClipboard}
-                  disabled={status === "streaming" || !lastAssistantMessageText}
-                >
-                  {isCopied ? (
-                    <>
-                      <CheckIcon className="h-4 w-4 mr-1" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <CopyIcon className="h-4 w-4 mr-1" />
-                      Copy
-                    </>
-                  )}
-                </Button>
+                {mode === "interview" ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={
+                          status === "streaming" || messages.length === 0
+                        }
+                      >
+                        {isCopied ? (
+                          <>
+                            <CheckIcon className="h-4 w-4 mr-1" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <CopyIcon className="h-4 w-4 mr-1" />
+                            Copy
+                            <ChevronDown className="h-3 w-3 ml-1" />
+                          </>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={copyConversationHistory}>
+                        Copy Conversation History
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={copyToClipboard}
+                        disabled={!lastAssistantMessageText}
+                      >
+                        Copy Last Message
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyToClipboard}
+                    disabled={
+                      status === "streaming" || !lastAssistantMessageText
+                    }
+                  >
+                    {isCopied ? (
+                      <>
+                        <CheckIcon className="h-4 w-4 mr-1" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon className="h-4 w-4 mr-1" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                )}
                 {/* Lint Fix button - shows when violations detected */}
                 {violations.length > 0 && (
                   <TooltipProvider>
