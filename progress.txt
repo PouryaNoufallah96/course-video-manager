@@ -824,3 +824,43 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #94 is complete - pasted files are now automatically included in context
+
+
+## Issue #90 - Add notes while filming (Task 1: Add to video editor)
+- Added "Add Note from Clipboard" functionality to video editor page
+- Implementation details:
+  - Updated videos.$videoId.edit.tsx loader to load standalone video files
+    - Reused getStandaloneVideoFilePath utility from existing standalone files system
+    - Reads all files from standalone video directory
+    - Returns array of files with path property
+  - Added isPasteModalOpen state to VideoEditor component
+  - Added revalidator hook to refresh file list after paste
+  - Added handlePasteModalClose and handleFileCreated handlers
+  - Rendered StandaloneFilePasteModal in VideoEditor after ClipSectionNamingModal
+  - Added onAddNoteFromClipboard callback to VideoEditorContext
+  - Updated ActionsDropdown component:
+    - Added onAddNoteFromClipboard prop
+    - Added ClipboardIcon import
+    - Added "Add Note from Clipboard" menu item with description
+    - Menu item opens paste modal when clicked
+  - Updated video-player-panel.tsx:
+    - Added onAddNoteFromClipboard context selector
+    - Passed callback to ActionsDropdown
+- Key decisions:
+  - Reused existing StandaloneFilePasteModal component (no duplication)
+  - Files stored in same standalone video files directory as write page
+  - Files immediately available in write page after creation
+  - Modal accessed via Actions dropdown menu (consistent with other editor actions)
+  - Context-based communication (follows existing VideoEditor patterns)
+  - onAddNoteFromClipboard callback opens modal via setIsPasteModalOpen(true)
+- Files changed:
+  - app/routes/videos.$videoId.edit.tsx (loader loads standalone files, passes to VideoEditor)
+  - app/features/video-editor/video-editor.tsx (added modal state and rendering)
+  - app/features/video-editor/video-editor-context.tsx (added onAddNoteFromClipboard to type)
+  - app/features/video-editor/components/actions-dropdown.tsx (added menu item and prop)
+  - app/features/video-editor/components/video-player-panel.tsx (wired up callback)
+- Testing:
+  - All 24 tests pass (24 passed, 1 todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #90 is complete - users can now add notes via clipboard while filming

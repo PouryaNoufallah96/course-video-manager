@@ -8,7 +8,8 @@ import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import { useClipboardOperations } from "./hooks/use-clipboard-operations";
 import { useCallback, useMemo, useState } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useRevalidator } from "react-router";
+import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-modal";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
@@ -112,6 +113,7 @@ export const VideoEditor = (props: {
     itemId: FrontendId
   ) => void;
   error: EditorError | null;
+  standaloneFiles: Array<{ path: string }>;
 }) => {
   // Filter items to get only clips (excluding clip sections)
   // Clip sections will be rendered separately in a future update
@@ -159,6 +161,8 @@ export const VideoEditor = (props: {
   const exportToDavinciResolveFetcher = useFetcher();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
+  const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
+  const revalidator = useRevalidator();
 
   // State for clip section naming modal
   const [clipSectionNamingModal, setClipSectionNamingModal] =
@@ -292,6 +296,19 @@ export const VideoEditor = (props: {
     props.onAddClipSection("Intro");
   }, [props]);
 
+  const handlePasteModalClose = (open: boolean) => {
+    setIsPasteModalOpen(open);
+    if (!open) {
+      // Revalidate to refresh the file list
+      revalidator.revalidate();
+    }
+  };
+
+  const handleFileCreated = () => {
+    // File creation is handled by the modal, no additional action needed
+    // Revalidation happens in handlePasteModalClose
+  };
+
   // Build context value with all state and callbacks
   const contextValue = useMemo(
     () => ({
@@ -388,6 +405,7 @@ export const VideoEditor = (props: {
       setIsExportModalOpen,
       isAddVideoModalOpen,
       setIsAddVideoModalOpen,
+      onAddNoteFromClipboard: () => setIsPasteModalOpen(true),
     }),
     [
       state,
@@ -459,6 +477,15 @@ export const VideoEditor = (props: {
           onAddClipSection={props.onAddClipSection}
           onUpdateClipSection={props.onUpdateClipSection}
           onAddClipSectionAt={props.onAddClipSectionAt}
+        />
+
+        {/* Standalone File Paste Modal */}
+        <StandaloneFilePasteModal
+          videoId={props.videoId}
+          open={isPasteModalOpen}
+          onOpenChange={handlePasteModalClose}
+          existingFiles={props.standaloneFiles}
+          onFileCreated={handleFileCreated}
         />
 
         {/* Clips Section - Shows second on mobile, first on desktop */}

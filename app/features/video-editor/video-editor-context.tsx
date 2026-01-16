@@ -86,6 +86,7 @@ export type VideoEditorContextType = {
   setIsExportModalOpen: (value: boolean) => void;
   isAddVideoModalOpen: boolean;
   setIsAddVideoModalOpen: (value: boolean) => void;
+  onAddNoteFromClipboard: () => void;
 };
 
 export const VideoEditorContext = createContext<VideoEditorContextType>(null!);

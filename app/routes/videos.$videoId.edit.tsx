@@ -24,6 +24,8 @@ import type { Route } from "./+types/videos.$videoId.edit";
 import { useMemo } from "react";
 import { INSERTION_POINT_ID } from "@/features/video-editor/constants";
 import { data } from "react-router";
+import { getStandaloneVideoFilePath } from "@/services/standalone-video-files";
+import { Array as EffectArray } from "effect";
 
 // Core data model - flat array of clips
 
@@ -69,12 +71,43 @@ export const loader = async (args: Route.LoaderArgs) => {
       a.order < b.order ? -1 : a.order > b.order ? 1 : 0
     );
 
+    // Get standalone video files directory
+    const standaloneVideoDir = getStandaloneVideoFilePath(videoId);
+
+    // Check if directory exists
+    const dirExists = yield* fs.exists(standaloneVideoDir);
+
+    let standaloneFiles: Array<{
+      path: string;
+    }> = [];
+
+    if (dirExists) {
+      // Read all files from the standalone video directory
+      const filesInDirectory = yield* fs.readDirectory(standaloneVideoDir);
+
+      standaloneFiles = yield* Effect.forEach(filesInDirectory, (filename) => {
+        return Effect.gen(function* () {
+          const filePath = getStandaloneVideoFilePath(videoId, filename);
+          const stat = yield* fs.stat(filePath);
+
+          if (stat.type !== "File") {
+            return null;
+          }
+
+          return {
+            path: filename,
+          };
+        });
+      }).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
+    }
+
     return {
       video,
       items: sortedItems,
       waveformData: undefined,
       hasExplainerFolder,
       videoCount: lesson?.videos.length ?? 1,
+      standaloneFiles,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -502,6 +535,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       hasExplainerFolder={props.loaderData.hasExplainerFolder}
       videoCount={props.loaderData.videoCount}
       error={clipState.error}
+      standaloneFiles={props.loaderData.standaloneFiles}
     />
   );
 };

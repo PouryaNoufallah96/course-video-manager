@@ -156,6 +156,10 @@ export const VideoPlayerPanel = () => {
     VideoEditorContext,
     (ctx) => ctx.setIsAddVideoModalOpen
   );
+  const onAddNoteFromClipboard = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onAddNoteFromClipboard
+  );
   const items = useContextSelector(VideoEditorContext, (ctx) => ctx.items);
   const selectedClipsSet = useContextSelector(
     VideoEditorContext,
@@ -320,6 +324,7 @@ export const VideoPlayerPanel = () => {
                     copyYoutubeChaptersToClipboard
                   }
                   onAddVideoClick={() => setIsAddVideoModalOpen(true)}
+                  onAddNoteFromClipboard={onAddNoteFromClipboard}
                 />
               </TooltipProvider>
             </div>
