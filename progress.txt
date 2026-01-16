@@ -853,3 +853,28 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #96 is complete - Interview Me mode fully implemented
+
+
+## Issue #97 - Files don't appear to be passed into interview mode
+- Fixed interview prompt to explicitly reference files and transcript in questions
+- Problem:
+  - Interview mode was receiving files correctly (code verified working)
+  - However, the prompt didn't instruct the AI to reference or use the files in its questions
+  - AI would have files as context but wouldn't acknowledge or use them
+- Solution:
+  - Updated generate-interview.ts prompt to:
+    - Add guidance to ground questions in the specific code/transcript provided
+    - Add explicit instructions to reference specific details from documents
+    - Tell AI to mention that it has reviewed documents when starting
+    - Provide examples of how to reference code patterns and transcript concepts
+- Key decisions:
+  - This was a prompt issue, not a code/data flow issue
+  - Files were being passed correctly to the system prompt all along
+  - Added explicit examples to guide the AI's behavior
+- Files changed:
+  - app/prompts/generate-interview.ts (updated prompt instructions)
+- Testing:
+  - All 25 tests pass (24 passed, 1 skipped/todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #97 is complete

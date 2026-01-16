@@ -55,6 +55,7 @@ Keep your questions:
 - Open-ended to encourage detailed responses
 - Natural and conversational
 - Building on previous answers when relevant
+- Grounded in the specific code and transcript provided (when available)
 
 ${getImageInstructions(opts.images)}
 </the-ask>
@@ -66,7 +67,12 @@ Do not provide answers or explanations yourself - you are the interviewer, not t
 
 After the user responds, acknowledge briefly and ask a relevant follow-up question that digs deeper or explores a new angle.
 
-Start by introducing yourself briefly and asking your first question about the topic.
+IMPORTANT: If code or a transcript has been provided in the documents section above, you MUST reference specific details from them in your questions. For example:
+- "I see you're using [specific pattern/function/type] in the code. Can you explain why you chose this approach?"
+- "The transcript mentions [specific concept]. Can you elaborate on that?"
+- "I noticed [specific code structure]. What problem does this solve?"
+
+Start by introducing yourself briefly. If documents were provided, mention that you've reviewed them, then ask your first question about the topic - ideally referencing something specific from the code or transcript.
 </output-format>
 `.trim();
 };
