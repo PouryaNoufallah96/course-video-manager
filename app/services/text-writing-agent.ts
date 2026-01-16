@@ -21,20 +21,9 @@ import path from "node:path";
 import { FileSystem } from "@effect/platform";
 import { formatSecondsToTimeCode } from "./utils";
 import { getStandaloneVideoFilePath } from "./standalone-video-files";
+import type { TextWritingAgentMode } from "@/routes/videos.$videoId.completions";
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
-
-export type TextWritingAgentMode =
-  | "article"
-  | "skill-building"
-  | "style-guide-skill-building"
-  | "style-guide-project"
-  | "project"
-  | "seo-description"
-  | "youtube-title"
-  | "youtube-thumbnail"
-  | "youtube-description"
-  | "newsletter";
 
 export type TextWritingAgentCodeFile = {
   path: string;

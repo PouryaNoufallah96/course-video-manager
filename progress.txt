@@ -629,3 +629,28 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #85 is complete - newsletter mode now works without validation errors
+
+
+## Issue #86 - Infer TextWritingAgentMode from schema definition
+- Eliminated duplicate type definitions by inferring TextWritingAgentMode from the schema
+- Implementation details:
+  - Extracted modeSchema as a separate const in videos.$videoId.completions.ts
+  - Created TextWritingAgentMode type using Schema.Schema.Type<typeof modeSchema>
+  - Exported TextWritingAgentMode from videos.$videoId.completions.ts
+  - Updated text-writing-agent.ts to import and use the inferred type
+  - Updated article-writer types.ts to import and alias the inferred type as Mode
+  - Schema now serves as single source of truth for mode types
+- Key decisions:
+  - Schema is the source of truth, TypeScript types inferred from it
+  - Maintains backwards compatibility - Mode type still exported from article-writer types
+  - Type safety ensured - impossible for schema and types to drift apart
+  - No runtime behavior changes, purely type system improvement
+- Files changed:
+  - app/routes/videos.$videoId.completions.ts (extracted modeSchema, exported TextWritingAgentMode type)
+  - app/services/text-writing-agent.ts (removed type definition, imported from completions route)
+  - app/features/article-writer/types.ts (removed type definition, imported and aliased from completions route)
+- Testing:
+  - All tests pass (21 passed)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #86 is complete - single source of truth established for mode types

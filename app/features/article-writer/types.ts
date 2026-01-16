@@ -1,3 +1,5 @@
+import type { TextWritingAgentMode } from "@/routes/videos.$videoId.completions";
+
 /**
  * Represents clip sections with calculated word counts for UI display.
  * Used in the write page to show section checkboxes with word counts.
@@ -11,19 +13,9 @@ export type SectionWithWordCount = {
 
 /**
  * Writing mode for the article writer.
- * Extends TextWritingAgentMode with additional YouTube/SEO variants.
+ * Inferred from the schema definition to ensure type safety.
  */
-export type Mode =
-  | "article"
-  | "project"
-  | "skill-building"
-  | "style-guide-skill-building"
-  | "style-guide-project"
-  | "seo-description"
-  | "youtube-title"
-  | "youtube-thumbnail"
-  | "youtube-description"
-  | "newsletter";
+export type Mode = TextWritingAgentMode;
 
 /**
  * AI model selection for article generation.

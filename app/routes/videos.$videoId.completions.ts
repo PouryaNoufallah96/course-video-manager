@@ -10,21 +10,25 @@ import type { Route } from "./+types/videos.$videoId.completions";
 import { anthropic } from "@ai-sdk/anthropic";
 import { data } from "react-router";
 
+const modeSchema = Schema.Union(
+  Schema.Literal("article"),
+  Schema.Literal("project"),
+  Schema.Literal("skill-building"),
+  Schema.Literal("style-guide-skill-building"),
+  Schema.Literal("style-guide-project"),
+  Schema.Literal("seo-description"),
+  Schema.Literal("youtube-title"),
+  Schema.Literal("youtube-thumbnail"),
+  Schema.Literal("youtube-description"),
+  Schema.Literal("newsletter")
+);
+
+export type TextWritingAgentMode = Schema.Schema.Type<typeof modeSchema>;
+
 const chatSchema = Schema.Struct({
   messages: Schema.Any,
   enabledFiles: Schema.Array(Schema.String),
-  mode: Schema.Union(
-    Schema.Literal("article"),
-    Schema.Literal("project"),
-    Schema.Literal("skill-building"),
-    Schema.Literal("style-guide-skill-building"),
-    Schema.Literal("style-guide-project"),
-    Schema.Literal("seo-description"),
-    Schema.Literal("youtube-title"),
-    Schema.Literal("youtube-thumbnail"),
-    Schema.Literal("youtube-description"),
-    Schema.Literal("newsletter")
-  ),
+  mode: modeSchema,
   model: Schema.String,
   includeTranscript: Schema.optionalWith(Schema.Boolean, {
     default: () => true,
