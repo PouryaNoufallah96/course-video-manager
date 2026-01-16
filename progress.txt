@@ -654,3 +654,23 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #86 is complete - single source of truth established for mode types
+
+
+## Issue #87 - Right-click video to open article page
+- Changed video card link destination from edit page to write page
+- Implementation details:
+  - Updated Link in _index.tsx from `/videos/${videoId}/edit` to `/videos/${videoId}/write`
+  - Video card now navigates to article writing page on left-click
+  - Right-click on video card shows native browser context menu (Open in new tab, Copy link, etc.)
+  - Custom context menu still provides "Edit Video" option for accessing editor
+- Key decisions:
+  - Changed primary action from "edit" to "write article" (more common workflow)
+  - Preserves all existing functionality via context menu
+  - Native browser right-click provides expected "Open in new tab" behavior
+- Files changed:
+  - app/routes/_index.tsx (changed video card Link destination)
+- Testing:
+  - All tests pass (21 passed)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #87 is complete - users can now right-click videos to open article page in new tab

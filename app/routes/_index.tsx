@@ -713,7 +713,7 @@ export default function Component(props: Route.ComponentProps) {
                                   <ContextMenu key={video.id}>
                                     <ContextMenuTrigger asChild>
                                       <Link
-                                        to={`/videos/${video.id}/edit`}
+                                        to={`/videos/${video.id}/write`}
                                         className={cn(
                                           "flex items-center justify-between text-sm border-x px-3 py-2 cursor-context-menu hover:bg-muted/50 transition-colors",
                                           index !== 0 ? "border-t" : ""
