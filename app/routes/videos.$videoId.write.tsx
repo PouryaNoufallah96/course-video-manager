@@ -71,6 +71,7 @@ import {
   ListTreeIcon,
   RadioIcon,
   FileTypeIcon,
+  SettingsIcon,
 } from "lucide-react";
 import { marked } from "marked";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -86,6 +87,8 @@ import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-m
 import { LessonFilePasteModal } from "@/components/lesson-file-paste-modal";
 import { FilePreviewModal } from "@/components/file-preview-modal";
 import { useLint } from "@/hooks/use-lint";
+import { useBannedPhrases } from "@/hooks/use-banned-phrases";
+import { BannedPhrasesModal } from "@/components/banned-phrases-modal";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
@@ -465,6 +468,17 @@ export function InnerComponent(props: Route.ComponentProps) {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewFilePath, setPreviewFilePath] = useState<string>("");
 
+  // Banned phrases management
+  const [isBannedPhrasesModalOpen, setIsBannedPhrasesModalOpen] =
+    useState(false);
+  const {
+    phrases: bannedPhrases,
+    addPhrase: addBannedPhrase,
+    removePhrase: removeBannedPhrase,
+    updatePhrase: updateBannedPhrase,
+    resetToDefaults: resetBannedPhrases,
+  } = useBannedPhrases();
+
   // Get last assistant message
   const lastAssistantMessage = messages
     .slice()
@@ -536,7 +550,8 @@ export function InnerComponent(props: Route.ComponentProps) {
   // Lint hook for checking violations in real-time
   const { violations, composeFixMessage } = useLint(
     lastAssistantMessageText,
-    mode
+    mode,
+    bannedPhrases
   );
 
   const handleFixLintViolations = () => {
@@ -1248,6 +1263,24 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </Tooltip>
                   </TooltipProvider>
                 )}
+                {/* Banned phrases settings button */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setIsBannedPhrasesModalOpen(true)}
+                      >
+                        <SettingsIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Manage banned phrases</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 {/* README dropdown - hidden for standalone videos */}
                 {!isStandalone && (
                   <DropdownMenu>
@@ -1372,6 +1405,16 @@ export function InnerComponent(props: Route.ComponentProps) {
         videoId={videoId}
         filePath={previewFilePath}
         isStandalone={isStandalone}
+      />
+      {/* Banned phrases management modal */}
+      <BannedPhrasesModal
+        open={isBannedPhrasesModalOpen}
+        onOpenChange={setIsBannedPhrasesModalOpen}
+        phrases={bannedPhrases}
+        onAddPhrase={addBannedPhrase}
+        onRemovePhrase={removeBannedPhrase}
+        onUpdatePhrase={updateBannedPhrase}
+        onResetToDefaults={resetBannedPhrases}
       />
     </div>
   );

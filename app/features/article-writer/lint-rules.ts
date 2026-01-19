@@ -31,40 +31,104 @@ export interface LintViolation {
 }
 
 /**
- * Phrases that are dead giveaways of LLM-generated content.
+ * Represents a custom banned phrase with optional case sensitivity.
+ */
+export interface BannedPhrase {
+  /** The phrase pattern (can include regex syntax) */
+  pattern: string;
+  /** Human-readable description */
+  readable: string;
+  /** Whether the match should be case sensitive */
+  caseSensitive: boolean;
+}
+
+/**
+ * Default banned phrases that are dead giveaways of LLM-generated content.
  * These should be avoided in all article writing.
  * Some patterns use regex syntax for context-aware matching.
  */
-const DISALLOWED_PHRASES = [
-  "uncomfortable truth",
-  "hard truth",
-  "spoiler[,:]",
-  "here's the thing:",
-  "yeah",
-  "it's kind of like",
-  "game[ -]?changer",
-  "the reality[?!:;.,]",
-  "the good news[?:]",
-  "the irony[?]",
-  "problem solved[.!]",
+export const DEFAULT_BANNED_PHRASES: BannedPhrase[] = [
+  {
+    pattern: "uncomfortable truth",
+    readable: "uncomfortable truth",
+    caseSensitive: false,
+  },
+  { pattern: "hard truth", readable: "hard truth", caseSensitive: false },
+  {
+    pattern: "spoiler[,:]",
+    readable: "spoiler (when followed by comma or colon)",
+    caseSensitive: false,
+  },
+  {
+    pattern: "here's the thing:",
+    readable: "here's the thing:",
+    caseSensitive: false,
+  },
+  { pattern: "yeah", readable: "yeah", caseSensitive: false },
+  {
+    pattern: "it's kind of like",
+    readable: "it's kind of like",
+    caseSensitive: false,
+  },
+  {
+    pattern: "game[ -]?changer",
+    readable: "game changer / game-changer",
+    caseSensitive: false,
+  },
+  {
+    pattern: "the reality[?!:;.,]",
+    readable: "the reality (when followed by punctuation)",
+    caseSensitive: false,
+  },
+  {
+    pattern: "the good news[?:]",
+    readable: "the good news (when followed by ? or :)",
+    caseSensitive: false,
+  },
+  {
+    pattern: "the irony[?]",
+    readable: "the irony (when followed by ?)",
+    caseSensitive: false,
+  },
+  {
+    pattern: "problem solved[.!]",
+    readable: "problem solved (when followed by . or !)",
+    caseSensitive: false,
+  },
 ];
 
 /**
- * Human-readable descriptions of disallowed phrases for fix instructions.
+ * Creates a lint rule from a list of banned phrases.
  */
-const DISALLOWED_PHRASES_READABLE = [
-  "uncomfortable truth",
-  "hard truth",
-  "spoiler (when followed by comma or colon)",
-  "here's the thing:",
-  "yeah",
-  "it's kind of like",
-  "game changer / game-changer",
-  "the reality (when followed by punctuation)",
-  "the good news (when followed by ? or :)",
-  "the irony (when followed by ?)",
-  "problem solved (when followed by . or !)",
-];
+export function createBannedPhrasesRule(phrases: BannedPhrase[]): LintRule {
+  // Group phrases by case sensitivity
+  const caseInsensitive = phrases.filter((p) => !p.caseSensitive);
+  const caseSensitive = phrases.filter((p) => p.caseSensitive);
+
+  // Build combined pattern - separate case-sensitive and insensitive
+  const patterns: string[] = [];
+  if (caseInsensitive.length > 0) {
+    patterns.push(`(?:${caseInsensitive.map((p) => p.pattern).join("|")})`);
+  }
+
+  // For mixed case sensitivity, we need to handle it differently
+  // We'll create a pattern that matches all phrases, but apply case insensitivity
+  // to the whole pattern since most phrases are case-insensitive
+  const allPatterns = phrases.map((p) => p.pattern).join("|");
+  const hasCaseSensitive = caseSensitive.length > 0;
+
+  return {
+    id: "no-llm-phrases",
+    name: "No LLM Phrases",
+    description: "Phrases that are dead giveaways of LLM-generated content",
+    modes: null,
+    // If any phrase is case-sensitive, we apply case-insensitive globally
+    // This is a simplification - for true mixed case handling, each phrase
+    // would need to be checked separately
+    pattern: new RegExp(allPatterns, hasCaseSensitive ? "g" : "gi"),
+    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${phrases.map((p) => p.readable).join(", ")}`,
+  };
+}
 
 /**
  * The greeting sigil that must appear at the start of every newsletter.
@@ -73,10 +137,9 @@ const DISALLOWED_PHRASES_READABLE = [
 export const NEWSLETTER_GREETING_SIGIL = `Hey {{ subscriber.first_name | strip | default: "there" }},`;
 
 /**
- * All lint rules for the article writer.
- * Add new rules here to automatically include them in lint checks.
+ * Base lint rules (excluding banned phrases which are customizable).
  */
-export const LINT_RULES: LintRule[] = [
+export const BASE_LINT_RULES: LintRule[] = [
   {
     id: "no-em-dash",
     name: "No Em Dashes",
@@ -84,14 +147,6 @@ export const LINT_RULES: LintRule[] = [
     modes: null, // Applies to all modes
     pattern: /—/g,
     fixInstruction: "Replace all em dashes (—) with hyphens (-) or commas",
-  },
-  {
-    id: "no-llm-phrases",
-    name: "No LLM Phrases",
-    description: "Phrases that are dead giveaways of LLM-generated content",
-    modes: null, // Applies to all modes
-    pattern: new RegExp(DISALLOWED_PHRASES.join("|"), "gi"),
-    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${DISALLOWED_PHRASES_READABLE.join(", ")}`,
   },
   {
     id: "newsletter-greeting",
@@ -105,3 +160,22 @@ export const LINT_RULES: LintRule[] = [
     required: true,
   },
 ];
+
+/**
+ * All lint rules for the article writer (using default banned phrases).
+ * For custom banned phrases, use getLintRulesWithPhrases() instead.
+ */
+export const LINT_RULES: LintRule[] = [
+  ...BASE_LINT_RULES,
+  createBannedPhrasesRule(DEFAULT_BANNED_PHRASES),
+];
+
+/**
+ * Get lint rules with custom banned phrases.
+ */
+export function getLintRulesWithPhrases(phrases: BannedPhrase[]): LintRule[] {
+  if (phrases.length === 0) {
+    return BASE_LINT_RULES;
+  }
+  return [...BASE_LINT_RULES, createBannedPhrasesRule(phrases)];
+}

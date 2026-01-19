@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import {
   LINT_RULES,
+  getLintRulesWithPhrases,
   type LintViolation,
+  type BannedPhrase,
 } from "@/features/article-writer/lint-rules";
 import type { Mode } from "@/features/article-writer/types";
 
@@ -10,11 +12,12 @@ import type { Mode } from "@/features/article-writer/types";
  *
  * @param text - The text to check for violations
  * @param mode - The current writing mode (determines which rules apply)
+ * @param customPhrases - Optional custom banned phrases (if provided, replaces defaults)
  * @returns Object containing violations array and fix message composer
  *
  * @example
  * ```tsx
- * const { violations, composeFix Message } = useLint(lastAssistantMessage, mode);
+ * const { violations, composeFixMessage } = useLint(lastAssistantMessage, mode, customPhrases);
  *
  * if (violations.length > 0) {
  *   const fixMessage = composeFixMessage();
@@ -22,13 +25,24 @@ import type { Mode } from "@/features/article-writer/types";
  * }
  * ```
  */
-export function useLint(text: string | null, mode: Mode) {
+export function useLint(
+  text: string | null,
+  mode: Mode,
+  customPhrases?: BannedPhrase[]
+) {
+  const rules = useMemo(() => {
+    if (customPhrases) {
+      return getLintRulesWithPhrases(customPhrases);
+    }
+    return LINT_RULES;
+  }, [customPhrases]);
+
   const violations = useMemo(() => {
     if (!text) return [];
 
     const results: LintViolation[] = [];
 
-    for (const rule of LINT_RULES) {
+    for (const rule of rules) {
       // Skip rules that don't apply to this mode
       if (rule.modes !== null && !rule.modes.includes(mode)) {
         continue;
@@ -57,7 +71,7 @@ export function useLint(text: string | null, mode: Mode) {
     }
 
     return results;
-  }, [text, mode]);
+  }, [text, mode, rules]);
 
   const composeFixMessage = useMemo(() => {
     return () => {
