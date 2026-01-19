@@ -33,8 +33,30 @@ export interface LintViolation {
 /**
  * Phrases that are dead giveaways of LLM-generated content.
  * These should be avoided in all article writing.
+ * Some patterns use regex syntax for context-aware matching.
  */
-const DISALLOWED_PHRASES = ["uncomfortable truth", "hard truth"];
+const DISALLOWED_PHRASES = [
+  "uncomfortable truth",
+  "hard truth",
+  "spoiler[,:]",
+  "here's the thing:",
+  "yeah",
+  "it's kind of like",
+  "game[ -]?changer",
+];
+
+/**
+ * Human-readable descriptions of disallowed phrases for fix instructions.
+ */
+const DISALLOWED_PHRASES_READABLE = [
+  "uncomfortable truth",
+  "hard truth",
+  "spoiler (when followed by comma or colon)",
+  "here's the thing:",
+  "yeah",
+  "it's kind of like",
+  "game changer / game-changer",
+];
 
 /**
  * The greeting sigil that must appear at the start of every newsletter.
@@ -61,7 +83,7 @@ export const LINT_RULES: LintRule[] = [
     description: "Phrases that are dead giveaways of LLM-generated content",
     modes: null, // Applies to all modes
     pattern: new RegExp(DISALLOWED_PHRASES.join("|"), "gi"),
-    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${DISALLOWED_PHRASES.join(", ")}`,
+    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${DISALLOWED_PHRASES_READABLE.join(", ")}`,
   },
   {
     id: "newsletter-greeting",

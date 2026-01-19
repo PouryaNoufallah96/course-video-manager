@@ -1,3 +1,20 @@
+## Issue #104: Add more banned words to lint rules
+
+**Task completed**: Added additional banned phrases to article writer lint rules
+
+**Key decisions**:
+- Added context-aware patterns using regex: "spoiler" only banned when followed by comma/colon
+- "here's the thing:" banned only with colon
+- "yeah" banned outright
+- "it's kind of like" banned outright
+- "game changer" banned with optional hyphen or space (`game[ -]?changer`)
+- Created separate `DISALLOWED_PHRASES_READABLE` array for human-readable fix instructions
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added new phrases to DISALLOWED_PHRASES array, created DISALLOWED_PHRASES_READABLE for fix instruction display
+
+**Blockers**: None
+
 ## Issue #103: Add newsletter greeting sigil
 
 **Task completed**: Added personalized greeting sigil to newsletter creation
