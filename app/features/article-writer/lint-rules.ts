@@ -43,6 +43,7 @@ const DISALLOWED_PHRASES = [
   "yeah",
   "it's kind of like",
   "game[ -]?changer",
+  "the reality[?!:;.,]",
 ];
 
 /**
@@ -56,6 +57,7 @@ const DISALLOWED_PHRASES_READABLE = [
   "yeah",
   "it's kind of like",
   "game changer / game-changer",
+  "the reality (when followed by punctuation)",
 ];
 
 /**

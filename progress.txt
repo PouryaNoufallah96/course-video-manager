@@ -1,3 +1,17 @@
+## Issue #106: Ban "the reality" followed by punctuation
+
+**Task completed**: Added lint rule to ban "the reality" when followed by punctuation
+
+**Key decisions**:
+- Used regex pattern `the reality[?!:;.,]` to match the phrase followed by common punctuation marks
+- Allows "the reality is that" (followed by whitespace) but bans "The reality?" as a two-word sentence
+- Added to existing DISALLOWED_PHRASES array for consistency with other banned phrases
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added "the reality[?!:;.,]" to DISALLOWED_PHRASES and readable description
+
+**Blockers**: None
+
 ## Issue #105: Add rich text copy option to article page
 
 **Task completed**: Added ability to copy as rich text in addition to markdown
