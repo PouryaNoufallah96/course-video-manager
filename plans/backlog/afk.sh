@@ -14,8 +14,7 @@ for ((i=1; i<=$1; i++)); do
   echo "$result"
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    echo "PRD complete after $i iterations."
-    tt notify "Course Builder PRD Complete"
+    echo "Ralph complete after $i iterations."
     exit 0
   fi
 done
