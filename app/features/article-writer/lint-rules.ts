@@ -29,6 +29,12 @@ export interface LintViolation {
 }
 
 /**
+ * Phrases that are dead giveaways of LLM-generated content.
+ * These should be avoided in all article writing.
+ */
+const DISALLOWED_PHRASES = ["uncomfortable truth", "hard truth"];
+
+/**
  * All lint rules for the article writer.
  * Add new rules here to automatically include them in lint checks.
  */
@@ -40,5 +46,13 @@ export const LINT_RULES: LintRule[] = [
     modes: null, // Applies to all modes
     pattern: /—/g,
     fixInstruction: "Replace all em dashes (—) with hyphens (-) or commas",
+  },
+  {
+    id: "no-llm-phrases",
+    name: "No LLM Phrases",
+    description: "Phrases that are dead giveaways of LLM-generated content",
+    modes: null, // Applies to all modes
+    pattern: new RegExp(DISALLOWED_PHRASES.join("|"), "gi"),
+    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${DISALLOWED_PHRASES.join(", ")}`,
   },
 ];

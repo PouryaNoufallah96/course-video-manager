@@ -1,3 +1,19 @@
+## Issue #100: Create disallowed phrases list in article lint rules
+
+**Task completed**: Added disallowed LLM phrases to lint rules in the article writer
+
+**Key decisions**:
+- Created a `DISALLOWED_PHRASES` array for easy maintenance and extension
+- Phrases are case-insensitive matched using RegExp with "gi" flags
+- Initial phrases: "uncomfortable truth", "hard truth" (per issue comments)
+- Rule applies to all modes (modes: null)
+- Fix instruction tells the LLM to remove or rephrase the flagged phrases
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added DISALLOWED_PHRASES array and "no-llm-phrases" rule
+
+**Blockers**: None
+
 ## Issue #99: Add article plan mode to article writer
 
 **Task completed**: Added article plan mode to the write article page
