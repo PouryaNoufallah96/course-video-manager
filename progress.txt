@@ -1,3 +1,17 @@
+## Issue #107: Ban "the good news?" phrase
+
+**Task completed**: Added lint rule to ban "the good news" when followed by ? or :
+
+**Key decisions**:
+- Used regex pattern `the good news[?:]` to match the phrase followed by question mark or colon
+- Allows "the good news is that..." (in longer sentences) but bans "The good news?" as a three-word sentence
+- Added to existing DISALLOWED_PHRASES array for consistency with other banned phrases
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added "the good news[?:]" to DISALLOWED_PHRASES and readable description
+
+**Blockers**: None
+
 ## Issue #106: Ban "the reality" followed by punctuation
 
 **Task completed**: Added lint rule to ban "the reality" when followed by punctuation
