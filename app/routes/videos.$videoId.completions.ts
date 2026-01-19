@@ -22,6 +22,7 @@ const modeSchema = Schema.Union(
   Schema.Literal("youtube-thumbnail"),
   Schema.Literal("youtube-description"),
   Schema.Literal("newsletter"),
+  Schema.Literal("interview-prep"),
   Schema.Literal("interview"),
   Schema.Literal("brainstorming")
 );

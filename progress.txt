@@ -1,3 +1,23 @@
+## Issue #102: Add pre-interview chat before interview begins
+
+**Task completed**: Added pre-interview mode with "Go Live" transition to interview mode
+
+**Key decisions**:
+- Created new "interview-prep" mode for the pre-interview discussion phase
+- Pre-interview prompt guides AI to: greet warmly, ask what user wants to discuss, offer 2-3 interesting angles from the material, find common ground, and confirm the plan
+- Added "Go Live" button that appears after messages in interview-prep mode
+- When user clicks "Go Live", mode switches to "interview" and sends transition message
+- Conversation history carries over so the live interview knows the agreed scope
+- Updated mode labels: "Interview Me (Pre-Interview)" and "Interview Me (Live)"
+
+**Files changed**:
+- app/routes/videos.$videoId.completions.ts - Added "interview-prep" to modeSchema
+- app/prompts/generate-interview-prep.ts - New prompt file for pre-interview chat
+- app/services/text-writing-agent.ts - Added import and interview-prep case to switch
+- app/routes/videos.$videoId.write.tsx - Added RadioIcon, updated modeToLabel, changed dropdown to interview-prep, added "Go Live" button
+
+**Blockers**: None
+
 ## Issue #101: Add interview steering prompts to change subjects regularly
 
 **Task completed**: Updated interview mode prompt to steer conversation and change subjects

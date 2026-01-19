@@ -9,6 +9,7 @@ import { generateYoutubeTitlePrompt } from "@/prompts/generate-youtube-title";
 import { generateYoutubeThumbnailPrompt } from "@/prompts/generate-youtube-thumbnail";
 import { generateYoutubeDescriptionPrompt } from "@/prompts/generate-youtube-description";
 import { generateNewsletterPrompt } from "@/prompts/generate-newsletter";
+import { generateInterviewPrepPrompt } from "@/prompts/generate-interview-prep";
 import { generateInterviewPrompt } from "@/prompts/generate-interview";
 import { generateBrainstormingPrompt } from "@/prompts/generate-brainstorming";
 import {
@@ -100,6 +101,12 @@ export const createTextWritingAgent = (props: {
         });
       case "newsletter":
         return generateNewsletterPrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "interview-prep":
+        return generateInterviewPrepPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),

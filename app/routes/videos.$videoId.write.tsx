@@ -69,6 +69,7 @@ import {
   MicIcon,
   LightbulbIcon,
   ListTreeIcon,
+  RadioIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -351,7 +352,8 @@ const modeToLabel: Record<Mode, string> = {
   "youtube-thumbnail": "YouTube Thumbnail",
   "youtube-description": "YouTube Description",
   newsletter: "Newsletter",
-  interview: "Interview Me",
+  "interview-prep": "Interview Me (Pre-Interview)",
+  interview: "Interview Me (Live)",
   brainstorming: "Brainstorming",
 };
 
@@ -1033,13 +1035,13 @@ export function InnerComponent(props: Route.ComponentProps) {
                         </div>
                       </div>
                     </SelectItem>
-                    <SelectItem value="interview">
+                    <SelectItem value="interview-prep">
                       <div className="flex items-start gap-2">
                         <MicIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <div>
                           <div>Interview Me</div>
                           <div className="text-xs text-muted-foreground">
-                            Get interviewed about the topic to generate content
+                            Pre-interview chat to agree on scope, then go live
                           </div>
                         </div>
                       </div>
@@ -1083,7 +1085,9 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {mode === "interview" || mode === "brainstorming" ? (
+                {mode === "interview-prep" ||
+                mode === "interview" ||
+                mode === "brainstorming" ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -1139,6 +1143,43 @@ export function InnerComponent(props: Route.ComponentProps) {
                         Copy
                       </>
                     )}
+                  </Button>
+                )}
+                {/* Go Live button - shows when in interview-prep mode */}
+                {mode === "interview-prep" && messages.length > 0 && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      // Switch to live interview mode
+                      setMode("interview");
+                      if (typeof localStorage !== "undefined") {
+                        localStorage.setItem(MODE_STORAGE_KEY, "interview");
+                      }
+                      // Send a transition message to start the interview
+                      const transcriptEnabled =
+                        clipSections.length > 0
+                          ? enabledSections.size > 0
+                          : includeTranscript;
+                      sendMessage(
+                        {
+                          text: "Let's go live! Start the interview based on what we discussed.",
+                        },
+                        {
+                          body: {
+                            enabledFiles: Array.from(enabledFiles),
+                            mode: "interview",
+                            model,
+                            includeTranscript: transcriptEnabled,
+                            enabledSections: Array.from(enabledSections),
+                          },
+                        }
+                      );
+                    }}
+                    disabled={status === "streaming"}
+                  >
+                    <RadioIcon className="h-4 w-4 mr-1" />
+                    Go Live
                   </Button>
                 )}
                 {/* Lint Fix button - shows when violations detected */}
