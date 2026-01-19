@@ -1,3 +1,18 @@
+## Issue #101: Add interview steering prompts to change subjects regularly
+
+**Task completed**: Updated interview mode prompt to steer conversation and change subjects
+
+**Key decisions**:
+- Added "STEERING THE INTERVIEW" section to output-format
+- Explicit instruction to pivot after 2-3 exchanges on a subject
+- Five specific angle types to explore: contrarian, personal stories, practical tradeoffs, broader context, surprising connections
+- Framing: "think like an editor" and "pull diverse, engaging content"
+
+**Files changed**:
+- app/prompts/generate-interview.ts - Added steering instructions to output-format section
+
+**Blockers**: None
+
 ## Issue #100: Create disallowed phrases list in article lint rules
 
 **Task completed**: Added disallowed LLM phrases to lint rules in the article writer
