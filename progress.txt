@@ -1,3 +1,17 @@
+## Issue #109: Ban "problem solved." phrase
+
+**Task completed**: Added lint rule to ban "problem solved" when followed by . or !
+
+**Key decisions**:
+- Used regex pattern `problem solved[.!]` to match the phrase followed by period or exclamation mark
+- Only triggers when it's a complete sentence (as per issue requirement)
+- Added to existing DISALLOWED_PHRASES array for consistency with other banned phrases
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added "problem solved[.!]" to DISALLOWED_PHRASES and readable description
+
+**Blockers**: None
+
 ## Issue #108: Ban "The irony?" phrase
 
 **Task completed**: Added lint rule to ban "the irony" when followed by ?
