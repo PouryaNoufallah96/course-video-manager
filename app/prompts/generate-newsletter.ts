@@ -1,3 +1,4 @@
+import { NEWSLETTER_GREETING_SIGIL } from "@/features/article-writer/lint-rules";
 import { getImageInstructions } from "./image-instructions";
 
 export const generateNewsletterPrompt = (opts: {
@@ -45,6 +46,7 @@ ${transcriptSection}${codeSection}</documents>
 Write a friendly, informal newsletter preview for this coding lesson.
 
 The newsletter should:
+- Start with exactly this greeting: ${NEWSLETTER_GREETING_SIGIL}
 - Be written in a friendly style (informal but not stupid)
 - Be relatively short - a few paragraphs at most
 - Give readers a taste of what's to come

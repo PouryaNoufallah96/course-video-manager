@@ -36,11 +36,23 @@ export function useLint(text: string | null, mode: Mode) {
 
       // Check for matches
       const matches = text.match(rule.pattern);
-      if (matches && matches.length > 0) {
-        results.push({
-          rule,
-          count: matches.length,
-        });
+
+      if (rule.required) {
+        // Required rules: violation if pattern is NOT present
+        if (!matches || matches.length === 0) {
+          results.push({
+            rule,
+            count: 1,
+          });
+        }
+      } else {
+        // Default rules: violation if pattern IS present
+        if (matches && matches.length > 0) {
+          results.push({
+            rule,
+            count: matches.length,
+          });
+        }
       }
     }
 

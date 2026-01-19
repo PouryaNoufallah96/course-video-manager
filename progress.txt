@@ -1,3 +1,20 @@
+## Issue #103: Add newsletter greeting sigil
+
+**Task completed**: Added personalized greeting sigil to newsletter creation
+
+**Key decisions**:
+- Created `NEWSLETTER_GREETING_SIGIL` constant: `Hey {{ subscriber.first_name | strip | default: "there" }},`
+- Extended lint rule system to support `required` patterns (patterns that must be present, not absent)
+- Added "newsletter-greeting" lint rule that only applies to "newsletter" mode
+- Updated newsletter prompt to explicitly instruct LLM to start with the greeting sigil
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added `required` field to LintRule interface, exported NEWSLETTER_GREETING_SIGIL constant, added "newsletter-greeting" rule
+- app/hooks/use-lint.ts - Updated lint check logic to handle required rules (violation when pattern is missing)
+- app/prompts/generate-newsletter.ts - Added import and instruction for greeting sigil
+
+**Blockers**: None
+
 ## Issue #102: Add pre-interview chat before interview begins
 
 **Task completed**: Added pre-interview mode with "Go Live" transition to interview mode

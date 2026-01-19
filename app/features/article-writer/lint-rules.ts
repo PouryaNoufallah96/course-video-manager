@@ -16,6 +16,8 @@ export interface LintRule {
   pattern: RegExp;
   /** Instruction to include in fix message */
   fixInstruction: string;
+  /** If true, the pattern must be present (violation if missing). Default: false (violation if present) */
+  required?: boolean;
 }
 
 /**
@@ -33,6 +35,12 @@ export interface LintViolation {
  * These should be avoided in all article writing.
  */
 const DISALLOWED_PHRASES = ["uncomfortable truth", "hard truth"];
+
+/**
+ * The greeting sigil that must appear at the start of every newsletter.
+ * Uses Liquid templating syntax for personalization.
+ */
+export const NEWSLETTER_GREETING_SIGIL = `Hey {{ subscriber.first_name | strip | default: "there" }},`;
 
 /**
  * All lint rules for the article writer.
@@ -54,5 +62,16 @@ export const LINT_RULES: LintRule[] = [
     modes: null, // Applies to all modes
     pattern: new RegExp(DISALLOWED_PHRASES.join("|"), "gi"),
     fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${DISALLOWED_PHRASES.join(", ")}`,
+  },
+  {
+    id: "newsletter-greeting",
+    name: "Newsletter Greeting",
+    description: "Newsletter must start with the personalized greeting sigil",
+    modes: ["newsletter"],
+    pattern: new RegExp(
+      "^" + NEWSLETTER_GREETING_SIGIL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    ),
+    fixInstruction: `The newsletter must start with exactly: ${NEWSLETTER_GREETING_SIGIL}`,
+    required: true,
   },
 ];
