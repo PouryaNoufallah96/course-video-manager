@@ -422,3 +422,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #131: Pre-load plan in clientLoader
+
+**Task completed**: Added clientLoader to plan page to prevent "not found" flash
+
+**Key decisions**:
+- Added `clientLoader` export that reads plans from localStorage before component renders
+- Component uses `loaderData.plan` from clientLoader as initial value
+- Falls back to `getPlan` from hook for subsequent updates (after mutations)
+- Removed `useParams` usage since planId comes from loaderData
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added clientLoader, updated component to use loaderData
+
+**Blockers**: None
+

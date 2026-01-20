@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { Plan } from "@/features/course-planner/types";
 import { usePlans } from "@/hooks/use-plans";
 import {
   ChevronLeft,
@@ -22,8 +23,31 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { Route } from "./+types/plans.$planId";
+
+const STORAGE_KEY = "course-plans";
+
+function getPlansFromLocalStorage(): Plan[] {
+  if (typeof localStorage === "undefined") {
+    return [];
+  }
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored) as Plan[];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
+  const plans = getPlansFromLocalStorage();
+  const plan = plans.find((p) => p.id === params.planId);
+  return { plan };
+};
 import {
   DndContext,
   closestCenter,
@@ -517,8 +541,7 @@ function SortableSection({
   );
 }
 
-export default function PlanDetailPage(_props: Route.ComponentProps) {
-  const { planId } = useParams();
+export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const {
     getPlan,
@@ -534,7 +557,9 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
     reorderLesson,
   } = usePlans();
 
-  const plan = getPlan(planId!);
+  // Use clientLoader data as initial value, but getPlan for updates (it reads from the hook's state)
+  const planId = loaderData.plan?.id;
+  const plan = planId ? (getPlan(planId) ?? loaderData.plan) : loaderData.plan;
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
