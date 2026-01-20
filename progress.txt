@@ -868,7 +868,31 @@
 **Blockers**: None
 
 **Remaining work for Issue #149**:
-- Wire reducer to component (replace usePlan hook calls with reducer dispatch)
-- Add effect handler for debounced sync
 - Manual testing
+
+---
+
+## Issue #149: Wire plan-state-reducer to component
+
+**Task completed**: Replaced usePlan hook and 13 useState calls with useEffectReducer-based usePlanReducer
+
+**Key decisions**:
+- Created `usePlanReducer` hook that wraps `useEffectReducer` with effect handlers for sync and focus
+- Effect handler for `plan-changed` debounces sync to Postgres (750ms), dispatches `sync-failed` on error
+- Effect handler for `focus-element` uses `requestAnimationFrame` + `document.querySelector` to focus add-lesson buttons
+- Added `data-add-lesson-button` attribute to buttons for focus targeting
+- Moved `capitalizeTitle` helper into the reducer (applied to section and lesson titles only, not plan titles)
+- `duplicatePlan` remains separate as it's an async operation with navigation
+- Drag/drop state (`activeId`, `activeDragType`) remains as separate useState - managed by dnd-kit
+- Simplified `SortableSectionProps` from 30+ props down to 5: section, sectionNumber, state, dispatch, allLessons
+- Simplified `SortableLessonProps` from 18+ props down to 7: lesson, lessonNumber, sectionId, editingLesson, editingDescription, dispatch, allLessons
+
+**Files created**:
+- app/hooks/use-plan-reducer.ts - New hook wrapping useEffectReducer with effect handlers
+
+**Files changed**:
+- app/features/course-planner/plan-state-reducer.ts - Added capitalizeTitle helper for section/lesson titles
+- app/routes/plans.$planId.tsx - Complete refactor to use reducer dispatch instead of callbacks
+
+**Blockers**: None
 

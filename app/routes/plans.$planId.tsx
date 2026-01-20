@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePlan } from "@/hooks/use-plan";
+import { usePlanReducer } from "@/hooks/use-plan-reducer";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -26,8 +26,9 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, data } from "react-router";
+import type { planStateReducer } from "@/features/course-planner/plan-state-reducer";
 import type { Route } from "./+types/plans.$planId";
 import { Console, Effect } from "effect";
 import { DBService } from "@/services/db-service";
@@ -52,11 +53,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type {
-  Section,
-  Lesson,
-  LessonIcon,
-} from "@/features/course-planner/types";
+import type { Section, Lesson } from "@/features/course-planner/types";
 import { NotFoundError } from "@/services/db-service-errors";
 
 export const loader = async ({ params }: Route.LoaderArgs) => {
@@ -145,59 +142,30 @@ function checkDependencyViolation(
   return violations;
 }
 
-// Capitalize first letter of each word
-function capitalizeTitle(title: string): string {
-  return title
-    .split(" ")
-    .map((word) => {
-      const firstChar = word[0];
-      return firstChar ? firstChar.toUpperCase() + word.slice(1) : word;
-    })
-    .join(" ");
-}
-
 // Sortable Lesson Component
 interface SortableLessonProps {
   lesson: Lesson;
   lessonNumber: string;
-  isEditingTitle: boolean;
-  editedTitle: string;
-  onEditedTitleChange: (value: string) => void;
-  onStartEditTitle: () => void;
-  onSaveTitle: () => void;
-  onCancelEditTitle: () => void;
-  onDelete: () => void;
-  isEditingDescription: boolean;
-  editedDescription: string;
-  onEditedDescriptionChange: (value: string) => void;
-  onStartEditDescription: () => void;
-  onSaveDescription: () => void;
-  onCancelEditDescription: () => void;
-  onIconChange: (icon: LessonIcon) => void;
+  sectionId: string;
+  editingLesson: planStateReducer.State["editingLesson"];
+  editingDescription: planStateReducer.State["editingDescription"];
+  dispatch: (action: planStateReducer.Action) => void;
   allLessons: FlattenedLesson[];
-  onDependenciesChange: (dependencies: string[]) => void;
 }
 
 function SortableLesson({
   lesson,
   lessonNumber,
-  isEditingTitle,
-  editedTitle,
-  onEditedTitleChange,
-  onStartEditTitle,
-  onSaveTitle,
-  onCancelEditTitle,
-  onDelete,
-  isEditingDescription,
-  editedDescription,
-  onEditedDescriptionChange,
-  onStartEditDescription,
-  onSaveDescription,
-  onCancelEditDescription,
-  onIconChange,
+  sectionId,
+  editingLesson,
+  editingDescription,
+  dispatch,
   allLessons,
-  onDependenciesChange,
 }: SortableLessonProps) {
+  const isEditingTitle = editingLesson?.lessonId === lesson.id;
+  const editedTitle = isEditingTitle ? editingLesson.value : "";
+  const isEditingDesc = editingDescription?.lessonId === lesson.id;
+  const editedDesc = isEditingDesc ? editingDescription.value : "";
   const {
     attributes,
     listeners,
@@ -249,7 +217,12 @@ function SortableLesson({
                 : lesson.icon === "code"
                   ? "discussion"
                   : "watch";
-            onIconChange(nextIcon);
+            dispatch({
+              type: "lesson-icon-changed",
+              sectionId,
+              lessonId: lesson.id,
+              icon: nextIcon,
+            });
           }}
           title={
             lesson.icon === "code"
@@ -275,18 +248,32 @@ function SortableLesson({
               <div className="flex items-center gap-2 flex-1">
                 <Input
                   value={editedTitle}
-                  onChange={(e) => onEditedTitleChange(e.target.value)}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "lesson-title-changed",
+                      value: e.target.value,
+                    })
+                  }
                   className="text-sm"
                   autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") onSaveTitle();
-                    if (e.key === "Escape") onCancelEditTitle();
+                    if (e.key === "Enter")
+                      dispatch({ type: "lesson-save-requested" });
+                    if (e.key === "Escape")
+                      dispatch({ type: "lesson-cancel-requested" });
                   }}
                 />
-                <Button size="sm" onClick={onSaveTitle}>
+                <Button
+                  size="sm"
+                  onClick={() => dispatch({ type: "lesson-save-requested" })}
+                >
                   Save
                 </Button>
-                <Button size="sm" variant="ghost" onClick={onCancelEditTitle}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => dispatch({ type: "lesson-cancel-requested" })}
+                >
                   Cancel
                 </Button>
               </div>
@@ -295,7 +282,13 @@ function SortableLesson({
                 <div className="flex items-center gap-2">
                   <div
                     className="flex items-center gap-2 cursor-pointer hover:text-muted-foreground transition-colors"
-                    onClick={onStartEditTitle}
+                    onClick={() =>
+                      dispatch({
+                        type: "lesson-title-clicked",
+                        lessonId: lesson.id,
+                        sectionId,
+                      })
+                    }
                   >
                     <span className="text-sm text-muted-foreground">
                       {lessonNumber}
@@ -341,18 +334,17 @@ function SortableLesson({
                               lesson.dependencies?.includes(l.id) ?? false
                             }
                             onCheckedChange={(checked) => {
-                              if (checked) {
-                                onDependenciesChange([
-                                  ...(lesson.dependencies ?? []),
-                                  l.id,
-                                ]);
-                              } else {
-                                onDependenciesChange(
-                                  (lesson.dependencies ?? []).filter(
+                              const newDeps = checked
+                                ? [...(lesson.dependencies ?? []), l.id]
+                                : (lesson.dependencies ?? []).filter(
                                     (d) => d !== l.id
-                                  )
-                                );
-                              }
+                                  );
+                              dispatch({
+                                type: "lesson-dependencies-changed",
+                                sectionId,
+                                lessonId: lesson.id,
+                                dependencies: newDeps,
+                              });
                             }}
                           >
                             {l.number} {l.title}
@@ -366,7 +358,13 @@ function SortableLesson({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-destructive hover:text-destructive"
-                    onClick={onDelete}
+                    onClick={() =>
+                      dispatch({
+                        type: "lesson-delete-requested",
+                        sectionId,
+                        lessonId: lesson.id,
+                      })
+                    }
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
@@ -375,30 +373,43 @@ function SortableLesson({
             )}
           </div>
           {/* Description */}
-          {isEditingDescription ? (
+          {isEditingDesc ? (
             <div className="mt-1">
               <Textarea
-                value={editedDescription}
-                onChange={(e) => onEditedDescriptionChange(e.target.value)}
+                value={editedDesc}
+                onChange={(e) =>
+                  dispatch({
+                    type: "lesson-description-changed",
+                    value: e.target.value,
+                  })
+                }
                 placeholder="Add a description..."
                 className="text-sm min-h-[80px]"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Escape") onCancelEditDescription();
+                  if (e.key === "Escape")
+                    dispatch({ type: "lesson-description-cancel-requested" });
                   if (e.key === " " && e.ctrlKey) {
                     e.preventDefault();
-                    onSaveDescription();
+                    dispatch({ type: "lesson-description-save-requested" });
                   }
                 }}
               />
               <div className="flex gap-2 mt-2">
-                <Button size="sm" onClick={onSaveDescription}>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    dispatch({ type: "lesson-description-save-requested" })
+                  }
+                >
                   Save
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={onCancelEditDescription}
+                  onClick={() =>
+                    dispatch({ type: "lesson-description-cancel-requested" })
+                  }
                 >
                   Cancel
                 </Button>
@@ -407,14 +418,26 @@ function SortableLesson({
           ) : lesson.description ? (
             <div
               className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground max-w-[65ch]"
-              onClick={onStartEditDescription}
+              onClick={() =>
+                dispatch({
+                  type: "lesson-description-clicked",
+                  lessonId: lesson.id,
+                  sectionId,
+                })
+              }
             >
               {lesson.description}
             </div>
           ) : (
             <button
               className="mt-1 text-xs text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={onStartEditDescription}
+              onClick={() =>
+                dispatch({
+                  type: "lesson-description-clicked",
+                  lessonId: lesson.id,
+                  sectionId,
+                })
+              }
             >
               + Add description
             </button>
@@ -429,79 +452,17 @@ function SortableLesson({
 interface SortableSectionProps {
   section: Section;
   sectionNumber: number;
-  isEditing: boolean;
-  editedTitle: string;
-  onEditedTitleChange: (value: string) => void;
-  onStartEdit: () => void;
-  onSave: () => void;
-  onCancel: () => void;
-  onDelete: () => void;
-  editingLessonId: string | null;
-  editedLessonTitle: string;
-  onEditedLessonTitleChange: (value: string) => void;
-  onStartEditLesson: (lessonId: string, title: string) => void;
-  onSaveLesson: (lessonId: string) => void;
-  onCancelEditLesson: () => void;
-  onDeleteLesson: (lessonId: string) => void;
-  editingDescriptionLessonId: string | null;
-  editedLessonDescription: string;
-  onEditedLessonDescriptionChange: (value: string) => void;
-  onStartEditDescription: (
-    lessonId: string,
-    description: string | undefined
-  ) => void;
-  onSaveDescription: (lessonId: string) => void;
-  onCancelEditDescription: () => void;
-  addingLessonToSection: string | null;
-  newLessonTitle: string;
-  onNewLessonTitleChange: (value: string) => void;
-  onStartAddLesson: () => void;
-  onAddLesson: () => void;
-  onCancelAddLesson: () => void;
-  shouldFocusAddLesson: boolean;
-  onAddLessonFocused: () => void;
-  onLessonIconChange: (lessonId: string, icon: LessonIcon) => void;
+  state: planStateReducer.State;
+  dispatch: (action: planStateReducer.Action) => void;
   allLessons: FlattenedLesson[];
-  onLessonDependenciesChange: (
-    lessonId: string,
-    dependencies: string[]
-  ) => void;
 }
 
 function SortableSection({
   section,
   sectionNumber,
-  isEditing,
-  editedTitle,
-  onEditedTitleChange,
-  onStartEdit,
-  onSave,
-  onCancel,
-  onDelete,
-  editingLessonId,
-  editedLessonTitle,
-  onEditedLessonTitleChange,
-  onStartEditLesson,
-  onSaveLesson,
-  onCancelEditLesson,
-  onDeleteLesson,
-  editingDescriptionLessonId,
-  editedLessonDescription,
-  onEditedLessonDescriptionChange,
-  onStartEditDescription,
-  onSaveDescription,
-  onCancelEditDescription,
-  addingLessonToSection,
-  newLessonTitle,
-  onNewLessonTitleChange,
-  onStartAddLesson,
-  onAddLesson,
-  onCancelAddLesson,
-  shouldFocusAddLesson,
-  onAddLessonFocused,
-  onLessonIconChange,
+  state,
+  dispatch,
   allLessons,
-  onLessonDependenciesChange,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -512,15 +473,11 @@ function SortableSection({
     isDragging,
   } = useSortable({ id: section.id, data: { type: "section" } });
 
-  const addLessonButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Focus the Add Lesson button when requested
-  useEffect(() => {
-    if (shouldFocusAddLesson && addLessonButtonRef.current) {
-      addLessonButtonRef.current.focus();
-      onAddLessonFocused();
-    }
-  }, [shouldFocusAddLesson, onAddLessonFocused]);
+  // Derive editing state for this section
+  const isEditing = state.editingSection?.sectionId === section.id;
+  const editedTitle = isEditing ? state.editingSection!.value : "";
+  const addingLesson = state.addingLesson?.sectionId === section.id;
+  const newLessonTitle = addingLesson ? state.addingLesson!.value : "";
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -542,18 +499,32 @@ function SortableSection({
           <div className="flex items-center gap-2 flex-1">
             <Input
               value={editedTitle}
-              onChange={(e) => onEditedTitleChange(e.target.value)}
+              onChange={(e) =>
+                dispatch({
+                  type: "section-title-changed",
+                  value: e.target.value,
+                })
+              }
               className="font-semibold"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter") onSave();
-                if (e.key === "Escape") onCancel();
+                if (e.key === "Enter")
+                  dispatch({ type: "section-save-requested" });
+                if (e.key === "Escape")
+                  dispatch({ type: "section-cancel-requested" });
               }}
             />
-            <Button size="sm" onClick={onSave}>
+            <Button
+              size="sm"
+              onClick={() => dispatch({ type: "section-save-requested" })}
+            >
               Save
             </Button>
-            <Button size="sm" variant="ghost" onClick={onCancel}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => dispatch({ type: "section-cancel-requested" })}
+            >
               Cancel
             </Button>
           </div>
@@ -569,7 +540,12 @@ function SortableSection({
               </button>
               <h2
                 className="font-semibold text-lg cursor-pointer hover:text-muted-foreground transition-colors"
-                onClick={onStartEdit}
+                onClick={() =>
+                  dispatch({
+                    type: "section-title-clicked",
+                    sectionId: section.id,
+                  })
+                }
               >
                 <span className="text-muted-foreground mr-2">
                   {sectionNumber}.
@@ -582,7 +558,12 @@ function SortableSection({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-destructive hover:text-destructive"
-                onClick={onDelete}
+                onClick={() =>
+                  dispatch({
+                    type: "section-delete-requested",
+                    sectionId: section.id,
+                  })
+                }
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -602,59 +583,60 @@ function SortableSection({
               key={lesson.id}
               lesson={lesson}
               lessonNumber={`${sectionNumber}.${lessonIndex + 1}`}
-              isEditingTitle={editingLessonId === lesson.id}
-              editedTitle={editedLessonTitle}
-              onEditedTitleChange={onEditedLessonTitleChange}
-              onStartEditTitle={() =>
-                onStartEditLesson(lesson.id, lesson.title)
-              }
-              onSaveTitle={() => onSaveLesson(lesson.id)}
-              onCancelEditTitle={onCancelEditLesson}
-              onDelete={() => onDeleteLesson(lesson.id)}
-              isEditingDescription={editingDescriptionLessonId === lesson.id}
-              editedDescription={editedLessonDescription}
-              onEditedDescriptionChange={onEditedLessonDescriptionChange}
-              onStartEditDescription={() =>
-                onStartEditDescription(lesson.id, lesson.description)
-              }
-              onSaveDescription={() => onSaveDescription(lesson.id)}
-              onCancelEditDescription={onCancelEditDescription}
-              onIconChange={(icon) => onLessonIconChange(lesson.id, icon)}
+              sectionId={section.id}
+              editingLesson={state.editingLesson}
+              editingDescription={state.editingDescription}
+              dispatch={dispatch}
               allLessons={allLessons}
-              onDependenciesChange={(deps) =>
-                onLessonDependenciesChange(lesson.id, deps)
-              }
             />
           ))}
 
           {/* Add Lesson */}
-          {addingLessonToSection === section.id ? (
+          {addingLesson ? (
             <div className="flex items-center gap-2 py-2 px-3">
               <Input
                 value={newLessonTitle}
-                onChange={(e) => onNewLessonTitleChange(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "new-lesson-title-changed",
+                    value: e.target.value,
+                  })
+                }
                 placeholder="Lesson title..."
                 className="text-sm"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") onAddLesson();
-                  if (e.key === "Escape") onCancelAddLesson();
+                  if (e.key === "Enter")
+                    dispatch({ type: "new-lesson-save-requested" });
+                  if (e.key === "Escape")
+                    dispatch({ type: "new-lesson-cancel-requested" });
                 }}
               />
-              <Button size="sm" onClick={onAddLesson}>
+              <Button
+                size="sm"
+                onClick={() => dispatch({ type: "new-lesson-save-requested" })}
+              >
                 Add
               </Button>
-              <Button size="sm" variant="ghost" onClick={onCancelAddLesson}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  dispatch({ type: "new-lesson-cancel-requested" })
+                }
+              >
                 Cancel
               </Button>
             </div>
           ) : (
             <Button
-              ref={addLessonButtonRef}
+              data-add-lesson-button={section.id}
               variant="ghost"
               size="icon"
               className="h-6 w-6 text-muted-foreground"
-              onClick={onStartAddLesson}
+              onClick={() =>
+                dispatch({ type: "add-lesson-clicked", sectionId: section.id })
+              }
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -667,45 +649,13 @@ function SortableSection({
 
 export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const {
-    plan,
-    updatePlan,
-    duplicatePlan,
-    addSection,
-    updateSection,
-    deleteSection,
-    reorderSection,
-    addLesson,
-    updateLesson,
-    deleteLesson,
-    reorderLesson,
-    syncError,
-    retrySync,
-  } = usePlan({
+  const { state, dispatch, duplicatePlan } = usePlanReducer({
     initialPlan: loaderData.plan!,
   });
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState("");
-  const [isAddingSectionOpen, setIsAddingSectionOpen] = useState(false);
-  const [newSectionTitle, setNewSectionTitle] = useState("");
-  const [addingLessonToSection, setAddingLessonToSection] = useState<
-    string | null
-  >(null);
-  const [newLessonTitle, setNewLessonTitle] = useState("");
-  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
-  const [editedSectionTitle, setEditedSectionTitle] = useState("");
-  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-  const [editedLessonTitle, setEditedLessonTitle] = useState("");
-  const [editingDescriptionLessonId, setEditingDescriptionLessonId] = useState<
-    string | null
-  >(null);
-  const [editedLessonDescription, setEditedLessonDescription] = useState("");
-  const [focusAddLessonInSection, setFocusAddLessonInSection] = useState<
-    string | null
-  >(null);
+  const { plan, syncError } = state;
 
-  // Drag and drop state
+  // Drag and drop state (stays separate from reducer - managed by dnd-kit)
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeDragType, setActiveDragType] = useState<
     "section" | "lesson" | null
@@ -774,76 +724,6 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     0
   );
 
-  const handleSaveTitle = () => {
-    if (editedTitle.trim()) {
-      updatePlan({ title: editedTitle.trim() });
-    }
-    setIsEditingTitle(false);
-  };
-
-  const handleAddSection = () => {
-    if (newSectionTitle.trim()) {
-      const newSection = addSection(capitalizeTitle(newSectionTitle.trim()));
-      setNewSectionTitle("");
-      setIsAddingSectionOpen(false);
-      // Focus the Add Lesson button in the newly created section
-      if (newSection) {
-        setFocusAddLessonInSection(newSection.id);
-      }
-    }
-  };
-
-  const handleSaveSection = (sectionId: string) => {
-    if (editedSectionTitle.trim()) {
-      updateSection(sectionId, {
-        title: capitalizeTitle(editedSectionTitle.trim()),
-      });
-    }
-    setEditingSectionId(null);
-  };
-
-  const handleAddLesson = (sectionId: string) => {
-    if (newLessonTitle.trim()) {
-      addLesson(sectionId, capitalizeTitle(newLessonTitle.trim()));
-      setNewLessonTitle("");
-      setAddingLessonToSection(null);
-      // Focus the Add Lesson button in this section
-      setFocusAddLessonInSection(sectionId);
-    }
-  };
-
-  const handleSaveLesson = (sectionId: string, lessonId: string) => {
-    if (editedLessonTitle.trim()) {
-      updateLesson(sectionId, lessonId, {
-        title: capitalizeTitle(editedLessonTitle.trim()),
-      });
-    }
-    setEditingLessonId(null);
-  };
-
-  const handleSaveDescription = (sectionId: string, lessonId: string) => {
-    updateLesson(sectionId, lessonId, {
-      description: editedLessonDescription,
-    });
-    setEditingDescriptionLessonId(null);
-  };
-
-  const handleLessonIconChange = (
-    sectionId: string,
-    lessonId: string,
-    icon: LessonIcon
-  ) => {
-    updateLesson(sectionId, lessonId, { icon });
-  };
-
-  const handleLessonDependenciesChange = (
-    sectionId: string,
-    lessonId: string,
-    dependencies: string[]
-  ) => {
-    updateLesson(sectionId, lessonId, { dependencies });
-  };
-
   // Find which section a lesson belongs to
   const findSectionForLesson = (lessonId: string): Section | undefined => {
     return plan.sections.find((section) =>
@@ -875,10 +755,13 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
     // Handle section reordering
     if (activeDragType === "section") {
-      const oldIndex = sortedSections.findIndex((s) => s.id === activeIdStr);
       const newIndex = sortedSections.findIndex((s) => s.id === overIdStr);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        reorderSection(activeIdStr, newIndex);
+      if (newIndex !== -1) {
+        dispatch({
+          type: "section-reordered",
+          sectionId: activeIdStr,
+          newIndex,
+        });
       }
       return;
     }
@@ -895,12 +778,13 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
         const sortedLessons = [...toSection.lessons].sort(
           (a, b) => a.order - b.order
         );
-        reorderLesson(
-          fromSection.id,
-          toSection.id,
-          activeIdStr,
-          sortedLessons.length
-        );
+        dispatch({
+          type: "lesson-reordered",
+          fromSectionId: fromSection.id,
+          toSectionId: toSection.id,
+          lessonId: activeIdStr,
+          newIndex: sortedLessons.length,
+        });
         return;
       }
 
@@ -911,7 +795,13 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
           (a, b) => a.order - b.order
         );
         const overIndex = sortedLessons.findIndex((l) => l.id === overIdStr);
-        reorderLesson(fromSection.id, overSection.id, activeIdStr, overIndex);
+        dispatch({
+          type: "lesson-reordered",
+          fromSectionId: fromSection.id,
+          toSectionId: overSection.id,
+          lessonId: activeIdStr,
+          newIndex: overIndex,
+        });
       }
     }
   };
@@ -943,7 +833,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={retrySync}
+              onClick={() => dispatch({ type: "sync-retry-requested" })}
               className="shrink-0 gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -964,25 +854,39 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
             </Link>
 
             <div className="flex items-center gap-2 mt-2 group/title">
-              {isEditingTitle ? (
+              {state.editingTitle.active ? (
                 <div className="flex items-center gap-2">
                   <Input
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
+                    value={state.editingTitle.value}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "plan-title-changed",
+                        value: e.target.value,
+                      })
+                    }
                     className="text-2xl font-bold h-auto py-1"
                     autoFocus
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveTitle();
-                      if (e.key === "Escape") setIsEditingTitle(false);
+                      if (e.key === "Enter")
+                        dispatch({ type: "plan-title-save-requested" });
+                      if (e.key === "Escape")
+                        dispatch({ type: "plan-title-cancel-requested" });
                     }}
                   />
-                  <Button size="sm" onClick={handleSaveTitle}>
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      dispatch({ type: "plan-title-save-requested" })
+                    }
+                  >
                     Save
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsEditingTitle(false)}
+                    onClick={() =>
+                      dispatch({ type: "plan-title-cancel-requested" })
+                    }
                   >
                     Cancel
                   </Button>
@@ -991,10 +895,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                 <>
                   <h1
                     className="text-2xl font-bold cursor-pointer hover:text-muted-foreground transition-colors"
-                    onClick={() => {
-                      setEditedTitle(plan.title);
-                      setIsEditingTitle(true);
-                    }}
+                    onClick={() => dispatch({ type: "plan-title-clicked" })}
                   >
                     {plan.title}
                   </h1>
@@ -1055,65 +956,9 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     key={section.id}
                     section={section}
                     sectionNumber={index + 1}
-                    isEditing={editingSectionId === section.id}
-                    editedTitle={editedSectionTitle}
-                    onEditedTitleChange={setEditedSectionTitle}
-                    onStartEdit={() => {
-                      setEditingSectionId(section.id);
-                      setEditedSectionTitle(section.title);
-                    }}
-                    onSave={() => handleSaveSection(section.id)}
-                    onCancel={() => setEditingSectionId(null)}
-                    onDelete={() => deleteSection(section.id)}
-                    editingLessonId={editingLessonId}
-                    editedLessonTitle={editedLessonTitle}
-                    onEditedLessonTitleChange={setEditedLessonTitle}
-                    onStartEditLesson={(lessonId, title) => {
-                      setEditingLessonId(lessonId);
-                      setEditedLessonTitle(title);
-                    }}
-                    onSaveLesson={(lessonId) =>
-                      handleSaveLesson(section.id, lessonId)
-                    }
-                    onCancelEditLesson={() => setEditingLessonId(null)}
-                    onDeleteLesson={(lessonId) =>
-                      deleteLesson(section.id, lessonId)
-                    }
-                    editingDescriptionLessonId={editingDescriptionLessonId}
-                    editedLessonDescription={editedLessonDescription}
-                    onEditedLessonDescriptionChange={setEditedLessonDescription}
-                    onStartEditDescription={(lessonId, description) => {
-                      setEditingDescriptionLessonId(lessonId);
-                      setEditedLessonDescription(description ?? "");
-                    }}
-                    onSaveDescription={(lessonId) =>
-                      handleSaveDescription(section.id, lessonId)
-                    }
-                    onCancelEditDescription={() =>
-                      setEditingDescriptionLessonId(null)
-                    }
-                    addingLessonToSection={addingLessonToSection}
-                    newLessonTitle={newLessonTitle}
-                    onNewLessonTitleChange={setNewLessonTitle}
-                    onStartAddLesson={() =>
-                      setAddingLessonToSection(section.id)
-                    }
-                    onAddLesson={() => handleAddLesson(section.id)}
-                    onCancelAddLesson={() => {
-                      setAddingLessonToSection(null);
-                      setNewLessonTitle("");
-                    }}
-                    shouldFocusAddLesson={
-                      focusAddLessonInSection === section.id
-                    }
-                    onAddLessonFocused={() => setFocusAddLessonInSection(null)}
-                    onLessonIconChange={(lessonId, icon) =>
-                      handleLessonIconChange(section.id, lessonId, icon)
-                    }
+                    state={state}
+                    dispatch={dispatch}
                     allLessons={allFlattenedLessons}
-                    onLessonDependenciesChange={(lessonId, deps) =>
-                      handleLessonDependenciesChange(section.id, lessonId, deps)
-                    }
                   />
                 ))}
               </div>
@@ -1135,34 +980,39 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
           </DndContext>
 
           {/* Add Section */}
-          {isAddingSectionOpen ? (
+          {state.addingSection.active ? (
             <div className="border rounded-lg p-4 border-dashed mt-6">
               <div className="flex items-center gap-2">
                 <Input
-                  value={newSectionTitle}
-                  onChange={(e) => setNewSectionTitle(e.target.value)}
+                  value={state.addingSection.value}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "new-section-title-changed",
+                      value: e.target.value,
+                    })
+                  }
                   placeholder="New section title..."
                   autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddSection();
-                    if (e.key === "Escape") {
-                      setIsAddingSectionOpen(false);
-                      setNewSectionTitle("");
-                    }
+                    if (e.key === "Enter")
+                      dispatch({ type: "new-section-save-requested" });
+                    if (e.key === "Escape")
+                      dispatch({ type: "new-section-cancel-requested" });
                   }}
                 />
                 <Button
-                  onClick={handleAddSection}
-                  disabled={!newSectionTitle.trim()}
+                  onClick={() =>
+                    dispatch({ type: "new-section-save-requested" })
+                  }
+                  disabled={!state.addingSection.value.trim()}
                 >
                   Add
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => {
-                    setIsAddingSectionOpen(false);
-                    setNewSectionTitle("");
-                  }}
+                  onClick={() =>
+                    dispatch({ type: "new-section-cancel-requested" })
+                  }
                 >
                   Cancel
                 </Button>
@@ -1172,7 +1022,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
             <Button
               variant="outline"
               className="mt-6 w-full border-dashed"
-              onClick={() => setIsAddingSectionOpen(true)}
+              onClick={() => dispatch({ type: "add-section-clicked" })}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Section

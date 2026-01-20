@@ -9,6 +9,16 @@ function getTimestamp(): string {
   return new Date().toISOString();
 }
 
+function capitalizeTitle(title: string): string {
+  return title
+    .split(" ")
+    .map((word) => {
+      const firstChar = word[0];
+      return firstChar ? firstChar.toUpperCase() + word.slice(1) : word;
+    })
+    .join(" ");
+}
+
 export namespace planStateReducer {
   export type State = {
     plan: Plan;
@@ -176,7 +186,7 @@ export const planStateReducer: EffectReducer<
     }
     case "new-section-save-requested": {
       if (!state.addingSection.active) return state;
-      const newTitle = state.addingSection.value.trim();
+      const newTitle = capitalizeTitle(state.addingSection.value.trim());
       if (!newTitle) return state;
 
       const maxOrder = Math.max(0, ...state.plan.sections.map((s) => s.order));
@@ -233,7 +243,7 @@ export const planStateReducer: EffectReducer<
     }
     case "section-save-requested": {
       if (!state.editingSection) return state;
-      const newTitle = state.editingSection.value.trim();
+      const newTitle = capitalizeTitle(state.editingSection.value.trim());
       if (!newTitle) return state;
 
       const updatedPlan: Plan = {
@@ -295,7 +305,7 @@ export const planStateReducer: EffectReducer<
     }
     case "new-lesson-save-requested": {
       if (!state.addingLesson) return state;
-      const newTitle = state.addingLesson.value.trim();
+      const newTitle = capitalizeTitle(state.addingLesson.value.trim());
       if (!newTitle) return state;
 
       const sectionId = state.addingLesson.sectionId;
@@ -359,7 +369,7 @@ export const planStateReducer: EffectReducer<
     }
     case "lesson-save-requested": {
       if (!state.editingLesson) return state;
-      const newTitle = state.editingLesson.value.trim();
+      const newTitle = capitalizeTitle(state.editingLesson.value.trim());
       if (!newTitle) return state;
 
       const lessonId = state.editingLesson.lessonId;
