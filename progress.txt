@@ -327,3 +327,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #127: Move lesson icon to separate column
+
+**Task completed**: Refactored lesson layout to two-column design with prominent icon on left
+
+**Key decisions**:
+- Changed SortableLesson from single-row layout to two-column layout using flex with gap-3
+- Left column: Large clickable icon (w-6 h-6, up from w-4 h-4) aligned to top of content
+- Right column: Title row (grip, number, title, edit buttons) and description below
+- Icon spans both title and description visually, creating a more prominent presence
+- Removed `ml-6` indentation from description since it now aligns naturally under title
+- Added `self-start mt-0.5` to icon button for proper vertical alignment with title text
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Restructured SortableLesson component layout
+
+**Blockers**: None
+

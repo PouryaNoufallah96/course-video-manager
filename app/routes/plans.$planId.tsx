@@ -130,118 +130,129 @@ function SortableLesson({
       style={style}
       className="py-2 px-3 rounded hover:bg-muted/50 group"
     >
-      <div className="flex items-center justify-between">
-        {isEditingTitle ? (
-          <div className="flex items-center gap-2 flex-1">
-            <Input
-              value={editedTitle}
-              onChange={(e) => onEditedTitleChange(e.target.value)}
-              className="text-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSaveTitle();
-                if (e.key === "Escape") onCancelEditTitle();
-              }}
-            />
-            <Button size="sm" onClick={onSaveTitle}>
-              Save
-            </Button>
-            <Button size="sm" variant="ghost" onClick={onCancelEditTitle}>
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <>
-            <button
-              className="cursor-grab active:cursor-grabbing p-1 -ml-1"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <span className="text-sm text-muted-foreground ml-1">
-              {lessonNumber}
-            </span>
-            <button
-              className="p-1 hover:bg-muted rounded"
-              onClick={() =>
-                onIconChange(lesson.icon === "code" ? "watch" : "code")
-              }
-              title={
-                lesson.icon === "code"
-                  ? "Interactive (click to change)"
-                  : "Watch (click to change)"
-              }
-            >
-              {lesson.icon === "code" ? (
-                <Code className="w-4 h-4 text-foreground" />
-              ) : (
-                <Monitor className="w-4 h-4 text-foreground" />
-              )}
-            </button>
-            <span className="text-sm flex-1 ml-1">{lesson.title}</span>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={onStartEditTitle}
-              >
-                <PencilIcon className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-destructive hover:text-destructive"
-                onClick={onDelete}
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-      {/* Description */}
-      {isEditingDescription ? (
-        <div className="mt-2 ml-6">
-          <Textarea
-            value={editedDescription}
-            onChange={(e) => onEditedDescriptionChange(e.target.value)}
-            placeholder="Add a description..."
-            className="text-sm min-h-[80px]"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Escape") onCancelEditDescription();
-              if (e.key === " " && e.ctrlKey) {
-                e.preventDefault();
-                onSaveDescription();
-              }
-            }}
-          />
-          <div className="flex gap-2 mt-2">
-            <Button size="sm" onClick={onSaveDescription}>
-              Save
-            </Button>
-            <Button size="sm" variant="ghost" onClick={onCancelEditDescription}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      ) : lesson.description ? (
-        <div
-          className="mt-1 ml-6 text-xs text-muted-foreground cursor-pointer hover:text-foreground"
-          onClick={onStartEditDescription}
-        >
-          {lesson.description}
-        </div>
-      ) : (
+      <div className="flex gap-3">
+        {/* Icon column - large and prominent */}
         <button
-          className="mt-1 ml-6 text-xs text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={onStartEditDescription}
+          className="flex-shrink-0 p-1.5 hover:bg-muted rounded self-start mt-0.5"
+          onClick={() =>
+            onIconChange(lesson.icon === "code" ? "watch" : "code")
+          }
+          title={
+            lesson.icon === "code"
+              ? "Interactive (click to change)"
+              : "Watch (click to change)"
+          }
         >
-          + Add description
+          {lesson.icon === "code" ? (
+            <Code className="w-6 h-6 text-foreground" />
+          ) : (
+            <Monitor className="w-6 h-6 text-foreground" />
+          )}
         </button>
-      )}
+
+        {/* Content column - title and description */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            {isEditingTitle ? (
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => onEditedTitleChange(e.target.value)}
+                  className="text-sm"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") onSaveTitle();
+                    if (e.key === "Escape") onCancelEditTitle();
+                  }}
+                />
+                <Button size="sm" onClick={onSaveTitle}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={onCancelEditTitle}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <>
+                <button
+                  className="cursor-grab active:cursor-grabbing p-1 -ml-1"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <GripVertical className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  {lessonNumber}
+                </span>
+                <span className="text-sm flex-1 ml-2">{lesson.title}</span>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={onStartEditTitle}
+                  >
+                    <PencilIcon className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-destructive hover:text-destructive"
+                    onClick={onDelete}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+          {/* Description */}
+          {isEditingDescription ? (
+            <div className="mt-1">
+              <Textarea
+                value={editedDescription}
+                onChange={(e) => onEditedDescriptionChange(e.target.value)}
+                placeholder="Add a description..."
+                className="text-sm min-h-[80px]"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") onCancelEditDescription();
+                  if (e.key === " " && e.ctrlKey) {
+                    e.preventDefault();
+                    onSaveDescription();
+                  }
+                }}
+              />
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" onClick={onSaveDescription}>
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onCancelEditDescription}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : lesson.description ? (
+            <div
+              className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground"
+              onClick={onStartEditDescription}
+            >
+              {lesson.description}
+            </div>
+          ) : (
+            <button
+              className="mt-1 text-xs text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={onStartEditDescription}
+            >
+              + Add description
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
