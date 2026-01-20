@@ -346,3 +346,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #128: Create icon prototype page with multiple treatments
+
+**Task completed**: Created prototype page at /icon-prototype with four different icon treatments
+
+**Key decisions**:
+- Variant 1 (Current): Large 24px icon in separate left column - prominent and visual
+- Variant 2 (Inline Small): Small 16px icon inline between number and title - subtle and compact
+- Variant 3 (Colored Badge): Icon with colored background (blue for code, purple for watch)
+- Variant 4 (Labeled Pill): Small pill with icon + text label after title - explicit but verbose
+- Page includes both a grid comparison and full section preview for each variant
+- Used mock data with 4 lessons showing both icon types and with/without descriptions
+
+**Files changed**:
+- app/routes/icon-prototype.tsx - New prototype page with 4 icon treatment variants
+
+**Blockers**: None
+
