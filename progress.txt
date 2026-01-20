@@ -613,3 +613,19 @@
 
 **Blockers**: None
 
+---
+
+## Issue #140: Remove blue color from dependencies
+
+**Task completed**: Dependencies badge is now gray by default, only orange on error
+
+**Key decisions**:
+- Removed the blue styling (`bg-blue-500/20 text-blue-600`) for dependencies without violations
+- Dependencies now use gray text (`text-muted-foreground hover:text-foreground`) unless there's a violation
+- Violations still show amber/orange styling (`bg-amber-500/20 text-amber-600`)
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Simplified dependency badge styling conditional
+
+**Blockers**: None
+

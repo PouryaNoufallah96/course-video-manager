@@ -301,9 +301,7 @@ function SortableLesson({
                         className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-muted ${
                           hasViolation
                             ? "bg-amber-500/20 text-amber-600"
-                            : hasDependencies
-                              ? "bg-blue-500/20 text-blue-600"
-                              : "text-muted-foreground hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         <Link2 className="w-3 h-3" />
