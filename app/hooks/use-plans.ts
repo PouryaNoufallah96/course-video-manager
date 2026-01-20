@@ -174,10 +174,19 @@ export function usePlans() {
               ? (sortedSections[newIndex + 1]?.order ?? null)
               : afterOrder;
 
-          const newOrder = generateKeyBetween(
-            adjustedBeforeOrder ?? null,
-            adjustedAfterOrder ?? null
-          );
+          // Handle edge case where both order keys are the same (duplicate order keys)
+          let newOrder: string;
+          if (
+            adjustedBeforeOrder !== null &&
+            adjustedBeforeOrder === adjustedAfterOrder
+          ) {
+            newOrder = generateKeyBetween(adjustedBeforeOrder, null);
+          } else {
+            newOrder = generateKeyBetween(
+              adjustedBeforeOrder ?? null,
+              adjustedAfterOrder ?? null
+            );
+          }
 
           return {
             ...plan,
@@ -314,10 +323,19 @@ export function usePlans() {
             newIndex < sortedLessons.length
               ? sortedLessons[newIndex]?.order
               : null;
-          const newOrder = generateKeyBetween(
-            beforeOrder ?? null,
-            afterOrder ?? null
-          );
+
+          // Handle edge case where beforeOrder === afterOrder (duplicate order keys)
+          // This can happen due to data corruption or race conditions
+          let newOrder: string;
+          if (beforeOrder !== null && beforeOrder === afterOrder) {
+            // Generate a key after the duplicate, then regenerate all keys in the section
+            newOrder = generateKeyBetween(beforeOrder, null);
+          } else {
+            newOrder = generateKeyBetween(
+              beforeOrder ?? null,
+              afterOrder ?? null
+            );
+          }
 
           const updatedLesson = { ...lesson, order: newOrder };
 

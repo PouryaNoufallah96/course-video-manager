@@ -62,3 +62,19 @@
 
 **Blockers**: None
 
+---
+
+## Issue #112: Fix lesson reordering crash (Zz >= Zz error)
+
+**Task completed**: Fixed crash when reordering lessons with duplicate order keys
+
+**Key decisions**:
+- Added defensive check in `reorderLesson` and `reorderSection` for when `beforeOrder === afterOrder`
+- When duplicate order keys are detected, generate a new key after the duplicate instead of between them
+- This handles data corruption gracefully rather than crashing
+
+**Files changed**:
+- app/hooks/use-plans.ts - Added duplicate order key handling in reorderLesson and reorderSection
+
+**Blockers**: None
+
