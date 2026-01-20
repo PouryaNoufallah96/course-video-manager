@@ -722,3 +722,26 @@
 
 **Blockers**: None
 
+---
+
+## Issue #141: Add sync error banner for plans
+
+**Task completed**: Added error state tracking and error banner UI for sync failures
+
+**Key decisions**:
+- Added `syncError` state (string | null) to usePlans hook to track sync failures
+- Added `retrySync` callback function for manual retry from error banner
+- Updated fetch call to check response.ok and extract error messages
+- Successful sync clears any existing error state
+- Error banner shows at top of plan page with destructive styling
+- Banner includes error message and Retry button with refresh icon
+
+**Files changed**:
+- app/hooks/use-plans.ts - Added syncError state, syncPlans function, retrySync callback
+- app/routes/plans.$planId.tsx - Added error banner UI with retry functionality
+
+**Blockers**: None
+
+**Remaining work for Issue #141**:
+- Run db:push when database is available
+

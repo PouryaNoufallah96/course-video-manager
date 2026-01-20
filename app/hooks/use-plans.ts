@@ -48,11 +48,45 @@ export function usePlans(options: UsePlansOptions = {}) {
     return [];
   });
 
+  // Sync error state - when set, indicates sync to Postgres failed
+  const [syncError, setSyncError] = useState<string | null>(null);
+
   // Track if this is the initial mount to skip syncing initial data back
   const isInitialMount = useRef(true);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
+
+  // Function to sync plans to Postgres
+  const syncPlans = useCallback(async (plansToSync: Plan[]) => {
+    try {
+      const response = await fetch("/api/plans/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plans: plansToSync }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          (errorData as { error?: string }).error ||
+            `Sync failed with status ${response.status}`
+        );
+      }
+
+      // Clear any existing error on successful sync
+      setSyncError(null);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to sync plans";
+      setSyncError(message);
+    }
+  }, []);
+
+  // Retry sync manually (for use with error banner)
+  const retrySync = useCallback(() => {
+    syncPlans(plans);
+  }, [syncPlans, plans]);
 
   // Debounced sync to Postgres (750ms) whenever plans change
   useEffect(() => {
@@ -70,14 +104,7 @@ export function usePlans(options: UsePlansOptions = {}) {
 
     // Debounce sync to Postgres by 750ms
     syncTimeoutRef.current = setTimeout(() => {
-      fetch("/api/plans/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plans }),
-      }).catch(() => {
-        // Silently ignore sync failures for now
-        // TODO: Add error banner for sync failures (Issue #141)
-      });
+      syncPlans(plans);
     }, 750);
 
     return () => {
@@ -85,7 +112,7 @@ export function usePlans(options: UsePlansOptions = {}) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [plans]);
+  }, [plans, syncPlans]);
 
   // One-time migration from localStorage to Postgres
   useEffect(() => {
@@ -518,6 +545,8 @@ export function usePlans(options: UsePlansOptions = {}) {
 
   return {
     plans,
+    syncError,
+    retrySync,
     createPlan,
     updatePlan,
     deletePlan,

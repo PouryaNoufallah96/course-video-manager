@@ -23,6 +23,7 @@ import {
   MoreVertical,
   Play,
   Plus,
+  RefreshCw,
   Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -663,6 +664,8 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     updateLesson,
     deleteLesson,
     reorderLesson,
+    syncError,
+    retrySync,
   } = usePlans({ initialPlans: loaderData.plans });
 
   // Use loader data as initial value, but getPlan for updates (it reads from the hook's state)
@@ -924,6 +927,28 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     <div className="flex h-screen bg-background text-foreground">
       <AppSidebar initialPlans={loaderData.plans} />
       <div className="flex-1 overflow-y-auto">
+        {/* Sync Error Banner */}
+        {syncError && (
+          <div className="bg-destructive/15 border-b border-destructive/30 px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-destructive">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                Failed to save changes: {syncError}. Your changes may not be
+                persisted.
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={retrySync}
+              className="shrink-0 gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Retry
+            </Button>
+          </div>
+        )}
+
         <div className="p-6 max-w-4xl">
           {/* Header */}
           <div className="mb-6">
