@@ -2,6 +2,7 @@ import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { CreatePlanModal } from "@/components/create-plan-modal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,11 +22,12 @@ import {
   ClipboardList,
   FolderGit2,
   LayoutTemplate,
+  PencilIcon,
   Plus,
   Trash2,
   VideoIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useFetcher, useNavigate } from "react-router";
 
 export interface AppSidebarProps {
@@ -58,8 +60,32 @@ export function AppSidebar({
   const archiveVideoFetcher = useFetcher();
 
   // Plans state
-  const { plans, createPlan, deletePlan } = usePlans();
+  const { plans, createPlan, updatePlan, deletePlan } = usePlans();
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
+  const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
+  const [renamingPlanTitle, setRenamingPlanTitle] = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus rename input when it appears
+  useEffect(() => {
+    if (renamingPlanId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingPlanId]);
+
+  const handleSavePlanRename = () => {
+    if (renamingPlanId && renamingPlanTitle.trim()) {
+      updatePlan(renamingPlanId, { title: renamingPlanTitle.trim() });
+    }
+    setRenamingPlanId(null);
+    setRenamingPlanTitle("");
+  };
+
+  const handleCancelPlanRename = () => {
+    setRenamingPlanId(null);
+    setRenamingPlanTitle("");
+  };
 
   return (
     <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
@@ -222,29 +248,53 @@ export function AppSidebar({
             </div>
             <CollapsibleContent>
               <div className="ml-6 mt-2 space-y-1">
-                {plans.map((plan) => (
-                  <ContextMenu key={plan.id}>
-                    <ContextMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
-                        asChild
-                      >
-                        <Link to={`/plans/${plan.id}`}>{plan.title}</Link>
-                      </Button>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        variant="destructive"
-                        onSelect={() => deletePlan(plan.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
-                ))}
+                {plans.map((plan) =>
+                  renamingPlanId === plan.id ? (
+                    <Input
+                      key={plan.id}
+                      ref={renameInputRef}
+                      value={renamingPlanTitle}
+                      onChange={(e) => setRenamingPlanTitle(e.target.value)}
+                      className="h-8 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSavePlanRename();
+                        if (e.key === "Escape") handleCancelPlanRename();
+                      }}
+                      onBlur={handleSavePlanRename}
+                    />
+                  ) : (
+                    <ContextMenu key={plan.id}>
+                      <ContextMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
+                          asChild
+                        >
+                          <Link to={`/plans/${plan.id}`}>{plan.title}</Link>
+                        </Button>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem
+                          onSelect={() => {
+                            setRenamingPlanId(plan.id);
+                            setRenamingPlanTitle(plan.title);
+                          }}
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                          Rename
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          variant="destructive"
+                          onSelect={() => deletePlan(plan.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                  )
+                )}
                 {plans.length === 0 && (
                   <p className="text-sm text-muted-foreground px-2">
                     No plans yet

@@ -23,5 +23,21 @@
 
 **Remaining work for Issue #111**:
 - Drag-and-drop reordering for sections and lessons (requires @dnd-kit integration)
-- Plan rename via context menu in sidebar
+
+---
+
+## Issue #111: Plan rename via context menu (US3)
+
+**Task completed**: Added right-click rename functionality for plans in sidebar
+
+**Key decisions**:
+- Inline editing approach: right-click shows "Rename" option, which replaces the plan button with an input field
+- Save on Enter key or blur, cancel on Escape
+- Uses same `updatePlan` function from `usePlans` hook (already existed)
+- Used `useRef` + `useEffect` to auto-focus and select text when rename mode activates
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Added PencilIcon, Input import; state for rename mode; Rename context menu item
+
+**Blockers**: None
 
