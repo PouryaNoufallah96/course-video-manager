@@ -509,3 +509,26 @@
 
 **Blockers**: None
 
+---
+
+## Issue #137: Dependency prototype page
+
+**Task completed**: Created prototype page at /dependency-prototype with 5 different UI treatments for lesson dependencies
+
+**Key decisions**:
+- Created extended `LessonWithDeps` interface adding `dependencies: string[]` field
+- 5 UI variants implemented:
+  1. Badge Pills - Dependencies as small removable badges under title
+  2. Inline Dropdown - Compact dropdown on right with checkbox selection
+  3. Visual Lines - Vertical lines connecting dependent lessons
+  4. Expandable Row - Click to expand and see/edit dependencies
+  5. Warning Banner - Violations shown as prominent banner at top
+- Order violation detection: warns when a lesson depends on another that comes later
+- Side-by-side comparison of valid order vs violation state for each variant
+- Mock data with 6 lessons across 2 sections demonstrating dependencies
+
+**Files changed**:
+- app/routes/dependency-prototype.tsx - New prototype page with 5 dependency UI variants
+
+**Blockers**: None
+
