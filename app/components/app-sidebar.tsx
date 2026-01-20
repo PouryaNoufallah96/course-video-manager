@@ -15,6 +15,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { usePlans } from "@/hooks/use-plans";
+import type { Plan } from "@/features/course-planner/types";
 import { cn } from "@/lib/utils";
 import {
   Archive,
@@ -44,6 +45,11 @@ export interface AppSidebarProps {
   setIsAddRepoModalOpen?: (open: boolean) => void;
   isAddStandaloneVideoModalOpen?: boolean;
   setIsAddStandaloneVideoModalOpen?: (open: boolean) => void;
+  /**
+   * Initial plans loaded from the server (Postgres).
+   * When provided, uses these instead of localStorage.
+   */
+  initialPlans?: Plan[];
 }
 
 export function AppSidebar({
@@ -54,13 +60,16 @@ export function AppSidebar({
   setIsAddRepoModalOpen,
   isAddStandaloneVideoModalOpen = false,
   setIsAddStandaloneVideoModalOpen,
+  initialPlans,
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const archiveRepoFetcher = useFetcher();
   const archiveVideoFetcher = useFetcher();
 
-  // Plans state
-  const { plans, createPlan, updatePlan, deletePlan } = usePlans();
+  // Plans state - uses initialPlans from server if provided
+  const { plans, createPlan, updatePlan, deletePlan } = usePlans({
+    initialPlans,
+  });
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
   const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
   const [renamingPlanTitle, setRenamingPlanTitle] = useState("");

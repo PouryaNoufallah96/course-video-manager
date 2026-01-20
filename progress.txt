@@ -674,3 +674,32 @@
 
 **Blockers**: None
 
+---
+
+## Issue #141: Load plans from Postgres via server loaders
+
+**Task completed**: Plans now load from Postgres via server loaders and are passed to AppSidebar/usePlans
+
+**Key decisions**:
+- Created GET `/api/plans` endpoint using DBService.getPlans()
+- Updated `usePlans` hook to accept `initialPlans` option from server loader
+- Added debounced sync (750ms) to avoid overwhelming DB with rapid changes
+- Skip initial sync on mount to prevent syncing server data back to server
+- Updated `_index.tsx` loader to fetch plans and pass to AppSidebar
+- Converted `plans.$planId.tsx` from clientLoader to server loader
+- Both pages now pass `initialPlans` prop to AppSidebar
+
+**Files changed**:
+- app/routes/api.plans.ts - New GET endpoint for loading plans
+- app/hooks/use-plans.ts - Added UsePlansOptions, initialPlans param, debounced sync
+- app/components/app-sidebar.tsx - Added initialPlans prop, pass to usePlans
+- app/routes/_index.tsx - Loader fetches plans, passes to AppSidebar
+- app/routes/plans.$planId.tsx - Converted to server loader, passes plans to usePlans and AppSidebar
+
+**Blockers**: None
+
+**Remaining work for Issue #141**:
+- Create migration endpoint to move localStorage → Postgres
+- Add error banner for sync failures
+- Run db:push when database is available
+

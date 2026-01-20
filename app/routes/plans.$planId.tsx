@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Plan } from "@/features/course-planner/types";
 import { usePlans } from "@/hooks/use-plans";
 import {
   AlertTriangle,
@@ -27,30 +26,26 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, data } from "react-router";
 import type { Route } from "./+types/plans.$planId";
+import { Console, Effect } from "effect";
+import { DBService } from "@/services/db-service";
+import { layerLive } from "@/services/layer";
 
-const STORAGE_KEY = "course-plans";
-
-function getPlansFromLocalStorage(): Plan[] {
-  if (typeof localStorage === "undefined") {
-    return [];
-  }
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored) as Plan[];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
-  const plans = getPlansFromLocalStorage();
-  const plan = plans.find((p) => p.id === params.planId);
-  return { plan };
+export const loader = async ({ params }: Route.LoaderArgs) => {
+  return Effect.gen(function* () {
+    const db = yield* DBService;
+    const plans = yield* db.getPlans();
+    const plan = plans.find((p) => p.id === params.planId);
+    return { plan, plans };
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };
 import {
   DndContext,
@@ -668,9 +663,9 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     updateLesson,
     deleteLesson,
     reorderLesson,
-  } = usePlans();
+  } = usePlans({ initialPlans: loaderData.plans });
 
-  // Use clientLoader data as initial value, but getPlan for updates (it reads from the hook's state)
+  // Use loader data as initial value, but getPlan for updates (it reads from the hook's state)
   const planId = loaderData.plan?.id;
   const plan = planId ? (getPlan(planId) ?? loaderData.plan) : loaderData.plan;
 
@@ -714,7 +709,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   if (!plan) {
     return (
       <div className="flex h-screen bg-background text-foreground">
-        <AppSidebar />
+        <AppSidebar initialPlans={loaderData.plans} />
         <div className="flex-1 p-6">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4">Plan not found</h1>
@@ -927,7 +922,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <AppSidebar />
+      <AppSidebar initialPlans={loaderData.plans} />
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 max-w-4xl">
           {/* Header */}

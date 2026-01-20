@@ -100,6 +100,7 @@ export const loader = async (args: Route.LoaderArgs) => {
     // First get repos and versions for the selected repo
     const repos = yield* db.getRepos();
     const standaloneVideos = yield* db.getStandaloneVideos();
+    const plans = yield* db.getPlans();
 
     let versions: Awaited<
       ReturnType<typeof db.getRepoVersions>
@@ -203,6 +204,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       isLatestVersion,
       hasExportedVideoMap,
       hasExplainerFolderMap,
+      plans,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -306,6 +308,7 @@ export default function Component(props: Route.ComponentProps) {
         setIsAddRepoModalOpen={setIsAddRepoModalOpen}
         isAddStandaloneVideoModalOpen={isAddStandaloneVideoModalOpen}
         setIsAddStandaloneVideoModalOpen={setIsAddStandaloneVideoModalOpen}
+        initialPlans={data.plans}
       />
 
       {/* Main Content Area */}

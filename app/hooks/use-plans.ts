@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Plan, Section, Lesson } from "@/features/course-planner/types";
 
 const STORAGE_KEY = "course-plans";
@@ -11,11 +11,28 @@ function getTimestamp(): string {
   return new Date().toISOString();
 }
 
+export interface UsePlansOptions {
+  /**
+   * Initial plans loaded from the server (Postgres).
+   * When provided, these are used instead of localStorage.
+   */
+  initialPlans?: Plan[];
+}
+
 /**
- * Hook to manage course plans stored in localStorage.
+ * Hook to manage course plans.
+ * When initialPlans is provided (from server loader), uses those.
+ * Otherwise falls back to localStorage for backwards compatibility.
  */
-export function usePlans() {
+export function usePlans(options: UsePlansOptions = {}) {
+  const { initialPlans } = options;
+
   const [plans, setPlans] = useState<Plan[]>(() => {
+    // If initialPlans provided from server, use those
+    if (initialPlans !== undefined) {
+      return initialPlans;
+    }
+    // Otherwise fall back to localStorage (backwards compat)
     if (typeof localStorage === "undefined") {
       return [];
     }
@@ -30,21 +47,43 @@ export function usePlans() {
     return [];
   });
 
-  // Persist to localStorage and sync to Postgres whenever plans change
-  useEffect(() => {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
+  // Track if this is the initial mount to skip syncing initial data back
+  const isInitialMount = useRef(true);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
-      // Sync to Postgres via API (fire and forget)
+  // Debounced sync to Postgres (750ms) whenever plans change
+  useEffect(() => {
+    // Skip the initial sync when loading from initialPlans (server data)
+    // to avoid immediately syncing server data back to the server
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Clear any pending sync
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+
+    // Debounce sync to Postgres by 750ms
+    syncTimeoutRef.current = setTimeout(() => {
       fetch("/api/plans/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plans }),
       }).catch(() => {
-        // Silently ignore sync failures for now - localStorage is the primary store
+        // Silently ignore sync failures for now
         // TODO: Add error banner for sync failures (Issue #141)
       });
-    }
+    }, 750);
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
   }, [plans]);
 
   // Plan operations
