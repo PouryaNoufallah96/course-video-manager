@@ -41,3 +41,24 @@
 
 **Blockers**: None
 
+---
+
+## Issue #111: Drag-and-drop reordering for sections and lessons (US8, US12, US13)
+
+**Task completed**: Added drag-and-drop functionality for reordering sections and lessons
+
+**Key decisions**:
+- Installed `@dnd-kit/core` and `@dnd-kit/sortable` for drag-and-drop
+- Used existing `reorderSection` and `reorderLesson` functions from `usePlans` hook
+- Created `SortableSection` and `SortableLesson` wrapper components with `useSortable` hook
+- Added drag handles (GripVertical icon) - visible on hover for lessons, always visible for sections
+- Lessons can be reordered within a section or moved between sections
+- DragOverlay shows a preview of the dragged item
+- 8px activation distance prevents accidental drags when clicking
+
+**Files changed**:
+- package.json - Added @dnd-kit/core, @dnd-kit/sortable dependencies
+- app/routes/plans.$planId.tsx - Wrapped sections in DndContext, created SortableSection and SortableLesson components
+
+**Blockers**: None
+
