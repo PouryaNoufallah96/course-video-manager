@@ -2,7 +2,7 @@ export interface Lesson {
   id: string;
   title: string;
   order: number;
-  notes: string;
+  description: string;
 }
 
 export interface Section {

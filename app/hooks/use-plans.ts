@@ -197,7 +197,7 @@ export function usePlans() {
                 id: generateId(),
                 title,
                 order: maxOrder + 1,
-                notes: "",
+                description: "",
               };
 
               return {
@@ -219,7 +219,7 @@ export function usePlans() {
       planId: string,
       sectionId: string,
       lessonId: string,
-      updates: Partial<Pick<Lesson, "title" | "notes">>
+      updates: Partial<Pick<Lesson, "title" | "description">>
     ) => {
       setPlans((prev) =>
         prev.map((plan) => {

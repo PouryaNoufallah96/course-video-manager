@@ -170,3 +170,25 @@
 
 **Blockers**: None
 
+---
+
+## Issue #118: Replace lesson notes with inline description
+
+**Task completed**: Replaced separate notes page with inline description editing on lessons
+
+**Key decisions**:
+- Renamed `notes` field to `description` in Lesson type
+- Deleted lesson detail page (`plans.$planId.lessons.$lessonId.tsx`)
+- Added inline description display/editing to SortableLesson component
+- Description shows under lesson title (or "Add description" link if empty)
+- Click on description or "Add description" opens textarea editor inline
+- Supports Escape to cancel, Save/Cancel buttons
+
+**Files changed**:
+- app/features/course-planner/types.ts - Renamed notes to description
+- app/hooks/use-plans.ts - Updated notes references to description
+- app/routes/plans.$planId.tsx - Added inline description editing to lessons, removed Link to lesson detail
+- Deleted: app/routes/plans.$planId.lessons.$lessonId.tsx
+
+**Blockers**: None
+
