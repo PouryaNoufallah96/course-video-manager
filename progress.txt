@@ -474,3 +474,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #134: Click-to-edit for titles
+
+**Task completed**: Clicking on titles now enters edit mode for plan, section, and lesson titles
+
+**Key decisions**:
+- Plan title: h1 element is now clickable with hover effect (`hover:text-muted-foreground`)
+- Section title: h2 element is now clickable with hover effect, removed pencil icon
+- Lesson title: title div is now clickable with hover effect, removed pencil icon
+- Removed "Edit Title" from plan dropdown menu (clicking title handles this now)
+- Kept dropdown menu for "Duplicate Plan" functionality
+- Removed PencilIcon import as it's no longer used
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Made titles clickable, removed pencil icons
+
+**Blockers**: None
+

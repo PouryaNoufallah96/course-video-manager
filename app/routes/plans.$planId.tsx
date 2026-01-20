@@ -17,7 +17,6 @@ import {
   GripVertical,
   MessageCircle,
   MoreVertical,
-  PencilIcon,
   Play,
   Plus,
   Trash2,
@@ -232,21 +231,16 @@ function SortableLesson({
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 cursor-pointer hover:text-muted-foreground transition-colors"
+                  onClick={onStartEditTitle}
+                >
                   <span className="text-sm text-muted-foreground">
                     {lessonNumber}
                   </span>
                   <span className="text-sm">{lesson.title}</span>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={onStartEditTitle}
-                  >
-                    <PencilIcon className="w-3 h-3" />
-                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -442,7 +436,10 @@ function SortableSection({
               >
                 <GripVertical className="w-5 h-5 text-muted-foreground" />
               </button>
-              <h2 className="font-semibold text-lg">
+              <h2
+                className="font-semibold text-lg cursor-pointer hover:text-muted-foreground transition-colors"
+                onClick={onStartEdit}
+              >
                 <span className="text-muted-foreground mr-2">
                   {sectionNumber}.
                 </span>
@@ -450,14 +447,6 @@ function SortableSection({
               </h2>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onStartEdit}
-              >
-                <PencilIcon className="w-4 h-4" />
-              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -815,7 +804,15 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                 </div>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold">{plan.title}</h1>
+                  <h1
+                    className="text-2xl font-bold cursor-pointer hover:text-muted-foreground transition-colors"
+                    onClick={() => {
+                      setEditedTitle(plan.title);
+                      setIsEditingTitle(true);
+                    }}
+                  >
+                    {plan.title}
+                  </h1>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -827,15 +824,6 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setEditedTitle(plan.title);
-                          setIsEditingTitle(true);
-                        }}
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                        Edit Title
-                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={() => {
                           const newPlan = duplicatePlan(planId!);
