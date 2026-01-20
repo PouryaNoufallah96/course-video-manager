@@ -439,3 +439,23 @@
 
 **Blockers**: None
 
+---
+
+## Issue #132: Add JSON file backup for plans
+
+**Task completed**: Plans are now backed up to a JSON file whenever localStorage is updated
+
+**Key decisions**:
+- Created `/api/plans/backup` endpoint that writes plans to `plans-backup.json` in repo root
+- Used Effect and @effect/platform FileSystem for file operations (consistent with other API routes)
+- Backup is fire-and-forget (non-blocking) - localStorage remains primary store
+- Backup file is git-ignored so it stays local but can be manually restored if needed
+- JSON is formatted with 2-space indentation for readability
+
+**Files changed**:
+- app/routes/api.plans.backup.ts - New API endpoint for JSON backup
+- app/hooks/use-plans.ts - Added fetch call to backup API in useEffect
+- .gitignore - Added plans-backup.json
+
+**Blockers**: None
+

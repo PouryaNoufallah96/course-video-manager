@@ -7,3 +7,6 @@
 
 .env
 .pnpm-store/
+
+# Plans backup file (stored in repo but not committed)
+plans-backup.json
