@@ -30,18 +30,19 @@ export function usePlans() {
     return [];
   });
 
-  // Persist to localStorage and backup to JSON file whenever plans change
+  // Persist to localStorage and sync to Postgres whenever plans change
   useEffect(() => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
 
-      // Backup to JSON file via API (fire and forget)
-      fetch("/api/plans/backup", {
+      // Sync to Postgres via API (fire and forget)
+      fetch("/api/plans/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plans }),
       }).catch(() => {
-        // Silently ignore backup failures - localStorage is the primary store
+        // Silently ignore sync failures for now - localStorage is the primary store
+        // TODO: Add error banner for sync failures (Issue #141)
       });
     }
   }, [plans]);

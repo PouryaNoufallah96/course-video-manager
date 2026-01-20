@@ -651,10 +651,26 @@
 **Blockers**: None
 
 **Remaining work for Issue #141**:
-- Update usePlans hook to sync to Postgres instead of localStorage backup
 - Add debounced sync (750ms) to usePlans hook
 - Load plans via root layout loader (for sidebar availability)
 - Create migration endpoint to move localStorage → Postgres
 - Add error banner for sync failures
 - Run db:push when database is available
+
+---
+
+## Issue #141: Update usePlans hook to sync to Postgres
+
+**Task completed**: Changed backup endpoint to sync endpoint in usePlans hook
+
+**Key decisions**:
+- Changed fetch URL from `/api/plans/backup` to `/api/plans/sync`
+- Request body format `{ plans }` is identical between both endpoints
+- Kept localStorage as primary store (sync is fire-and-forget for now)
+- Added TODO comment for future error banner work
+
+**Files changed**:
+- app/hooks/use-plans.ts - Updated endpoint URL from backup to sync
+
+**Blockers**: None
 
