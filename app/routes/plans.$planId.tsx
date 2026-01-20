@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePlans } from "@/hooks/use-plans";
+import { usePlan } from "@/hooks/use-plan";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -668,6 +668,7 @@ function SortableSection({
 export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const {
+    plan,
     updatePlan,
     duplicatePlan,
     addSection,
@@ -680,14 +681,9 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     reorderLesson,
     syncError,
     retrySync,
-  } = usePlans({
-    initialPlans: loaderData.plans,
-    activePlanId: loaderData.plan.id,
+  } = usePlan({
+    initialPlan: loaderData.plan!,
   });
-
-  // Use loader data as initial value, but getPlan for updates (it reads from the hook's state)
-  const planId = loaderData.plan.id;
-  const plan = ;
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
@@ -780,17 +776,14 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveTitle = () => {
     if (editedTitle.trim()) {
-      updatePlan(planId, { title: editedTitle.trim() });
+      updatePlan({ title: editedTitle.trim() });
     }
     setIsEditingTitle(false);
   };
 
   const handleAddSection = () => {
     if (newSectionTitle.trim()) {
-      const newSection = addSection(
-        planId,
-        capitalizeTitle(newSectionTitle.trim())
-      );
+      const newSection = addSection(capitalizeTitle(newSectionTitle.trim()));
       setNewSectionTitle("");
       setIsAddingSectionOpen(false);
       // Focus the Add Lesson button in the newly created section
@@ -802,7 +795,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveSection = (sectionId: string) => {
     if (editedSectionTitle.trim()) {
-      updateSection(planId, sectionId, {
+      updateSection(sectionId, {
         title: capitalizeTitle(editedSectionTitle.trim()),
       });
     }
@@ -811,7 +804,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleAddLesson = (sectionId: string) => {
     if (newLessonTitle.trim()) {
-      addLesson(planId, sectionId, capitalizeTitle(newLessonTitle.trim()));
+      addLesson(sectionId, capitalizeTitle(newLessonTitle.trim()));
       setNewLessonTitle("");
       setAddingLessonToSection(null);
       // Focus the Add Lesson button in this section
@@ -821,7 +814,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveLesson = (sectionId: string, lessonId: string) => {
     if (editedLessonTitle.trim()) {
-      updateLesson(planId, sectionId, lessonId, {
+      updateLesson(sectionId, lessonId, {
         title: capitalizeTitle(editedLessonTitle.trim()),
       });
     }
@@ -829,7 +822,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleSaveDescription = (sectionId: string, lessonId: string) => {
-    updateLesson(planId, sectionId, lessonId, {
+    updateLesson(sectionId, lessonId, {
       description: editedLessonDescription,
     });
     setEditingDescriptionLessonId(null);
@@ -840,7 +833,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     lessonId: string,
     icon: LessonIcon
   ) => {
-    updateLesson(planId, sectionId, lessonId, { icon });
+    updateLesson(sectionId, lessonId, { icon });
   };
 
   const handleLessonDependenciesChange = (
@@ -848,7 +841,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     lessonId: string,
     dependencies: string[]
   ) => {
-    updateLesson(planId, sectionId, lessonId, { dependencies });
+    updateLesson(sectionId, lessonId, { dependencies });
   };
 
   // Find which section a lesson belongs to
@@ -885,7 +878,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
       const oldIndex = sortedSections.findIndex((s) => s.id === activeIdStr);
       const newIndex = sortedSections.findIndex((s) => s.id === overIdStr);
       if (oldIndex !== -1 && newIndex !== -1) {
-        reorderSection(planId, activeIdStr, newIndex);
+        reorderSection(activeIdStr, newIndex);
       }
       return;
     }
@@ -903,7 +896,6 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
           (a, b) => a.order - b.order
         );
         reorderLesson(
-          planId,
           fromSection.id,
           toSection.id,
           activeIdStr,
@@ -919,13 +911,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
           (a, b) => a.order - b.order
         );
         const overIndex = sortedLessons.findIndex((l) => l.id === overIdStr);
-        reorderLesson(
-          planId,
-          fromSection.id,
-          overSection.id,
-          activeIdStr,
-          overIndex
-        );
+        reorderLesson(fromSection.id, overSection.id, activeIdStr, overIndex);
       }
     }
   };
@@ -1024,11 +1010,9 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem
-                        onSelect={() => {
-                          const newPlan = duplicatePlan(planId);
-                          if (newPlan) {
-                            navigate(`/plans/${newPlan.id}`);
-                          }
+                        onSelect={async () => {
+                          const newPlan = await duplicatePlan();
+                          navigate(`/plans/${newPlan.id}`);
                         }}
                       >
                         <Copy className="w-4 h-4" />
@@ -1080,7 +1064,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     }}
                     onSave={() => handleSaveSection(section.id)}
                     onCancel={() => setEditingSectionId(null)}
-                    onDelete={() => deleteSection(planId, section.id)}
+                    onDelete={() => deleteSection(section.id)}
                     editingLessonId={editingLessonId}
                     editedLessonTitle={editedLessonTitle}
                     onEditedLessonTitleChange={setEditedLessonTitle}
@@ -1093,7 +1077,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     }
                     onCancelEditLesson={() => setEditingLessonId(null)}
                     onDeleteLesson={(lessonId) =>
-                      deleteLesson(planId, section.id, lessonId)
+                      deleteLesson(section.id, lessonId)
                     }
                     editingDescriptionLessonId={editingDescriptionLessonId}
                     editedLessonDescription={editedLessonDescription}
