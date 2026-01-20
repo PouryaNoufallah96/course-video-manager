@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Code,
   GripVertical,
+  MessageCircle,
   PencilIcon,
   Play,
   Plus,
@@ -145,19 +146,31 @@ function SortableLesson({
           className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
             lesson.icon === "code"
               ? "bg-yellow-500/20 text-yellow-600"
-              : "bg-purple-500/20 text-purple-600"
+              : lesson.icon === "discussion"
+                ? "bg-green-500/20 text-green-600"
+                : "bg-purple-500/20 text-purple-600"
           }`}
-          onClick={() =>
-            onIconChange(lesson.icon === "code" ? "watch" : "code")
-          }
+          onClick={() => {
+            const nextIcon =
+              lesson.icon === "watch"
+                ? "code"
+                : lesson.icon === "code"
+                  ? "discussion"
+                  : "watch";
+            onIconChange(nextIcon);
+          }}
           title={
             lesson.icon === "code"
               ? "Interactive (click to change)"
-              : "Watch (click to change)"
+              : lesson.icon === "discussion"
+                ? "Discussion (click to change)"
+                : "Watch (click to change)"
           }
         >
           {lesson.icon === "code" ? (
             <Code className="w-3.5 h-3.5" />
+          ) : lesson.icon === "discussion" ? (
+            <MessageCircle className="w-3.5 h-3.5" />
           ) : (
             <Play className="w-3.5 h-3.5" />
           )}

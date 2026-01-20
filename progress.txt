@@ -384,3 +384,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #130: Add third icon (green discussion/conversation)
+
+**Task completed**: Added a third lesson icon type for discussions, colored green
+
+**Key decisions**:
+- Extended `LessonIcon` type to include "discussion" alongside "watch" and "code"
+- Used `MessageCircle` icon from lucide-react for the discussion type
+- Green color scheme: `bg-green-500/20 text-green-600` (consistent with existing yellow/purple pattern)
+- Icon click cycles through: watch → code → discussion → watch
+- Tooltip shows "Discussion (click to change)" for the new icon type
+
+**Files changed**:
+- app/features/course-planner/types.ts - Added "discussion" to LessonIcon type
+- app/routes/plans.$planId.tsx - Added MessageCircle import, updated icon rendering and cycle logic
+
+**Blockers**: None
+

@@ -1,4 +1,4 @@
-export type LessonIcon = "watch" | "code";
+export type LessonIcon = "watch" | "code" | "discussion";
 
 export interface Lesson {
   id: string;
