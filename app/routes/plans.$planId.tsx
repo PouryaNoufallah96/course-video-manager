@@ -209,9 +209,7 @@ function SortableSection({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const sortedLessons = [...section.lessons].sort((a, b) =>
-    a.order.localeCompare(b.order)
-  );
+  const sortedLessons = [...section.lessons].sort((a, b) => a.order - b.order);
 
   return (
     <div ref={setNodeRef} style={style} className="border rounded-lg p-4">
@@ -393,9 +391,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
     );
   }
 
-  const sortedSections = [...plan.sections].sort((a, b) =>
-    a.order.localeCompare(b.order)
-  );
+  const sortedSections = [...plan.sections].sort((a, b) => a.order - b.order);
 
   const totalSections = plan.sections.length;
   const totalLessons = plan.sections.reduce(
@@ -489,8 +485,8 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
       const toSection = plan.sections.find((s) => s.id === overIdStr);
       if (toSection) {
         // Moving to end of another section
-        const sortedLessons = [...toSection.lessons].sort((a, b) =>
-          a.order.localeCompare(b.order)
+        const sortedLessons = [...toSection.lessons].sort(
+          (a, b) => a.order - b.order
         );
         reorderLesson(
           planId!,
@@ -505,8 +501,8 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
       // Check if dropping on a lesson
       const overSection = findSectionForLesson(overIdStr);
       if (overSection) {
-        const sortedLessons = [...overSection.lessons].sort((a, b) =>
-          a.order.localeCompare(b.order)
+        const sortedLessons = [...overSection.lessons].sort(
+          (a, b) => a.order - b.order
         );
         const overIndex = sortedLessons.findIndex((l) => l.id === overIdStr);
         reorderLesson(

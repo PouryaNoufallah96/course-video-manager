@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { generateKeyBetween } from "fractional-indexing";
 import type { Plan, Section, Lesson } from "@/features/course-planner/types";
 
 const STORAGE_KEY = "course-plans";
@@ -84,13 +83,12 @@ export function usePlans() {
         prev.map((plan) => {
           if (plan.id !== planId) return plan;
 
-          const lastSection = plan.sections[plan.sections.length - 1];
-          const lastOrder = lastSection?.order ?? null;
+          const maxOrder = Math.max(0, ...plan.sections.map((s) => s.order));
 
           newSection = {
             id: generateId(),
             title,
-            order: generateKeyBetween(lastOrder, null),
+            order: maxOrder + 1,
             lessons: [],
           };
 
@@ -147,54 +145,29 @@ export function usePlans() {
         prev.map((plan) => {
           if (plan.id !== planId) return plan;
 
-          const sortedSections = [...plan.sections].sort((a, b) =>
-            a.order.localeCompare(b.order)
+          const sortedSections = [...plan.sections].sort(
+            (a, b) => a.order - b.order
           );
           const currentIndex = sortedSections.findIndex(
             (s) => s.id === sectionId
           );
           if (currentIndex === -1 || currentIndex === newIndex) return plan;
 
-          // Calculate new order key
-          const beforeOrder =
-            newIndex > 0 ? sortedSections[newIndex - 1]?.order : null;
-          const afterOrder =
-            newIndex < sortedSections.length - 1
-              ? sortedSections[newIndex + (newIndex > currentIndex ? 1 : 0)]
-                  ?.order
-              : null;
+          // Remove section from current position and insert at new position
+          const [movedSection] = sortedSections.splice(currentIndex, 1) as [
+            Section,
+          ];
+          sortedSections.splice(newIndex, 0, movedSection);
 
-          // Adjust for the case where we're moving down
-          const adjustedBeforeOrder =
-            newIndex > currentIndex
-              ? sortedSections[newIndex]?.order
-              : beforeOrder;
-          const adjustedAfterOrder =
-            newIndex > currentIndex
-              ? (sortedSections[newIndex + 1]?.order ?? null)
-              : afterOrder;
-
-          // Handle edge case where both order keys are the same (duplicate order keys)
-          let newOrder: string;
-          if (
-            adjustedBeforeOrder !== null &&
-            adjustedBeforeOrder === adjustedAfterOrder
-          ) {
-            newOrder = generateKeyBetween(adjustedBeforeOrder, null);
-          } else {
-            newOrder = generateKeyBetween(
-              adjustedBeforeOrder ?? null,
-              adjustedAfterOrder ?? null
-            );
-          }
+          // Reassign order values based on new positions
+          const reorderedSections = sortedSections.map((section, index) => ({
+            ...section,
+            order: index,
+          }));
 
           return {
             ...plan,
-            sections: plan.sections.map((section) =>
-              section.id === sectionId
-                ? { ...section, order: newOrder }
-                : section
-            ),
+            sections: reorderedSections,
             updatedAt: getTimestamp(),
           };
         })
@@ -215,13 +188,15 @@ export function usePlans() {
             sections: plan.sections.map((section) => {
               if (section.id !== sectionId) return section;
 
-              const lastLesson = section.lessons[section.lessons.length - 1];
-              const lastOrder = lastLesson?.order ?? null;
+              const maxOrder = Math.max(
+                0,
+                ...section.lessons.map((l) => l.order)
+              );
 
               newLesson = {
                 id: generateId(),
                 title,
-                order: generateKeyBetween(lastOrder, null),
+                order: maxOrder + 1,
                 notes: "",
               };
 
@@ -309,63 +284,70 @@ export function usePlans() {
           const lesson = fromSection?.lessons.find((l) => l.id === lessonId);
           if (!lesson) return plan;
 
-          // Calculate new order
           const toSection = plan.sections.find((s) => s.id === toSectionId);
           if (!toSection) return plan;
-
-          const sortedLessons = [...toSection.lessons]
-            .filter((l) => l.id !== lessonId) // Exclude the moving lesson
-            .sort((a, b) => a.order.localeCompare(b.order));
-
-          const beforeOrder =
-            newIndex > 0 ? sortedLessons[newIndex - 1]?.order : null;
-          const afterOrder =
-            newIndex < sortedLessons.length
-              ? sortedLessons[newIndex]?.order
-              : null;
-
-          // Handle edge case where beforeOrder === afterOrder (duplicate order keys)
-          // This can happen due to data corruption or race conditions
-          let newOrder: string;
-          if (beforeOrder !== null && beforeOrder === afterOrder) {
-            // Generate a key after the duplicate, then regenerate all keys in the section
-            newOrder = generateKeyBetween(beforeOrder, null);
-          } else {
-            newOrder = generateKeyBetween(
-              beforeOrder ?? null,
-              afterOrder ?? null
-            );
-          }
-
-          const updatedLesson = { ...lesson, order: newOrder };
 
           return {
             ...plan,
             sections: plan.sections.map((section) => {
-              if (
-                section.id === fromSectionId &&
-                fromSectionId !== toSectionId
-              ) {
-                // Remove from source section
+              if (fromSectionId === toSectionId) {
+                // Reorder within same section
+                if (section.id !== toSectionId) return section;
+
+                const sortedLessons = [...section.lessons].sort(
+                  (a, b) => a.order - b.order
+                );
+                const currentIndex = sortedLessons.findIndex(
+                  (l) => l.id === lessonId
+                );
+                if (currentIndex === -1 || currentIndex === newIndex)
+                  return section;
+
+                // Remove and reinsert
+                const [movedLesson] = sortedLessons.splice(currentIndex, 1) as [
+                  Lesson,
+                ];
+                sortedLessons.splice(newIndex, 0, movedLesson);
+
+                // Reassign order values
+                const reorderedLessons = sortedLessons.map((l, index) => ({
+                  ...l,
+                  order: index,
+                }));
+
                 return {
                   ...section,
-                  lessons: section.lessons.filter((l) => l.id !== lessonId),
+                  lessons: reorderedLessons,
                 };
-              }
-              if (section.id === toSectionId) {
-                if (fromSectionId === toSectionId) {
-                  // Reorder within same section
+              } else {
+                // Moving between sections
+                if (section.id === fromSectionId) {
+                  // Remove from source section and reassign orders
+                  const remainingLessons = section.lessons
+                    .filter((l) => l.id !== lessonId)
+                    .sort((a, b) => a.order - b.order)
+                    .map((l, index) => ({ ...l, order: index }));
                   return {
                     ...section,
-                    lessons: section.lessons.map((l) =>
-                      l.id === lessonId ? updatedLesson : l
-                    ),
+                    lessons: remainingLessons,
                   };
-                } else {
-                  // Add to target section
+                }
+                if (section.id === toSectionId) {
+                  // Add to target section at newIndex
+                  const sortedLessons = [...section.lessons].sort(
+                    (a, b) => a.order - b.order
+                  );
+                  sortedLessons.splice(newIndex, 0, lesson);
+
+                  // Reassign order values
+                  const reorderedLessons = sortedLessons.map((l, index) => ({
+                    ...l,
+                    order: index,
+                  }));
+
                   return {
                     ...section,
-                    lessons: [...section.lessons, updatedLesson],
+                    lessons: reorderedLessons,
                   };
                 }
               }

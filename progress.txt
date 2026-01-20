@@ -78,3 +78,23 @@
 
 **Blockers**: None
 
+---
+
+## Issue #115: Remove fractional indexing from plans area
+
+**Task completed**: Replaced fractional indexing with simple integer-based ordering for plans
+
+**Key decisions**:
+- Changed `order` field from `string` to `number` in Section and Lesson types
+- Removed `fractional-indexing` import from use-plans.ts (library still used elsewhere for videos)
+- Reordering now uses array-based splice/insert then reassigns sequential integers (0, 1, 2...)
+- Adding new items uses `Math.max(...orders) + 1` instead of generateKeyBetween
+- Simpler, bug-free approach since all data is in local state anyway
+
+**Files changed**:
+- app/features/course-planner/types.ts - Changed order from string to number
+- app/hooks/use-plans.ts - Removed fractional-indexing, rewrote reorder functions
+- app/routes/plans.$planId.tsx - Changed sorting from localeCompare to numeric comparison
+
+**Blockers**: None
+

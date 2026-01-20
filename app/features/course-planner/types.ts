@@ -1,14 +1,14 @@
 export interface Lesson {
   id: string;
   title: string;
-  order: string; // fractional index
+  order: number;
   notes: string;
 }
 
 export interface Section {
   id: string;
   title: string;
-  order: string; // fractional index
+  order: number;
   lessons: Lesson[];
 }
 
