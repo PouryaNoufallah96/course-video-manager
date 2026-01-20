@@ -295,3 +295,35 @@
 
 **Blockers**: None
 
+---
+
+## Issue #125: Reduce Add Lesson button to plus icon only
+
+**Task completed**: Changed Add Lesson button from text + icon to icon-only
+
+**Key decisions**:
+- Changed button from `size="sm"` to `size="icon"` with `h-6 w-6` dimensions
+- Removed "Add Lesson" text, kept only the Plus icon
+- Cleaner, less cluttered UI while maintaining functionality
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Simplified Add Lesson button to icon-only
+
+**Blockers**: None
+
+---
+
+## Issue #126: Reposition lesson icon and make it brighter
+
+**Task completed**: Moved lesson icon after the number and changed color to foreground
+
+**Key decisions**:
+- Reordered elements: grip → number → icon → title (was: grip → icon → number → title)
+- Changed icon color from `text-muted-foreground` to `text-foreground` for better visibility
+- Separated number into its own span element for cleaner layout
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Reordered lesson elements and updated icon color
+
+**Blockers**: None
+

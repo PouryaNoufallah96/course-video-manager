@@ -159,6 +159,9 @@ function SortableLesson({
             >
               <GripVertical className="w-4 h-4 text-muted-foreground" />
             </button>
+            <span className="text-sm text-muted-foreground ml-1">
+              {lessonNumber}
+            </span>
             <button
               className="p-1 hover:bg-muted rounded"
               onClick={() =>
@@ -171,15 +174,12 @@ function SortableLesson({
               }
             >
               {lesson.icon === "code" ? (
-                <Code className="w-4 h-4 text-muted-foreground" />
+                <Code className="w-4 h-4 text-foreground" />
               ) : (
-                <Monitor className="w-4 h-4 text-muted-foreground" />
+                <Monitor className="w-4 h-4 text-foreground" />
               )}
             </button>
-            <span className="text-sm flex-1 ml-1">
-              <span className="text-muted-foreground mr-2">{lessonNumber}</span>
-              {lesson.title}
-            </span>
+            <span className="text-sm flex-1 ml-1">{lesson.title}</span>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
@@ -464,12 +464,11 @@ function SortableSection({
             <Button
               ref={addLessonButtonRef}
               variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground"
               onClick={onStartAddLesson}
             >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Lesson
+              <Plus className="w-4 h-4" />
             </Button>
           )}
         </div>
