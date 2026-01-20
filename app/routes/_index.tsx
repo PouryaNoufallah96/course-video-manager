@@ -308,7 +308,7 @@ export default function Component(props: Route.ComponentProps) {
         setIsAddRepoModalOpen={setIsAddRepoModalOpen}
         isAddStandaloneVideoModalOpen={isAddStandaloneVideoModalOpen}
         setIsAddStandaloneVideoModalOpen={setIsAddStandaloneVideoModalOpen}
-        initialPlans={data.plans}
+        plans={data.plans}
       />
 
       {/* Main Content Area */}

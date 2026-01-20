@@ -789,3 +789,32 @@
 
 **Blockers**: None
 
+---
+
+## Issue #144: Fix plan creation from sidebar (tracer bullet)
+
+**Task completed**: Converted plan creation from local state to server action with redirect
+
+**Key decisions**:
+- Created POST `/api/plans` action endpoint that creates plan in Postgres and redirects to plan page
+- Updated CreatePlanModal to use `useFetcher` with form submission instead of callback
+- Changed AppSidebar from using `usePlans` hook to receiving `plans` prop from server loader
+- Added `/api/plans/$planId/delete` and `/api/plans/$planId/rename` endpoints for sidebar operations
+- Added `deletePlan` and `renamePlan` methods to DBService
+- All sidebar plan operations now use fetchers posting to server actions
+
+**Files created**:
+- app/routes/api.plans.$planId.delete.ts - Endpoint for deleting plans
+- app/routes/api.plans.$planId.rename.ts - Endpoint for renaming plans
+
+**Files changed**:
+- app/routes/api.plans.ts - Added action for plan creation with redirect
+- app/components/create-plan-modal.tsx - Converted to useFetcher form
+- app/components/app-sidebar.tsx - Removed usePlans hook, uses plans prop, fetchers for mutations
+- app/services/db-service.ts - Added deletePlan and renamePlan methods
+- app/routes/_index.tsx - Changed initialPlans to plans prop
+- app/routes/plans.$planId.tsx - Changed initialPlans to plans prop
+- app/routes/archived-repos.tsx - Added plans to loader and sidebar
+
+**Blockers**: None
+

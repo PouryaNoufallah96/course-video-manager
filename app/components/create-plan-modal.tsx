@@ -7,29 +7,39 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { useFetcher } from "react-router";
 
 interface CreatePlanModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreatePlan: (title: string) => void;
 }
 
 export function CreatePlanModal({
   isOpen,
   onOpenChange,
-  onCreatePlan,
 }: CreatePlanModalProps) {
-  const [title, setTitle] = useState("");
+  const fetcher = useFetcher();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim()) {
-      onCreatePlan(title.trim());
-      setTitle("");
-      onOpenChange(false);
+  // Close modal after successful submission (fetcher redirects, so state becomes idle)
+  useEffect(() => {
+    if (
+      fetcher.state === "idle" &&
+      fetcher.data === undefined &&
+      formRef.current
+    ) {
+      // Reset form when modal closes
     }
-  };
+  }, [fetcher.state, fetcher.data]);
+
+  // Close modal when fetcher starts submitting (redirect will happen)
+  useEffect(() => {
+    if (fetcher.state === "submitting") {
+      onOpenChange(false);
+      formRef.current?.reset();
+    }
+  }, [fetcher.state, onOpenChange]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -37,14 +47,18 @@ export function CreatePlanModal({
         <DialogHeader>
           <DialogTitle>Create New Plan</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <fetcher.Form
+          ref={formRef}
+          method="post"
+          action="/api/plans"
+          className="space-y-4 py-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="plan-title">Plan Title</Label>
             <Input
               id="plan-title"
+              name="title"
               placeholder="e.g., React Fundamentals Course"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               autoFocus
               required
             />
@@ -57,9 +71,11 @@ export function CreatePlanModal({
             >
               Cancel
             </Button>
-            <Button type="submit">Create Plan</Button>
+            <Button type="submit" disabled={fetcher.state !== "idle"}>
+              {fetcher.state !== "idle" ? "Creating..." : "Create Plan"}
+            </Button>
           </div>
-        </form>
+        </fetcher.Form>
       </DialogContent>
     </Dialog>
   );

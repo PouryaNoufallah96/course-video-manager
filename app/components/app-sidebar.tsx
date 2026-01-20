@@ -14,7 +14,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { usePlans } from "@/hooks/use-plans";
 import type { Plan } from "@/features/course-planner/types";
 import { cn } from "@/lib/utils";
 import {
@@ -46,10 +45,9 @@ export interface AppSidebarProps {
   isAddStandaloneVideoModalOpen?: boolean;
   setIsAddStandaloneVideoModalOpen?: (open: boolean) => void;
   /**
-   * Initial plans loaded from the server (Postgres).
-   * When provided, uses these instead of localStorage.
+   * Plans loaded from the server (Postgres).
    */
-  initialPlans?: Plan[];
+  plans?: Plan[];
 }
 
 export function AppSidebar({
@@ -60,16 +58,14 @@ export function AppSidebar({
   setIsAddRepoModalOpen,
   isAddStandaloneVideoModalOpen = false,
   setIsAddStandaloneVideoModalOpen,
-  initialPlans,
+  plans = [],
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const archiveRepoFetcher = useFetcher();
   const archiveVideoFetcher = useFetcher();
+  const deletePlanFetcher = useFetcher();
+  const renamePlanFetcher = useFetcher();
 
-  // Plans state - uses initialPlans from server if provided
-  const { plans, createPlan, updatePlan, deletePlan } = usePlans({
-    initialPlans,
-  });
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
   const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
   const [renamingPlanTitle, setRenamingPlanTitle] = useState("");
@@ -85,7 +81,10 @@ export function AppSidebar({
 
   const handleSavePlanRename = () => {
     if (renamingPlanId && renamingPlanTitle.trim()) {
-      updatePlan(renamingPlanId, { title: renamingPlanTitle.trim() });
+      renamePlanFetcher.submit(
+        { title: renamingPlanTitle.trim() },
+        { method: "post", action: `/api/plans/${renamingPlanId}/rename` }
+      );
     }
     setRenamingPlanId(null);
     setRenamingPlanTitle("");
@@ -295,7 +294,15 @@ export function AppSidebar({
                         </ContextMenuItem>
                         <ContextMenuItem
                           variant="destructive"
-                          onSelect={() => deletePlan(plan.id)}
+                          onSelect={() => {
+                            deletePlanFetcher.submit(
+                              {},
+                              {
+                                method: "post",
+                                action: `/api/plans/${plan.id}/delete`,
+                              }
+                            );
+                          }}
                         >
                           <Trash2 className="w-4 h-4" />
                           Delete
@@ -337,10 +344,6 @@ export function AppSidebar({
         <CreatePlanModal
           isOpen={isCreatePlanModalOpen}
           onOpenChange={setIsCreatePlanModalOpen}
-          onCreatePlan={(title) => {
-            const plan = createPlan(title);
-            navigate(`/plans/${plan.id}`);
-          }}
         />
       </div>
     </div>

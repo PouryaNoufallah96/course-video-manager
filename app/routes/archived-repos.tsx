@@ -22,11 +22,13 @@ export const loader = async (_args: Route.LoaderArgs) => {
     const archivedRepos = yield* db.getArchivedRepos();
     const repos = yield* db.getRepos();
     const standaloneVideos = yield* db.getStandaloneVideos();
+    const plans = yield* db.getPlans();
 
     return {
       archivedRepos,
       repos,
       standaloneVideos,
+      plans,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -55,6 +57,7 @@ export default function ArchivedRepos(props: Route.ComponentProps) {
         setIsAddRepoModalOpen={setIsAddRepoModalOpen}
         isAddStandaloneVideoModalOpen={isAddStandaloneVideoModalOpen}
         setIsAddStandaloneVideoModalOpen={setIsAddStandaloneVideoModalOpen}
+        plans={data.plans}
       />
 
       {/* Main Content Area */}

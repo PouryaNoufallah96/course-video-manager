@@ -718,7 +718,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   if (!plan) {
     return (
       <div className="flex h-screen bg-background text-foreground">
-        <AppSidebar initialPlans={loaderData.plans} />
+        <AppSidebar plans={loaderData.plans} />
         <div className="flex-1 p-6">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4">Plan not found</h1>
@@ -931,7 +931,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <AppSidebar initialPlans={loaderData.plans} />
+      <AppSidebar plans={loaderData.plans} />
       <div className="flex-1 overflow-y-auto">
         {/* Sync Error Banner */}
         {syncError && (

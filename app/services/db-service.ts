@@ -1995,6 +1995,28 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return { success: true };
       }),
+      /**
+       * Delete a plan by ID. Sections and lessons are cascade deleted.
+       */
+      deletePlan: Effect.fn("deletePlan")(function* (planId: string) {
+        yield* makeDbCall(() => db.delete(plans).where(eq(plans.id, planId)));
+        return { success: true };
+      }),
+      /**
+       * Rename a plan by ID.
+       */
+      renamePlan: Effect.fn("renamePlan")(function* (
+        planId: string,
+        newTitle: string
+      ) {
+        yield* makeDbCall(() =>
+          db
+            .update(plans)
+            .set({ title: newTitle, updatedAt: new Date() })
+            .where(eq(plans.id, planId))
+        );
+        return { success: true };
+      }),
     };
   }),
 }) {}
