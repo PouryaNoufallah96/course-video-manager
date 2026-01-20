@@ -365,3 +365,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #128: Implement Circle Badge icon design and remove prototype
+
+**Task completed**: Applied Circle Badge design to plan page and deleted prototype
+
+**Key decisions**:
+- Chose Circle Badge variant (Variant 12 from expanded prototype with 12 options)
+- Layout: grip handle → circle badge icon → number + title
+- Icon in 28px colored circle: yellow (`bg-yellow-500/20 text-yellow-600`) for code, purple (`bg-purple-500/20 text-purple-600`) for watch
+- Uses Code and Play icons
+- Deleted prototype page after design was finalized
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Updated SortableLesson to Circle Badge layout
+- app/routes/icon-prototype.tsx - Deleted
+
+**Blockers**: None
+
