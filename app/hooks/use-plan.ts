@@ -19,6 +19,10 @@ export function usePlan(options: UsePlanOptions) {
   const [plan, setPlan] = useState<Plan>(initialPlan);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setPlan(initialPlan);
+  }, [initialPlan.id]);
+
   const isInitialMount = useRef(true);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
