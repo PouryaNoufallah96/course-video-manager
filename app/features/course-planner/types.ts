@@ -6,6 +6,7 @@ export interface Lesson {
   order: number;
   description: string;
   icon?: LessonIcon;
+  dependencies?: string[]; // Array of lesson IDs this lesson depends on
 }
 
 export interface Section {

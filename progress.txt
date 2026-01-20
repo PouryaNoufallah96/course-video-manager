@@ -589,3 +589,27 @@
 
 **Next step**: Issue #139 created to implement Variant 2 and delete prototype
 
+---
+
+## Issue #139: Implement lesson dependencies with inline dropdown UI
+
+**Task completed**: Added dependencies field to lessons with inline dropdown UI for editing
+
+**Key decisions**:
+- Added optional `dependencies: string[]` field to Lesson type (array of lesson IDs)
+- Updated `updateLesson` in usePlans hook to accept dependencies updates
+- Updated `deleteLesson` to clean up deleted lessons from other lessons' dependencies
+- Created `FlattenedLesson` interface for dependency dropdown (id, number, title, sectionId)
+- Created `checkDependencyViolation` helper to detect when a lesson depends on one that comes later
+- Inline dropdown badge shows: muted link icon (no deps), blue with lesson numbers (has deps), amber with warning (violation)
+- Dependencies can span sections (e.g., 2.1 can depend on 1.3)
+- Deleted prototype page after implementation
+
+**Files changed**:
+- app/features/course-planner/types.ts - Added dependencies field to Lesson
+- app/hooks/use-plans.ts - Updated updateLesson and deleteLesson for dependencies
+- app/routes/plans.$planId.tsx - Added inline dropdown UI and violation detection
+- app/routes/dependency-prototype.tsx - Deleted
+
+**Blockers**: None
+

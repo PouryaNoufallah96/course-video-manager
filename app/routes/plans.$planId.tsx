@@ -5,16 +5,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Plan } from "@/features/course-planner/types";
 import { usePlans } from "@/hooks/use-plans";
 import {
+  AlertTriangle,
   ChevronLeft,
   Code,
   Copy,
   GripVertical,
+  Link2,
   MessageCircle,
   MoreVertical,
   Play,
@@ -103,6 +108,35 @@ export const meta: Route.MetaFunction = () => {
   return [{ title: "Plan - CVM" }];
 };
 
+// Flattened lesson with extra info for dependency selection
+interface FlattenedLesson {
+  id: string;
+  number: string;
+  title: string;
+  sectionId: string;
+}
+
+// Helper to check if dependency order is violated
+function checkDependencyViolation(
+  lesson: Lesson,
+  allFlattenedLessons: FlattenedLesson[]
+): FlattenedLesson[] {
+  const violations: FlattenedLesson[] = [];
+  const lessonIndex = allFlattenedLessons.findIndex((l) => l.id === lesson.id);
+
+  for (const depId of lesson.dependencies || []) {
+    const depIndex = allFlattenedLessons.findIndex((l) => l.id === depId);
+    if (depIndex > lessonIndex) {
+      const depLesson = allFlattenedLessons[depIndex];
+      if (depLesson) {
+        violations.push(depLesson);
+      }
+    }
+  }
+
+  return violations;
+}
+
 // Capitalize first letter of each word
 function capitalizeTitle(title: string): string {
   return title
@@ -132,6 +166,8 @@ interface SortableLessonProps {
   onSaveDescription: () => void;
   onCancelEditDescription: () => void;
   onIconChange: (icon: LessonIcon) => void;
+  allLessons: FlattenedLesson[];
+  onDependenciesChange: (dependencies: string[]) => void;
 }
 
 function SortableLesson({
@@ -151,6 +187,8 @@ function SortableLesson({
   onSaveDescription,
   onCancelEditDescription,
   onIconChange,
+  allLessons,
+  onDependenciesChange,
 }: SortableLessonProps) {
   const {
     attributes,
@@ -166,6 +204,10 @@ function SortableLesson({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const violations = checkDependencyViolation(lesson, allLessons);
+  const hasViolation = violations.length > 0;
+  const hasDependencies = (lesson.dependencies?.length ?? 0) > 0;
 
   return (
     <div
@@ -242,14 +284,76 @@ function SortableLesson({
               </div>
             ) : (
               <>
-                <div
-                  className="flex items-center gap-2 cursor-pointer hover:text-muted-foreground transition-colors"
-                  onClick={onStartEditTitle}
-                >
-                  <span className="text-sm text-muted-foreground">
-                    {lessonNumber}
-                  </span>
-                  <span className="text-sm">{lesson.title}</span>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center gap-2 cursor-pointer hover:text-muted-foreground transition-colors"
+                    onClick={onStartEditTitle}
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {lessonNumber}
+                    </span>
+                    <span className="text-sm">{lesson.title}</span>
+                  </div>
+                  {/* Dependency dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-muted ${
+                          hasViolation
+                            ? "bg-amber-500/20 text-amber-600"
+                            : hasDependencies
+                              ? "bg-blue-500/20 text-blue-600"
+                              : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        <Link2 className="w-3 h-3" />
+                        {hasDependencies && (
+                          <>
+                            {lesson.dependencies
+                              ?.map(
+                                (id) =>
+                                  allLessons.find((l) => l.id === id)?.number
+                              )
+                              .filter(Boolean)
+                              .join(", ")}
+                            {hasViolation && (
+                              <AlertTriangle className="w-3 h-3" />
+                            )}
+                          </>
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuLabel>Dependencies</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {allLessons
+                        .filter((l) => l.id !== lesson.id)
+                        .map((l) => (
+                          <DropdownMenuCheckboxItem
+                            key={l.id}
+                            checked={
+                              lesson.dependencies?.includes(l.id) ?? false
+                            }
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                onDependenciesChange([
+                                  ...(lesson.dependencies ?? []),
+                                  l.id,
+                                ]);
+                              } else {
+                                onDependenciesChange(
+                                  (lesson.dependencies ?? []).filter(
+                                    (d) => d !== l.id
+                                  )
+                                );
+                              }
+                            }}
+                          >
+                            {l.number} {l.title}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
@@ -348,6 +452,11 @@ interface SortableSectionProps {
   shouldFocusAddLesson: boolean;
   onAddLessonFocused: () => void;
   onLessonIconChange: (lessonId: string, icon: LessonIcon) => void;
+  allLessons: FlattenedLesson[];
+  onLessonDependenciesChange: (
+    lessonId: string,
+    dependencies: string[]
+  ) => void;
 }
 
 function SortableSection({
@@ -382,6 +491,8 @@ function SortableSection({
   shouldFocusAddLesson,
   onAddLessonFocused,
   onLessonIconChange,
+  allLessons,
+  onLessonDependenciesChange,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -500,6 +611,10 @@ function SortableSection({
               onSaveDescription={() => onSaveDescription(lesson.id)}
               onCancelEditDescription={onCancelEditDescription}
               onIconChange={(icon) => onLessonIconChange(lesson.id, icon)}
+              allLessons={allLessons}
+              onDependenciesChange={(deps) =>
+                onLessonDependenciesChange(lesson.id, deps)
+              }
             />
           ))}
 
@@ -619,6 +734,21 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const sortedSections = [...plan.sections].sort((a, b) => a.order - b.order);
 
+  // Create flattened lessons array for dependency selection
+  const allFlattenedLessons: FlattenedLesson[] = sortedSections.flatMap(
+    (section, sectionIndex) => {
+      const sortedLessons = [...section.lessons].sort(
+        (a, b) => a.order - b.order
+      );
+      return sortedLessons.map((lesson, lessonIndex) => ({
+        id: lesson.id,
+        number: `${sectionIndex + 1}.${lessonIndex + 1}`,
+        title: lesson.title,
+        sectionId: section.id,
+      }));
+    }
+  );
+
   const totalSections = plan.sections.length;
   const totalLessons = plan.sections.reduce(
     (acc, section) => acc + section.lessons.length,
@@ -698,6 +828,14 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     icon: LessonIcon
   ) => {
     updateLesson(planId!, sectionId, lessonId, { icon });
+  };
+
+  const handleLessonDependenciesChange = (
+    sectionId: string,
+    lessonId: string,
+    dependencies: string[]
+  ) => {
+    updateLesson(planId!, sectionId, lessonId, { dependencies });
   };
 
   // Find which section a lesson belongs to
@@ -952,6 +1090,10 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     onAddLessonFocused={() => setFocusAddLessonInSection(null)}
                     onLessonIconChange={(lessonId, icon) =>
                       handleLessonIconChange(section.id, lessonId, icon)
+                    }
+                    allLessons={allFlattenedLessons}
+                    onLessonDependenciesChange={(lessonId, deps) =>
+                      handleLessonDependenciesChange(section.id, lessonId, deps)
                     }
                   />
                 ))}

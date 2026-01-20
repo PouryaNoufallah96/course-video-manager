@@ -254,7 +254,9 @@ export function usePlans() {
       planId: string,
       sectionId: string,
       lessonId: string,
-      updates: Partial<Pick<Lesson, "title" | "description" | "icon">>
+      updates: Partial<
+        Pick<Lesson, "title" | "description" | "icon" | "dependencies">
+      >
     ) => {
       setPlans((prev) =>
         prev.map((plan) => {
@@ -286,12 +288,31 @@ export function usePlans() {
           return {
             ...plan,
             sections: plan.sections.map((section) => {
-              if (section.id !== sectionId) return section;
+              // Remove the lesson from its section
+              const filteredLessons =
+                section.id === sectionId
+                  ? section.lessons.filter((lesson) => lesson.id !== lessonId)
+                  : section.lessons;
+
+              // Also remove the deleted lesson from any other lesson's dependencies
+              const updatedLessons = filteredLessons.map((lesson) => {
+                if (
+                  lesson.dependencies &&
+                  lesson.dependencies.includes(lessonId)
+                ) {
+                  return {
+                    ...lesson,
+                    dependencies: lesson.dependencies.filter(
+                      (id) => id !== lessonId
+                    ),
+                  };
+                }
+                return lesson;
+              });
+
               return {
                 ...section,
-                lessons: section.lessons.filter(
-                  (lesson) => lesson.id !== lessonId
-                ),
+                lessons: updatedLessons,
               };
             }),
             updatedAt: getTimestamp(),
