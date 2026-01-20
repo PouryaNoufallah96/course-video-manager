@@ -117,3 +117,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #113: Hide add section input behind plus button
+
+**Task completed**: Changed add section UI from always-visible input to button that reveals input on click
+
+**Key decisions**:
+- Added `isAddingSectionOpen` state to control visibility
+- Default state shows a dashed outline button with "Add Section" text
+- Clicking button reveals input with Add/Cancel buttons
+- Escape key cancels and hides the input
+- Enter key submits (existing behavior)
+- Input closes automatically after successful add
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added isAddingSectionOpen state, updated add section UI with conditional rendering
+
+**Blockers**: None
+

@@ -347,6 +347,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
+  const [isAddingSectionOpen, setIsAddingSectionOpen] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [addingLessonToSection, setAddingLessonToSection] = useState<
     string | null
@@ -412,6 +413,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
     if (newSectionTitle.trim()) {
       addSection(planId!, newSectionTitle.trim());
       setNewSectionTitle("");
+      setIsAddingSectionOpen(false);
     }
   };
 
@@ -669,25 +671,49 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
           </DndContext>
 
           {/* Add Section */}
-          <div className="border rounded-lg p-4 border-dashed mt-6">
-            <div className="flex items-center gap-2">
-              <Input
-                value={newSectionTitle}
-                onChange={(e) => setNewSectionTitle(e.target.value)}
-                placeholder="New section title..."
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddSection();
-                }}
-              />
-              <Button
-                onClick={handleAddSection}
-                disabled={!newSectionTitle.trim()}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Section
-              </Button>
+          {isAddingSectionOpen ? (
+            <div className="border rounded-lg p-4 border-dashed mt-6">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newSectionTitle}
+                  onChange={(e) => setNewSectionTitle(e.target.value)}
+                  placeholder="New section title..."
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddSection();
+                    if (e.key === "Escape") {
+                      setIsAddingSectionOpen(false);
+                      setNewSectionTitle("");
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleAddSection}
+                  disabled={!newSectionTitle.trim()}
+                >
+                  Add
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setIsAddingSectionOpen(false);
+                    setNewSectionTitle("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <Button
+              variant="outline"
+              className="mt-6 w-full border-dashed"
+              onClick={() => setIsAddingSectionOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Section
+            </Button>
+          )}
         </div>
       </div>
     </div>
