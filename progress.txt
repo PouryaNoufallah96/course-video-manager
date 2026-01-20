@@ -459,3 +459,18 @@
 
 **Blockers**: None
 
+---
+
+## Issue #133: Limit description width to 65 characters
+
+**Task completed**: Added max-width constraint to lesson descriptions
+
+**Key decisions**:
+- Added `max-w-[65ch]` class to the description div in SortableLesson component
+- 65ch is approximately 65 characters wide, improving readability for long descriptions
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added max-w-[65ch] to description display
+
+**Blockers**: None
+

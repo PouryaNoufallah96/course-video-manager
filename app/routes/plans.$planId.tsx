@@ -291,7 +291,7 @@ function SortableLesson({
             </div>
           ) : lesson.description ? (
             <div
-              className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground"
+              className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground max-w-[65ch]"
               onClick={onStartEditDescription}
             >
               {lesson.description}
