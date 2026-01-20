@@ -257,3 +257,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #123: Add lesson numbers (1.1, 1.2, etc.)
+
+**Task completed**: Added lesson numbers showing section.lesson format
+
+**Key decisions**:
+- Added `lessonNumber` prop to SortableLessonProps (string type for "1.1" format)
+- Pass `${sectionNumber}.${lessonIndex + 1}` when mapping lessons
+- Display number before lesson title in muted-foreground style
+- Numbers update automatically when lessons are reordered or moved between sections
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added lessonNumber prop and display
+
+**Blockers**: None
+

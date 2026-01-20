@@ -68,6 +68,7 @@ export const meta: Route.MetaFunction = () => {
 // Sortable Lesson Component
 interface SortableLessonProps {
   lesson: Lesson;
+  lessonNumber: string;
   isEditingTitle: boolean;
   editedTitle: string;
   onEditedTitleChange: (value: string) => void;
@@ -85,6 +86,7 @@ interface SortableLessonProps {
 
 function SortableLesson({
   lesson,
+  lessonNumber,
   isEditingTitle,
   editedTitle,
   onEditedTitleChange,
@@ -149,7 +151,10 @@ function SortableLesson({
             >
               <GripVertical className="w-4 h-4 text-muted-foreground" />
             </button>
-            <span className="text-sm flex-1 ml-1">{lesson.title}</span>
+            <span className="text-sm flex-1 ml-1">
+              <span className="text-muted-foreground mr-2">{lessonNumber}</span>
+              {lesson.title}
+            </span>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
@@ -381,10 +386,11 @@ function SortableSection({
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-1 ml-4">
-          {sortedLessons.map((lesson) => (
+          {sortedLessons.map((lesson, lessonIndex) => (
             <SortableLesson
               key={lesson.id}
               lesson={lesson}
+              lessonNumber={`${sectionNumber}.${lessonIndex + 1}`}
               isEditingTitle={editingLessonId === lesson.id}
               editedTitle={editedLessonTitle}
               onEditedTitleChange={onEditedLessonTitleChange}
