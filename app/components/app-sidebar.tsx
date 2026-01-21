@@ -28,7 +28,7 @@ import {
   VideoIcon,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { Link, useFetcher, useNavigate, useLocation } from "react-router";
+import { Link, useFetcher, useNavigate } from "react-router";
 
 export interface AppSidebarProps {
   repos: Array<{
@@ -58,12 +58,10 @@ export function AppSidebar({
   setIsAddStandaloneVideoModalOpen,
 }: AppSidebarProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const archiveRepoFetcher = useFetcher();
   const archiveVideoFetcher = useFetcher();
   const deletePlanFetcher = useFetcher();
   const renamePlanFetcher = useFetcher();
-  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
   const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
@@ -77,17 +75,6 @@ export function AppSidebar({
       renameInputRef.current.select();
     }
   }, [renamingPlanId]);
-
-  // Redirect home after deleting a plan if we're on that plan's page
-  useEffect(() => {
-    if (deletePlanFetcher.state === "idle" && deletingPlanId) {
-      const isOnDeletedPlan = location.pathname === `/plans/${deletingPlanId}`;
-      if (isOnDeletedPlan) {
-        navigate("/");
-      }
-      setDeletingPlanId(null);
-    }
-  }, [deletePlanFetcher.state, deletingPlanId, location.pathname, navigate]);
 
   const handleSavePlanRename = () => {
     if (renamingPlanId && renamingPlanTitle.trim()) {
@@ -305,7 +292,6 @@ export function AppSidebar({
                         <ContextMenuItem
                           variant="destructive"
                           onSelect={() => {
-                            setDeletingPlanId(plan.id);
                             deletePlanFetcher.submit(
                               {},
                               {

@@ -933,3 +933,22 @@
 - app/routes/plans.$planId.tsx - Split component and added key prop
 
 **Blockers**: None
+
+---
+
+## Issue #151: Redirect home after deleting a plan
+
+**Task completed**: Fixed redirect after deleting a plan by moving logic to server-side action
+
+**Key decisions**:
+- Moved redirect logic from client-side useEffect to server-side action handler
+- Delete endpoint now checks referer header to determine if user is on the deleted plan's page
+- Uses React Router's `redirect()` to navigate home when deleting the current plan
+- Removed client-side redirect logic and associated state (`deletingPlanId`, `useLocation`) from AppSidebar
+- Server-side redirect is more reliable than client-side state management during React Router revalidation
+
+**Files changed**:
+- app/routes/api.plans.$planId.delete.ts - Added referer check and redirect
+- app/components/app-sidebar.tsx - Removed client-side redirect logic
+
+**Blockers**: None
