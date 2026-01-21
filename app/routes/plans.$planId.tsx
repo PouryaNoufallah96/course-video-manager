@@ -651,7 +651,13 @@ function SortableSection({
   );
 }
 
-export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
+export default function PlanDetailPage(props: Route.ComponentProps) {
+  // Key on plan ID to force recreation when navigating between plans
+  // This ensures the reducer reinitializes with the new plan's data
+  return <PlanDetailPageContent key={props.loaderData.plan?.id} {...props} />;
+}
+
+function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const { state, dispatch, duplicatePlan } = usePlanReducer({
     initialPlan: loaderData.plan!,

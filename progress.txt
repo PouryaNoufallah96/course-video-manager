@@ -915,3 +915,21 @@
 
 **Blockers**: None
 
+
+---
+
+## Issue #150: Fix stale data when navigating between plans
+
+**Task completed**: Added key prop to force component recreation when plan ID changes
+
+**Key decisions**:
+- Split `PlanDetailPage` into a wrapper and `PlanDetailPageContent` component
+- Wrapper passes `key={props.loaderData.plan?.id}` to the content component
+- When navigating between plans, the key change forces React to unmount and remount the entire tree
+- This reinitializes the reducer with the new plan's data instead of keeping stale state
+- Simple, idiomatic React solution that does not require modifying the reducer itself
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Split component and added key prop
+
+**Blockers**: None
