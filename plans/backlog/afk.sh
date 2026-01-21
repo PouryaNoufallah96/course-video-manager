@@ -18,7 +18,7 @@ for ((i=1; i<=$1; i++)); do
   tmpfile=$(mktemp)
   trap "rm -f $tmpfile" EXIT
 
-  docker sandbox run claude \
+  docker sandbox run --credentials host claude \
     --verbose \
     --print \
     --output-format stream-json \
@@ -28,7 +28,6 @@ for ((i=1; i<=$1; i++)); do
   | jq --unbuffered -rj "$stream_text"
 
   result=$(jq -r "$final_result" "$tmpfile")
-  echo "$result"
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "Ralph complete after $i iterations."
