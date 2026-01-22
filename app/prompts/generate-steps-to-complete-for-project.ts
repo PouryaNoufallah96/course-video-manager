@@ -1,12 +1,6 @@
 import { getImageInstructions } from "./image-instructions";
 import { PROJECT_STYLE_GUIDE } from "./project-style-guide";
-import fs from "fs";
-import path from "path";
-
-const PROJECT_STEPS_SAMPLE = fs.readFileSync(
-  path.join(import.meta.dirname, "project-steps-sample.md"),
-  "utf-8"
-);
+import PROJECT_STEPS_SAMPLE from "./project-steps-sample.md?raw";
 
 export const generateStepsToCompleteForProjectPrompt = (opts: {
   code: {

@@ -1,13 +1,7 @@
-import path from "node:path";
-import { readFileSync } from "node:fs";
 import { getImageInstructions } from "./image-instructions";
 import { STEPS_TO_COMPLETE } from "./steps-to-complete";
 import { CODE_SAMPLES, STYLE_GUIDE, TODO_COMMENTS } from "./style-guide";
-
-const SKILL_BUILDING_STEPS_TO_COMPLETE_SAMPLE = readFileSync(
-  path.join(import.meta.dirname, "skill-building-steps-to-complete-sample.md"),
-  "utf-8"
-);
+import SKILL_BUILDING_STEPS_TO_COMPLETE_SAMPLE from "./skill-building-steps-to-complete-sample.md?raw";
 
 export const getSkillBuildingSharedTemplate = (images: string[]) => `
 <sample>
