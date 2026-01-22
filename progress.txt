@@ -1187,6 +1187,24 @@
 **Blockers**: None
 
 **Remaining work for Issue #161**:
-- Add to video editor ActionsDropdown
 - Add to sidebar video context menu
 - Add to lesson videos in course editor (if applicable)
+
+---
+
+## Issue #161: Reveal in File System - video editor ActionsDropdown
+
+**Task completed**: Added "Reveal in File System" option to video editor Actions dropdown menu
+
+**Key decisions**:
+- Added `FolderOpen` icon import from lucide-react
+- Added `onRevealInFileSystem` callback prop to ActionsDropdown component
+- Menu item placed after "Rename Video" option
+- Uses same API endpoint pattern as standalone videos page (`/api/videos/${videoId}/reveal`)
+- Uses `useFetcher` hook in video-player-panel.tsx for the POST request
+
+**Files changed**:
+- app/features/video-editor/components/actions-dropdown.tsx - Added FolderOpen icon, onRevealInFileSystem prop, and menu item
+- app/features/video-editor/components/video-player-panel.tsx - Added useFetcher import and revealVideoFetcher, passed callback to ActionsDropdown
+
+**Blockers**: None

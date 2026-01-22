@@ -15,7 +15,7 @@ import { ActionsDropdown } from "./actions-dropdown";
 import { isClipSection } from "../clip-utils";
 import { PreloadableClipManager } from "../preloadable-clip";
 import { AlertTriangleIcon, ChevronLeftIcon } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useFetcher } from "react-router";
 import { useContextSelector } from "use-context-selector";
 import { VideoEditorContext } from "../video-editor-context";
 
@@ -181,6 +181,7 @@ export const VideoPlayerPanel = () => {
     VideoEditorContext,
     (ctx) => ctx.hasExplainerFolder
   );
+  const revealVideoFetcher = useFetcher();
   return (
     <>
       <div className="lg:flex-1 relative order-1 lg:order-2">
@@ -330,6 +331,15 @@ export const VideoPlayerPanel = () => {
                   onAddVideoClick={() => setIsAddVideoModalOpen(true)}
                   onAddNoteFromClipboard={onAddNoteFromClipboard}
                   onRenameVideoClick={() => setIsRenameVideoModalOpen(true)}
+                  onRevealInFileSystem={() => {
+                    revealVideoFetcher.submit(
+                      {},
+                      {
+                        method: "post",
+                        action: `/api/videos/${videoId}/reveal`,
+                      }
+                    );
+                  }}
                 />
               </TooltipProvider>
             </div>

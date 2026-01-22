@@ -17,6 +17,7 @@ import {
   ClipboardIcon,
   CopyIcon,
   FilmIcon,
+  FolderOpen,
   Loader2,
   PencilIcon,
   PencilLineIcon,
@@ -61,6 +62,8 @@ export const ActionsDropdown = (props: {
   onAddNoteFromClipboard: () => void;
   /** Callback to open "Rename Video" modal */
   onRenameVideoClick: () => void;
+  /** Callback to reveal video in file system */
+  onRevealInFileSystem: () => void;
 }) => {
   return (
     <DropdownMenu>
@@ -107,6 +110,16 @@ export const ActionsDropdown = (props: {
             <span className="font-medium">Rename Video</span>
             <span className="text-xs text-muted-foreground">
               Change the video name
+            </span>
+          </div>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onSelect={props.onRevealInFileSystem}>
+          <FolderOpen className="w-4 h-4 mr-2" />
+          <div className="flex flex-col">
+            <span className="font-medium">Reveal in File System</span>
+            <span className="text-xs text-muted-foreground">
+              Open in Windows Explorer
             </span>
           </div>
         </DropdownMenuItem>
