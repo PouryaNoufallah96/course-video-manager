@@ -19,6 +19,7 @@ import {
   Archive,
   ArrowLeft,
   FileTextIcon,
+  FolderOpen,
   PencilIcon,
   Plus,
   Trash2,
@@ -77,6 +78,7 @@ export default function Component(props: Route.ComponentProps) {
     path: string;
   } | null>(null);
   const archiveVideoFetcher = useFetcher();
+  const revealVideoFetcher = useFetcher();
 
   useFocusRevalidate({ enabled: true });
 
@@ -182,6 +184,20 @@ export default function Component(props: Route.ComponentProps) {
                     </ContextMenuItem>
                     <ContextMenuItem
                       onSelect={() => {
+                        revealVideoFetcher.submit(
+                          {},
+                          {
+                            method: "post",
+                            action: `/api/videos/${video.id}/reveal`,
+                          }
+                        );
+                      }}
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Reveal in File System
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      onSelect={() => {
                         archiveVideoFetcher.submit(
                           { archived: "true" },
                           {
@@ -256,6 +272,20 @@ export default function Component(props: Route.ComponentProps) {
                       >
                         <PencilIcon className="w-4 h-4" />
                         Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          revealVideoFetcher.submit(
+                            {},
+                            {
+                              method: "post",
+                              action: `/api/videos/${video.id}/reveal`,
+                            }
+                          );
+                        }}
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        Reveal in File System
                       </ContextMenuItem>
                       <ContextMenuItem
                         onSelect={() => {

@@ -1164,3 +1164,29 @@
 **Blockers**: None
 
 **Issue #158 complete**: Rename is now available on standalone videos page, video editor page, and sidebar video list
+
+---
+
+## Issue #161: Reveal video in file system (tracer bullet)
+
+**Task completed**: Added "Reveal in File System" context menu option to standalone videos page
+
+**Key decisions**:
+- Created `/api/videos/$videoId/reveal` endpoint that runs PowerShell command from WSL
+- Uses `wslpath -w` to convert WSL paths to Windows paths
+- Uses `powershell.exe -c "explorer.exe '/select,\"path\"'"` to open Explorer with file selected
+- Added `FolderOpen` icon from lucide-react for the menu item
+- Applied to both regular and archived videos context menus
+
+**Files created**:
+- app/routes/api.videos.$videoId.reveal.ts - API endpoint for revealing video in Explorer
+
+**Files changed**:
+- app/routes/videos._index.tsx - Added FolderOpen import, revealVideoFetcher, and context menu items
+
+**Blockers**: None
+
+**Remaining work for Issue #161**:
+- Add to video editor ActionsDropdown
+- Add to sidebar video context menu
+- Add to lesson videos in course editor (if applicable)
