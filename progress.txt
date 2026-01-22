@@ -1140,6 +1140,27 @@
 
 **Blockers**: None
 
-**Remaining work for Issue #158**:
-- Add rename to video editor page context menu
-- Add rename to sidebar video list
+---
+
+## Issue #158: Add rename to video editor page and sidebar (completion)
+
+**Task completed**: Added rename functionality to video editor ActionsDropdown and sidebar video list
+
+**Key decisions**:
+- Added "Rename Video" option to ActionsDropdown with `PencilLineIcon` (different from Write Article's `PencilIcon`)
+- Used existing `RenameVideoModal` component, integrated via context state in VideoEditor
+- Added `isRenameVideoModalOpen` and `setIsRenameVideoModalOpen` to VideoEditorContext
+- For sidebar, added `videoToRename` state and integrated RenameVideoModal
+- Rename menu item appears between "Write Article" and "Copy Transcript" in ActionsDropdown
+- Sidebar rename appears before Archive in the context menu
+
+**Files changed**:
+- app/features/video-editor/components/actions-dropdown.tsx - Added PencilLineIcon import, onRenameVideoClick prop, and Rename Video menu item
+- app/features/video-editor/video-editor-context.tsx - Added isRenameVideoModalOpen and setIsRenameVideoModalOpen to context type
+- app/features/video-editor/video-editor.tsx - Added RenameVideoModal import, state, and modal component; passed state through context
+- app/features/video-editor/components/video-player-panel.tsx - Added context selector for setIsRenameVideoModalOpen, passed to ActionsDropdown
+- app/components/app-sidebar.tsx - Added RenameVideoModal import, videoToRename state, Rename context menu item, and modal component
+
+**Blockers**: None
+
+**Issue #158 complete**: Rename is now available on standalone videos page, video editor page, and sidebar video list

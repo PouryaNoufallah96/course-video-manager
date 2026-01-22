@@ -160,6 +160,10 @@ export const VideoPlayerPanel = () => {
     VideoEditorContext,
     (ctx) => ctx.onAddNoteFromClipboard
   );
+  const setIsRenameVideoModalOpen = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.setIsRenameVideoModalOpen
+  );
   const items = useContextSelector(VideoEditorContext, (ctx) => ctx.items);
   const selectedClipsSet = useContextSelector(
     VideoEditorContext,
@@ -325,6 +329,7 @@ export const VideoPlayerPanel = () => {
                   }
                   onAddVideoClick={() => setIsAddVideoModalOpen(true)}
                   onAddNoteFromClipboard={onAddNoteFromClipboard}
+                  onRenameVideoClick={() => setIsRenameVideoModalOpen(true)}
                 />
               </TooltipProvider>
             </div>

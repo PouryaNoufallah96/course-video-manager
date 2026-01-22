@@ -1,6 +1,7 @@
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { CreatePlanModal } from "@/components/create-plan-modal";
+import { RenameVideoModal } from "@/components/rename-video-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -66,6 +67,10 @@ export function AppSidebar({
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
   const [isInternalAddVideoModalOpen, setIsInternalAddVideoModalOpen] =
     useState(false);
+  const [videoToRename, setVideoToRename] = useState<{
+    id: string;
+    path: string;
+  } | null>(null);
   const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
   const [renamingPlanTitle, setRenamingPlanTitle] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +219,14 @@ export function AppSidebar({
                     <ContextMenuContent>
                       <ContextMenuItem
                         onSelect={() => {
+                          setVideoToRename({ id: video.id, path: video.path });
+                        }}
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                        Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
                           archiveVideoFetcher.submit(
                             { archived: "true" },
                             {
@@ -355,6 +368,16 @@ export function AppSidebar({
           isOpen={isCreatePlanModalOpen}
           onOpenChange={setIsCreatePlanModalOpen}
         />
+        {videoToRename && (
+          <RenameVideoModal
+            videoId={videoToRename.id}
+            currentName={videoToRename.path}
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) setVideoToRename(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );

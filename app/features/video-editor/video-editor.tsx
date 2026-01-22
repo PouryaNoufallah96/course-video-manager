@@ -4,6 +4,7 @@ import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./com
 import { VideoPlayerPanel } from "./components/video-player-panel";
 import { ClipTimeline } from "./components/clip-timeline";
 import { ErrorOverlay } from "./components/error-overlay";
+import { RenameVideoModal } from "@/components/rename-video-modal";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import { useClipboardOperations } from "./hooks/use-clipboard-operations";
@@ -162,6 +163,7 @@ export const VideoEditor = (props: {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
+  const [isRenameVideoModalOpen, setIsRenameVideoModalOpen] = useState(false);
   const revalidator = useRevalidator();
 
   // State for clip section naming modal
@@ -406,6 +408,8 @@ export const VideoEditor = (props: {
       isAddVideoModalOpen,
       setIsAddVideoModalOpen,
       onAddNoteFromClipboard: () => setIsPasteModalOpen(true),
+      isRenameVideoModalOpen,
+      setIsRenameVideoModalOpen,
     }),
     [
       state,
@@ -451,6 +455,8 @@ export const VideoEditor = (props: {
       setIsExportModalOpen,
       isAddVideoModalOpen,
       setIsAddVideoModalOpen,
+      isRenameVideoModalOpen,
+      setIsRenameVideoModalOpen,
       onAddIntroSection,
       onEditSection,
       onAddSectionBefore,
@@ -486,6 +492,14 @@ export const VideoEditor = (props: {
           onOpenChange={handlePasteModalClose}
           existingFiles={props.standaloneFiles}
           onFileCreated={handleFileCreated}
+        />
+
+        {/* Rename Video Modal */}
+        <RenameVideoModal
+          videoId={props.videoId}
+          currentName={props.videoPath}
+          open={isRenameVideoModalOpen}
+          onOpenChange={setIsRenameVideoModalOpen}
         />
 
         {/* Clips Section - Shows second on mobile, first on desktop */}

@@ -19,6 +19,7 @@ import {
   FilmIcon,
   Loader2,
   PencilIcon,
+  PencilLineIcon,
   Plus,
 } from "lucide-react";
 import { Link, type FetcherWithComponents } from "react-router";
@@ -58,6 +59,8 @@ export const ActionsDropdown = (props: {
   onAddVideoClick: () => void;
   /** Callback to open "Add Note from Clipboard" modal */
   onAddNoteFromClipboard: () => void;
+  /** Callback to open "Rename Video" modal */
+  onRenameVideoClick: () => void;
 }) => {
   return (
     <DropdownMenu>
@@ -96,6 +99,16 @@ export const ActionsDropdown = (props: {
               </span>
             </div>
           </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onSelect={props.onRenameVideoClick}>
+          <PencilLineIcon className="w-4 h-4 mr-2" />
+          <div className="flex flex-col">
+            <span className="font-medium">Rename Video</span>
+            <span className="text-xs text-muted-foreground">
+              Change the video name
+            </span>
+          </div>
         </DropdownMenuItem>
 
         <Tooltip>
