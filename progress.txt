@@ -1023,3 +1023,22 @@
 - app/routes/plans.$planId.tsx - Changed action type, added confirmation modal UI
 
 **Blockers**: None
+
+---
+
+## Issue #155: Add copy as Markdown from plan page
+
+**Task completed**: Added "Copy as Markdown" option to plan actions dropdown menu
+
+**Key decisions**:
+- Added `planToMarkdown` helper function that generates markdown from plan data
+- Format: `# Title`, `## N. Section`, `### N.M Lesson Title (Type)` with descriptions
+- Lesson type labels: "Explainer" for watch/play, "Interactive" for code, "Discussion" for discussion
+- Uses `navigator.clipboard.writeText` for clipboard access
+- Added `ClipboardCopy` icon from lucide-react for the menu item
+- Placed "Copy as Markdown" as first item in dropdown, above "Duplicate Plan"
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added planToMarkdown function, ClipboardCopy icon, and new dropdown menu item
+
+**Blockers**: None

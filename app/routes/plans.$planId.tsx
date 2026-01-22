@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Check,
   ChevronLeft,
+  ClipboardCopy,
   Code,
   Copy,
   GripVertical,
@@ -62,7 +63,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Section, Lesson } from "@/features/course-planner/types";
+import type { Section, Lesson, Plan } from "@/features/course-planner/types";
 import { NotFoundError } from "@/services/db-service-errors";
 
 export const loader = async ({ params }: Route.LoaderArgs) => {
@@ -125,6 +126,60 @@ const customCollisionDetection: CollisionDetection = (args) => {
 export const meta: Route.MetaFunction = () => {
   return [{ title: "Plan - CVM" }];
 };
+
+// Generate markdown from plan
+function planToMarkdown(plan: Plan): string {
+  const lines: string[] = [];
+  lines.push(`# ${plan.title}`);
+  lines.push("");
+
+  const sortedSections = [...plan.sections].sort((a, b) => a.order - b.order);
+
+  for (
+    let sectionIndex = 0;
+    sectionIndex < sortedSections.length;
+    sectionIndex++
+  ) {
+    const section = sortedSections[sectionIndex]!;
+    const sectionNumber = sectionIndex + 1;
+    lines.push(`## ${sectionNumber}. ${section.title}`);
+    lines.push("");
+
+    const sortedLessons = [...section.lessons].sort(
+      (a, b) => a.order - b.order
+    );
+
+    for (
+      let lessonIndex = 0;
+      lessonIndex < sortedLessons.length;
+      lessonIndex++
+    ) {
+      const lesson = sortedLessons[lessonIndex]!;
+      const lessonNumber = `${sectionNumber}.${lessonIndex + 1}`;
+
+      // Determine lesson type label
+      let typeLabel: string;
+      if (lesson.icon === "code") {
+        typeLabel = "Interactive";
+      } else if (lesson.icon === "discussion") {
+        typeLabel = "Discussion";
+      } else {
+        typeLabel = "Explainer";
+      }
+
+      lines.push(`### ${lessonNumber} ${lesson.title} (${typeLabel})`);
+
+      if (lesson.description) {
+        lines.push("");
+        lines.push(lesson.description);
+      }
+
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
+}
 
 // Flattened lesson with extra info for dependency selection
 interface FlattenedLesson {
@@ -962,6 +1017,15 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
+                      <DropdownMenuItem
+                        onSelect={async () => {
+                          const markdown = planToMarkdown(plan);
+                          await navigator.clipboard.writeText(markdown);
+                        }}
+                      >
+                        <ClipboardCopy className="w-4 h-4" />
+                        Copy as Markdown
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={async () => {
                           const newPlan = await duplicatePlan();
