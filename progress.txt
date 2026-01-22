@@ -1080,3 +1080,21 @@
 - app/routes/videos.$videoId.write.tsx - Added Trash2Icon import, setMessages from useChat, and clear button UI
 
 **Blockers**: None
+
+---
+
+## Issue #159: Only show spotted disallowed words in lint feedback
+
+**Task completed**: Changed lint feedback to only include the words that were actually detected in the output
+
+**Key decisions**:
+- Replaced `createBannedPhrasesRule()` (single combined rule) with `createBannedPhraseRules()` (array of individual rules)
+- Each phrase now has its own LintRule with its own fixInstruction
+- Only rules that match the text are included in violations
+- Fix message now shows specific phrases found (e.g., `Remove or rephrase: "game changer"`) instead of listing all possible phrases
+- No changes needed to use-lint.ts - the hook already correctly handles multiple rules
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Replaced createBannedPhrasesRule with createBannedPhraseRules
+
+**Blockers**: None

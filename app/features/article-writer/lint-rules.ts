@@ -98,36 +98,18 @@ export const DEFAULT_BANNED_PHRASES: BannedPhrase[] = [
 ];
 
 /**
- * Creates a lint rule from a list of banned phrases.
+ * Creates individual lint rules for each banned phrase.
+ * This allows the fix message to only include phrases that were actually detected.
  */
-export function createBannedPhrasesRule(phrases: BannedPhrase[]): LintRule {
-  // Group phrases by case sensitivity
-  const caseInsensitive = phrases.filter((p) => !p.caseSensitive);
-  const caseSensitive = phrases.filter((p) => p.caseSensitive);
-
-  // Build combined pattern - separate case-sensitive and insensitive
-  const patterns: string[] = [];
-  if (caseInsensitive.length > 0) {
-    patterns.push(`(?:${caseInsensitive.map((p) => p.pattern).join("|")})`);
-  }
-
-  // For mixed case sensitivity, we need to handle it differently
-  // We'll create a pattern that matches all phrases, but apply case insensitivity
-  // to the whole pattern since most phrases are case-insensitive
-  const allPatterns = phrases.map((p) => p.pattern).join("|");
-  const hasCaseSensitive = caseSensitive.length > 0;
-
-  return {
-    id: "no-llm-phrases",
+export function createBannedPhraseRules(phrases: BannedPhrase[]): LintRule[] {
+  return phrases.map((phrase, index) => ({
+    id: `no-llm-phrase-${index}`,
     name: "No LLM Phrases",
     description: "Phrases that are dead giveaways of LLM-generated content",
     modes: null,
-    // If any phrase is case-sensitive, we apply case-insensitive globally
-    // This is a simplification - for true mixed case handling, each phrase
-    // would need to be checked separately
-    pattern: new RegExp(allPatterns, hasCaseSensitive ? "g" : "gi"),
-    fixInstruction: `Remove or rephrase the following LLM-typical phrases: ${phrases.map((p) => p.readable).join(", ")}`,
-  };
+    pattern: new RegExp(phrase.pattern, phrase.caseSensitive ? "g" : "gi"),
+    fixInstruction: `Remove or rephrase: "${phrase.readable}"`,
+  }));
 }
 
 /**
@@ -167,7 +149,7 @@ export const BASE_LINT_RULES: LintRule[] = [
  */
 export const LINT_RULES: LintRule[] = [
   ...BASE_LINT_RULES,
-  createBannedPhrasesRule(DEFAULT_BANNED_PHRASES),
+  ...createBannedPhraseRules(DEFAULT_BANNED_PHRASES),
 ];
 
 /**
@@ -177,5 +159,5 @@ export function getLintRulesWithPhrases(phrases: BannedPhrase[]): LintRule[] {
   if (phrases.length === 0) {
     return BASE_LINT_RULES;
   }
-  return [...BASE_LINT_RULES, createBannedPhrasesRule(phrases)];
+  return [...BASE_LINT_RULES, ...createBannedPhraseRules(phrases)];
 }
