@@ -1098,3 +1098,21 @@
 - app/features/article-writer/lint-rules.ts - Replaced createBannedPhrasesRule with createBannedPhraseRules
 
 **Blockers**: None
+
+---
+
+## Issue #157: Add right-click to go to write article page
+
+**Task completed**: Added "Write Article" option to context menu on standalone videos page
+
+**Key decisions**:
+- Added `FileTextIcon` import from lucide-react (consistent with write page)
+- Added "Write Article" as first context menu item (before Archive/Delete)
+- Used `asChild` pattern with `Link` component for navigation
+- Applied to both regular and archived videos context menus
+- Links to `/videos/${video.id}/write` route
+
+**Files changed**:
+- app/routes/videos._index.tsx - Added FileTextIcon import and "Write Article" context menu items
+
+**Blockers**: None
