@@ -64,12 +64,11 @@ Refine the existing README to match our style guide and formatting standards. Ap
 
 1. Paragraphs are short (max 240 characters)
 2. Code elements use backticks
-3. Placeholder links are aggressive and follow the format
-4. Code samples are used effectively
-5. Steps to complete follow the checkbox format
-6. TODO comments are shown in full
-7. Grammar is correct (e.g., "going to" instead of "gonna")
-8. Lists, code samples, and tables are used to break up text
+3. Code samples are used effectively
+4. Steps to complete follow the checkbox format
+5. TODO comments are shown in full
+6. Grammar is correct (e.g., "going to" instead of "gonna")
+7. Lists, code samples, and tables are used to break up text
 
 Output the COMPLETE refined README - do not output just the changes.
 

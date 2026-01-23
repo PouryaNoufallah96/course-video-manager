@@ -1335,3 +1335,23 @@
 
 **Remaining work for Issue #162**:
 - Tab UI for organizing transcript/files/links (optional)
+
+---
+
+## Issue #162: Remove placeholder link system from skill-building prompts
+
+**Task completed**: Removed remaining placeholder link references from skill-building prompts
+
+**Key decisions**:
+- Removed "Placeholder links are aggressive and follow the format" instruction from `refine-skill-building-with-style-guide.ts` (rule #3)
+- Removed 4 `/PLACEHOLDER/` links from `skill-building-steps-to-complete-sample.md`
+- Links in sample converted to plain text or backtick code references (e.g., `evalite.each()`)
+- Global link system now handles all link injection via `getLinkInstructions()`
+
+**Files changed**:
+- app/prompts/refine-skill-building-with-style-guide.ts - Removed placeholder link instruction
+- app/prompts/skill-building-steps-to-complete-sample.md - Removed 4 placeholder links
+
+**Blockers**: None
+
+**Issue #162 complete**: All user stories implemented except optional Tab UI

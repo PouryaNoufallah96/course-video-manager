@@ -1,6 +1,6 @@
 We're going to add a new tool to our agent system - one that asks clarifying questions when a user's request is missing critical information.
 
-This is inspired by [Claude's approach](/PLACEHOLDER/claude-clarifying-questions) to handling ambiguous user requests. Instead of guessing what the user wants, the agent will intelligently recognize when it needs more details and ask for them using a structured UI.
+This is inspired by Claude's approach to handling ambiguous user requests. Instead of guessing what the user wants, the agent will intelligently recognize when it needs more details and ask for them using a structured UI.
 
 The challenge here is that we have many tools competing for the LLM's attention. You'll need to use careful tool descriptions and system prompts to make sure the agent recognizes when clarification is truly needed.
 
@@ -131,10 +131,10 @@ The scorer should show `1` for each test case where the agent correctly called t
 
 This will likely require several iterations. Pay close attention to:
 
-- The clarity of your tool description in the [Zod schema](/PLACEHOLDER/zod-schema-describe)
+- The clarity of your tool description in the Zod schema
 - The quality of your system prompt examples
-- Whether you need to adjust the [describe fields](/PLACEHOLDER/zod-describe-field) to guide the agent better
+- Whether you need to adjust the describe fields to guide the agent better
 
-- [ ] (Optional) Test with multiple models using [evalite.each()](/PLACEHOLDER/evalite-each)
+- [ ] (Optional) Test with multiple models using `evalite.each()`
 
 Try testing with both Gemini 2.0 Flash and GPT-4 Mini to see if different models have different success rates at recognizing when clarification is needed.
