@@ -3,6 +3,7 @@ import {
   clips,
   clipSections,
   lessons,
+  links,
   planLessons,
   plans,
   planSections,
@@ -2029,6 +2030,52 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             .set({ title: newTitle, updatedAt: new Date() })
             .where(eq(plans.id, planId))
         );
+        return { success: true };
+      }),
+      // Link-related methods for global link management
+      /**
+       * Get all links ordered by creation date (newest first).
+       */
+      getLinks: Effect.fn("getLinks")(function* () {
+        const allLinks = yield* makeDbCall(() =>
+          db.query.links.findMany({
+            orderBy: desc(links.createdAt),
+          })
+        );
+        return allLinks;
+      }),
+      /**
+       * Create a new link.
+       */
+      createLink: Effect.fn("createLink")(function* (link: {
+        title: string;
+        url: string;
+        description?: string | null;
+      }) {
+        const [newLink] = yield* makeDbCall(() =>
+          db
+            .insert(links)
+            .values({
+              title: link.title,
+              url: link.url,
+              description: link.description ?? null,
+            })
+            .returning()
+        );
+
+        if (!newLink) {
+          return yield* new UnknownDBServiceError({
+            cause: "No link was returned from the database",
+          });
+        }
+
+        return newLink;
+      }),
+      /**
+       * Delete a link by ID.
+       */
+      deleteLink: Effect.fn("deleteLink")(function* (linkId: string) {
+        yield* makeDbCall(() => db.delete(links).where(eq(links.id, linkId)));
         return { success: true };
       }),
     };

@@ -1244,3 +1244,37 @@
 - app/features/video-editor/components/video-player-panel.tsx - Added useFetcher import and revealVideoFetcher, passed callback to ActionsDropdown
 
 **Blockers**: None
+
+---
+
+## Issue #162: Global Link Management System (tracer bullet)
+
+**Task completed**: Added database schema, API endpoints, and basic display for global links
+
+**Key decisions**:
+- Created `links` table with: id, title, url (unique), description (nullable), createdAt, updatedAt
+- Added `getLinks`, `createLink`, and `deleteLink` methods to DBService
+- Created `GET /api/links` endpoint to fetch all links
+- Created `POST /api/links` endpoint with URL validation and duplicate detection (unique constraint)
+- Created `DELETE /api/links/:id` endpoint to delete links
+- Write page loader now fetches global links from DB
+- Links displayed in left sidebar below files section (for both standalone and lesson videos)
+- Links shown as clickable items with external link icon, title, and optional description
+
+**Files created**:
+- app/routes/api.links.ts - GET/POST endpoints for links
+- app/routes/api.links.$linkId.delete.ts - DELETE endpoint for links
+
+**Files changed**:
+- app/db/schema.ts - Added links table with unique URL constraint
+- app/services/db-service.ts - Added getLinks, createLink, deleteLink methods
+- app/routes/videos.$videoId.write.tsx - Added links to loader, destructured in component, display UI in left column
+
+**Blockers**: None
+
+**Remaining work for Issue #162**:
+- Add Link modal UI (form with title, URL, description fields)
+- Delete link functionality in UI (currently API only)
+- Inject links into all 14 prompts
+- Remove PLACEHOLDER_LINK_INSTRUCTIONS from style-guide.ts
+- Tab UI for organizing transcript/files/links (optional)

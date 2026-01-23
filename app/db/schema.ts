@@ -312,6 +312,29 @@ export const planLessonsRelations = relations(planLessons, ({ one }) => ({
   }),
 }));
 
+// Global links table for article writing
+export const links = createTable("link", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  url: text("url").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 // export const chats = createTable("chat", {
 //   id: varchar("id", { length: 255 })
 //     .notNull()

@@ -73,6 +73,8 @@ import {
   FileTypeIcon,
   SettingsIcon,
   Trash2Icon,
+  LinkIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 import { marked } from "marked";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -115,6 +117,7 @@ export const loader = async (args: Route.LoaderArgs) => {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
     const video = yield* db.getVideoWithClipsById(videoId);
+    const globalLinks = yield* db.getLinks();
 
     const lesson = video.lesson;
 
@@ -254,6 +257,7 @@ export const loader = async (args: Route.LoaderArgs) => {
         isStandalone: true,
         transcriptWordCount,
         clipSections: sectionsWithWordCount,
+        links: globalLinks,
       };
     }
 
@@ -320,6 +324,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       isStandalone: false,
       transcriptWordCount,
       clipSections: sectionsWithWordCount,
+      links: globalLinks,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -381,6 +386,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     isStandalone,
     transcriptWordCount,
     clipSections,
+    links,
   } = props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
@@ -899,6 +905,43 @@ export function InnerComponent(props: Route.ComponentProps) {
               />
             </div>
           )}
+          {/* Global links section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 py-1 px-2">
+              <LinkIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm flex-1">Links</span>
+              <span className="text-xs text-muted-foreground">
+                ({links.length})
+              </span>
+            </div>
+            {links.length > 0 ? (
+              <div className="space-y-1 px-2">
+                {links.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-2 py-1 px-2 rounded hover:bg-muted/50 group text-sm"
+                  >
+                    <ExternalLinkIcon className="h-3 w-3 mt-1 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{link.title}</div>
+                      {link.description && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {link.description}
+                        </div>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="px-4 py-2 text-sm text-muted-foreground">
+                No links yet
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right column: Chat */}
