@@ -32,7 +32,8 @@
       "Bash(npm run typecheck:*)",
       "Skill(write-a-prd)",
       "Bash(npx tsc:*)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(wslpath:*)"
     ],
     "deny": [],
     "ask": []
