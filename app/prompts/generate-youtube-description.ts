@@ -1,3 +1,5 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
+
 export const generateYoutubeDescriptionPrompt = (opts: {
   code: {
     path: string;
@@ -6,6 +8,7 @@ export const generateYoutubeDescriptionPrompt = (opts: {
   transcript: string;
   images: string[];
   youtubeChapters: { timestamp: string; name: string }[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -92,6 +95,8 @@ The description should have the following structure:
    - Add a blank line before this section
    - Only include this if the video is clearly about AI development, AI SDKs, or working with LLMs
    - If the video is about general TypeScript, React, or other non-AI topics, skip this section
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

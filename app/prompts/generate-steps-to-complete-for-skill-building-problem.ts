@@ -1,3 +1,4 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 import { getSkillBuildingSharedTemplate } from "./skill-building-shared-template";
 
 export const generateStepsToCompleteForSkillBuildingProblemPrompt = (opts: {
@@ -7,6 +8,7 @@ export const generateStepsToCompleteForSkillBuildingProblemPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -41,6 +43,8 @@ ${getSkillBuildingSharedTemplate(opts.images)}
 Create the content for the skill building lesson: a short introduction and a list of steps to complete.
 
 IMPORTANT - do not attempt to _solve_ the problem for the user, or show them the complete solution. Instead, give them the exact steps they need to take to complete the lesson. We want to teach them to fish, not give them the fish.
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

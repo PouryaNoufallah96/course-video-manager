@@ -1,4 +1,5 @@
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 import { PROJECT_STYLE_GUIDE } from "./project-style-guide";
 import PROJECT_STEPS_SAMPLE from "./project-steps-sample.md?raw";
 
@@ -9,6 +10,7 @@ export const generateStepsToCompleteForProjectPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -73,6 +75,8 @@ export function searchWithBM25() {
 
 <the-ask>
 Create a list of steps to complete to recreate the work done in the commit.
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

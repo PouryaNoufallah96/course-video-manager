@@ -1,3 +1,5 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
+
 export const generateYoutubeTitlePrompt = (opts: {
   code: {
     path: string;
@@ -5,6 +7,7 @@ export const generateYoutubeTitlePrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -86,6 +89,8 @@ Examples of good YouTube titles:
 - "Most devs don't understand how closures actually work"
 - "Ship production-ready code with this testing strategy"
 - "Backend scaling is EASIER than you think (here's the secret)"
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

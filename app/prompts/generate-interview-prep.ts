@@ -1,4 +1,5 @@
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 
 export const generateInterviewPrepPrompt = (opts: {
   code: {
@@ -7,6 +8,7 @@ export const generateInterviewPrepPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video (if available):
@@ -59,6 +61,8 @@ Keep the conversation:
 - Encouraging (help them feel confident about the interview)
 
 ${getImageInstructions(opts.images)}
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

@@ -1,4 +1,5 @@
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 import { PROJECT_STYLE_GUIDE } from "./project-style-guide";
 import PROJECT_STEPS_SAMPLE from "./project-steps-sample.md?raw";
 
@@ -9,6 +10,7 @@ export const refineProjectWithStyleGuidePrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   // Find the README.md file in the code context
   const readmeFile = opts.code.find((file) =>
@@ -81,6 +83,8 @@ Refine the existing README to match our style guide and formatting standards. Ap
 11. Each code sample has file path comment at top
 
 Output the COMPLETE refined README - do not output just the changes.
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

@@ -1,3 +1,4 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 import { getSkillBuildingSharedTemplate } from "./skill-building-shared-template";
 
 export const refineSkillBuildingWithStyleGuidePrompt = (opts: {
@@ -7,6 +8,7 @@ export const refineSkillBuildingWithStyleGuidePrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   // Find the README.md file in the code context
   const readmeFile = opts.code.find((file) =>
@@ -70,6 +72,8 @@ Refine the existing README to match our style guide and formatting standards. Ap
 8. Lists, code samples, and tables are used to break up text
 
 Output the COMPLETE refined README - do not output just the changes.
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

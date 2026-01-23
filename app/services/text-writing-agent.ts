@@ -12,6 +12,7 @@ import { generateNewsletterPrompt } from "@/prompts/generate-newsletter";
 import { generateInterviewPrepPrompt } from "@/prompts/generate-interview-prep";
 import { generateInterviewPrompt } from "@/prompts/generate-interview";
 import { generateBrainstormingPrompt } from "@/prompts/generate-brainstorming";
+import type { GlobalLink } from "@/prompts/link-instructions";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -47,7 +48,9 @@ export const createTextWritingAgent = (props: {
   imageFiles: TextWritingAgentImageFile[];
   youtubeChapters?: { timestamp: string; name: string }[];
   sectionNames?: string[];
+  links?: GlobalLink[];
 }) => {
+  const links = props.links ?? [];
   const systemPrompt = (() => {
     switch (props.mode) {
       case "project":
@@ -55,42 +58,49 @@ export const createTextWritingAgent = (props: {
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "skill-building":
         return generateStepsToCompleteForSkillBuildingProblemPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "style-guide-skill-building":
         return refineSkillBuildingWithStyleGuidePrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "style-guide-project":
         return refineProjectWithStyleGuidePrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "seo-description":
         return generateSeoDescriptionPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "youtube-title":
         return generateYoutubeTitlePrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "youtube-thumbnail":
         return generateYoutubeThumbnailPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "youtube-description":
         return generateYoutubeDescriptionPrompt({
@@ -98,36 +108,42 @@ export const createTextWritingAgent = (props: {
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
           youtubeChapters: props.youtubeChapters || [],
+          links,
         });
       case "newsletter":
         return generateNewsletterPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "interview-prep":
         return generateInterviewPrepPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "interview":
         return generateInterviewPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "brainstorming":
         return generateBrainstormingPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "article-plan":
         return generateArticlePlanPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
+          links,
         });
       case "article":
       default:
@@ -136,6 +152,7 @@ export const createTextWritingAgent = (props: {
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
           sectionNames: props.sectionNames,
+          links,
         });
     }
   })();

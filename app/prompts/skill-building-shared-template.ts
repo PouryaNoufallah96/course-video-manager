@@ -1,6 +1,6 @@
 import { getImageInstructions } from "./image-instructions";
 import { STEPS_TO_COMPLETE } from "./steps-to-complete";
-import { CODE_SAMPLES, STYLE_GUIDE, TODO_COMMENTS } from "./style-guide";
+import { CODE_SAMPLES, STYLE_GUIDE_BASE, TODO_COMMENTS } from "./style-guide";
 import SKILL_BUILDING_STEPS_TO_COMPLETE_SAMPLE from "./skill-building-steps-to-complete-sample.md?raw";
 
 export const getSkillBuildingSharedTemplate = (images: string[]) => `
@@ -8,7 +8,7 @@ export const getSkillBuildingSharedTemplate = (images: string[]) => `
 ${SKILL_BUILDING_STEPS_TO_COMPLETE_SAMPLE}
 </sample>
 
-${STYLE_GUIDE}
+${STYLE_GUIDE_BASE}
 
 ${CODE_SAMPLES}
 

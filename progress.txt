@@ -1272,11 +1272,6 @@
 
 **Blockers**: None
 
-**Remaining work for Issue #162**:
-- Inject links into all 14 prompts
-- Remove PLACEHOLDER_LINK_INSTRUCTIONS from style-guide.ts
-- Tab UI for organizing transcript/files/links (optional)
-
 ---
 
 ## Issue #162: Add Link modal UI and delete functionality
@@ -1299,7 +1294,44 @@
 
 **Blockers**: None
 
+---
+
+## Issue #162: Inject global links into all 14 prompts
+
+**Task completed**: Links are now injected into all writing mode prompts
+
+**Key decisions**:
+- Created `link-instructions.ts` with `getLinkInstructions()` helper function (similar pattern to `image-instructions.ts`)
+- Links formatted as optional suggestions: "Available Links (optional - use only if relevant)"
+- Updated completions endpoint to fetch links from DB and pass to `createTextWritingAgent`
+- All 14 prompt generators now accept `links: GlobalLink[]` parameter
+- Removed `PLACEHOLDER_LINK_INSTRUCTIONS` and `STYLE_GUIDE` (combined version) from `style-guide.ts`
+- Updated `skill-building-shared-template.ts` to use `STYLE_GUIDE_BASE` instead of `STYLE_GUIDE`
+
+**Files created**:
+- app/prompts/link-instructions.ts - Helper function to format links for prompts
+
+**Files changed**:
+- app/services/text-writing-agent.ts - Added links parameter to createTextWritingAgent
+- app/routes/videos.$videoId.completions.ts - Fetch links from DB and pass to agent
+- app/prompts/generate-article.ts - Added links support
+- app/prompts/generate-article-plan.ts - Added links support
+- app/prompts/generate-seo-description.ts - Added links support
+- app/prompts/generate-youtube-title.ts - Added links support
+- app/prompts/generate-youtube-thumbnail.ts - Added links support
+- app/prompts/generate-youtube-description.ts - Added links support
+- app/prompts/generate-newsletter.ts - Added links support
+- app/prompts/generate-interview-prep.ts - Added links support
+- app/prompts/generate-interview.ts - Added links support
+- app/prompts/generate-brainstorming.ts - Added links support
+- app/prompts/generate-steps-to-complete-for-skill-building-problem.ts - Added links support
+- app/prompts/generate-steps-to-complete-for-project.ts - Added links support
+- app/prompts/refine-skill-building-with-style-guide.ts - Added links support
+- app/prompts/refine-project-with-style-guide.ts - Added links support
+- app/prompts/style-guide.ts - Removed PLACEHOLDER_LINK_INSTRUCTIONS and STYLE_GUIDE exports
+- app/prompts/skill-building-shared-template.ts - Changed from STYLE_GUIDE to STYLE_GUIDE_BASE
+
+**Blockers**: None
+
 **Remaining work for Issue #162**:
-- Inject links into all 14 prompts
-- Remove PLACEHOLDER_LINK_INSTRUCTIONS from style-guide.ts
 - Tab UI for organizing transcript/files/links (optional)

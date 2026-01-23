@@ -1,6 +1,5 @@
 /**
- * Base style guide without placeholder link instructions.
- * Use this for modes that shouldn't include placeholder links (article, newsletter, SEO, YouTube).
+ * Style guide for formatting written content.
  */
 export const STYLE_GUIDE_BASE = `
 <style-guide>
@@ -20,46 +19,6 @@ Use lists to show steps taken, to show a list of things, or to illustrate how cu
 
 Replace instances of "gonna" with "going to".
 </style-guide>
-`.trim();
-
-/**
- * Placeholder link instructions for modes that should include them
- * (steps project, steps skill building, style guide pass).
- */
-export const PLACEHOLDER_LINK_INSTRUCTIONS = `
-<links>
-Link to external resources extremely aggressively. We want our users to EASILY be able to find the resources they need to complete the lesson.
-
-ALL external resource should be written as a placeholder link. For example:
-<placeholder-link-examples>
-<example>
-I recommend using [this tool](/PLACEHOLDER/the-name-of-the-tool) to solve the problem.
-</example>
-<example>
-Here is the documentation for the [AI SDK feature you're using](/PLACEHOLDER/the-name-of-the-feature).
-</example>
-</placeholder-link-examples>
-</links>
-
-The output should be PEPPERED with placeholder links.
-
-Types of things you should add links for:
-- Names of functions from libraries, like \`generateObject()\`, \`onFinish()\`, \`loadMemories()\`, \`saveMemories()\`, etc.
-- Types from libraries, like \`UIMessage\`, \`MessagePart\`, \`ToolSet\`, \`Tool\`, \`ToolResult\`, etc.
-- Names of libraries, like AI SDK, Effect, Evalite, etc.
-- Properties of objects that come from libraries, like \`response.messages\`, \`result.toolCalls\`, etc.
-- Concepts from libraries, like "streaming", "tool calling", "message history", "message parts", "consuming streams".
-- Any direct references in the transcript to external resources, such as "reference material", "documentation", "examples"
-`.trim();
-
-/**
- * Full style guide including placeholder link instructions.
- * Use this for modes that should include placeholder links (steps project, steps skill building, style guide pass).
- */
-export const STYLE_GUIDE = `
-${STYLE_GUIDE_BASE}
-
-${PLACEHOLDER_LINK_INSTRUCTIONS}
 `.trim();
 
 export const CODE_SAMPLES = `

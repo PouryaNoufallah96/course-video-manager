@@ -1,3 +1,5 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
+
 export const generateYoutubeThumbnailPrompt = (opts: {
   code: {
     path: string;
@@ -5,6 +7,7 @@ export const generateYoutubeThumbnailPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -146,6 +149,8 @@ Key constraints:
 - Use ASCII diagrams to show spatial layout
 - No faces, people, or human figures
 - Focus on code, icons, text, and diagrams
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

@@ -1,4 +1,5 @@
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 import { CODE_SAMPLES, STYLE_GUIDE_BASE } from "./style-guide";
 
 const taskInstructions = `
@@ -21,6 +22,7 @@ export const generateArticlePrompt = (opts: {
   transcript: string;
   images: string[];
   sectionNames?: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -61,6 +63,8 @@ ${opts.code
 ${taskInstructions}
 
 ${getImageInstructions(opts.images)}
+
+${getLinkInstructions(opts.links)}
 
 ## IMPORTANT INSTRUCTIONS
 

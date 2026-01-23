@@ -1,3 +1,4 @@
+import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import {
   acquireTextWritingContext,
@@ -62,6 +63,10 @@ export const action = async (args: Route.ActionArgs) => {
       enabledSections,
     });
 
+    // Fetch global links for injection into prompts
+    const db = yield* DBService;
+    const links = yield* db.getLinks();
+
     const modelMessages = createModelMessagesForTextWritingAgent({
       messages,
       imageFiles: videoContext.imageFiles,
@@ -75,6 +80,7 @@ export const action = async (args: Route.ActionArgs) => {
       imageFiles: videoContext.imageFiles,
       youtubeChapters: videoContext.youtubeChapters,
       sectionNames: videoContext.sectionNames,
+      links,
     });
 
     const result = agent.stream({

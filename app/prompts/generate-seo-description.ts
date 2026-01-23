@@ -1,3 +1,5 @@
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
+
 export const generateSeoDescriptionPrompt = (opts: {
   code: {
     path: string;
@@ -5,6 +7,7 @@ export const generateSeoDescriptionPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -49,6 +52,8 @@ The description should:
 - Be no more than 160 characters
 
 CRITICAL: The description MUST be 160 characters or fewer. This is a hard limit.
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

@@ -1,4 +1,5 @@
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 
 export const generateArticlePlanPrompt = (opts: {
   code: {
@@ -7,6 +8,7 @@ export const generateArticlePlanPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video (if available):
@@ -55,6 +57,8 @@ Create an article plan with the following characteristics:
 5. **Use extremely concise bullet points**: Under each heading, list what should be covered. Sacrifice grammar for concision. These are notes, not sentences.
 
 ${getImageInstructions(opts.images)}
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>

@@ -1,5 +1,6 @@
 import { NEWSLETTER_GREETING_SIGIL } from "@/features/article-writer/lint-rules";
 import { getImageInstructions } from "./image-instructions";
+import { getLinkInstructions, type GlobalLink } from "./link-instructions";
 
 export const generateNewsletterPrompt = (opts: {
   code: {
@@ -8,6 +9,7 @@ export const generateNewsletterPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
+  links: GlobalLink[];
 }) => {
   const transcriptSection = opts.transcript
     ? `Here is the transcript of the video:
@@ -56,6 +58,8 @@ The newsletter should:
 - Sign off with: "Matt"
 
 ${getImageInstructions(opts.images)}
+
+${getLinkInstructions(opts.links)}
 </the-ask>
 
 <output-format>
