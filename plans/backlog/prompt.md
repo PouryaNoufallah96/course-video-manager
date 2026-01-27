@@ -2,6 +2,8 @@
 
 Issues JSON is provided at start of context. Parse it to get open issues with their bodies and comments.
 
+You've also been passed a file containing the last 10 RALPH commits (SHA, date, full message). Review these to understand what work has been done.
+
 # TASK BREAKDOWN
 
 Break down the issues into tasks. An issue may contain a single task (a small bugfix or visual tweak) or many, many tasks (a PRD or a large refactor).
@@ -43,20 +45,17 @@ Before committing, run the feedback loops:
 - `npm run test` to run the tests
 - `npm run typecheck` to run the type checker
 
-# PROGRESS
-
-After completing, append to progress.txt:
-
-- Task completed and PRD reference
-- Key decisions made
-- Files changed
-- Blockers or notes for next iteration
-  Keep entries concise.
-- Ensure you commit progress.txt with the changed code
-
 # COMMIT
 
-Make a git commit with a clear message.
+Make a git commit. The commit message must:
+
+1. Start with `RALPH:` prefix
+2. Include task completed + PRD reference
+3. Key decisions made
+4. Files changed
+5. Blockers or notes for next iteration
+
+Keep it concise.
 
 # THE ISSUE
 
