@@ -811,7 +811,6 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
     }
   );
 
-  const totalSections = plan.sections.length;
   const totalLessons = plan.sections.reduce(
     (acc, section) => acc + section.lessons.length,
     0
@@ -826,6 +825,14 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
       }, 0),
     0
   );
+  // Percentage of lessons marked as done
+  const completedLessons = plan.sections.reduce(
+    (acc, section) =>
+      acc + section.lessons.filter((lesson) => lesson.status === "done").length,
+    0
+  );
+  const percentageDone =
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   // Find which section a lesson belongs to
   const findSectionForLesson = (lessonId: string): Section | undefined => {
@@ -1044,7 +1051,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
             {/* Stats */}
             <div className="flex items-center gap-2 mt-2">
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
-                {totalSections} sections
+                {percentageDone}% done
               </span>
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
                 {totalLessons} lessons
