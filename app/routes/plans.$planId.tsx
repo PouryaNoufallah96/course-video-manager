@@ -811,6 +811,30 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
     }
   );
 
+  // Stats per icon type
+  const iconStats = plan.sections.reduce(
+    (acc, section) => {
+      for (const lesson of section.lessons) {
+        const icon = lesson.icon || "watch";
+        acc[icon].total++;
+        if (lesson.status === "done") {
+          acc[icon].done++;
+        }
+      }
+      return acc;
+    },
+    {
+      code: { total: 0, done: 0 },
+      discussion: { total: 0, done: 0 },
+      watch: { total: 0, done: 0 },
+    }
+  );
+
+  const getPercentage = (stats: { total: number; done: number }) =>
+    stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+
+  // Original stats
+  const totalSections = plan.sections.length;
   const totalLessons = plan.sections.reduce(
     (acc, section) => acc + section.lessons.length,
     0
@@ -825,14 +849,6 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
       }, 0),
     0
   );
-  // Percentage of lessons marked as done
-  const completedLessons = plan.sections.reduce(
-    (acc, section) =>
-      acc + section.lessons.filter((lesson) => lesson.status === "done").length,
-    0
-  );
-  const percentageDone =
-    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   // Find which section a lesson belongs to
   const findSectionForLesson = (lessonId: string): Section | undefined => {
@@ -1050,8 +1066,26 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
 
             {/* Stats */}
             <div className="flex items-center gap-2 mt-2">
+              {iconStats.code.total > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-yellow-500/20 text-yellow-600 px-2 py-1 text-xs font-medium">
+                  <Code className="w-3 h-3" />
+                  {getPercentage(iconStats.code)}%
+                </span>
+              )}
+              {iconStats.discussion.total > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-green-500/20 text-green-600 px-2 py-1 text-xs font-medium">
+                  <MessageCircle className="w-3 h-3" />
+                  {getPercentage(iconStats.discussion)}%
+                </span>
+              )}
+              {iconStats.watch.total > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-500/20 text-purple-600 px-2 py-1 text-xs font-medium">
+                  <Play className="w-3 h-3" />
+                  {getPercentage(iconStats.watch)}%
+                </span>
+              )}
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
-                {percentageDone}% done
+                {totalSections} sections
               </span>
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
                 {totalLessons} lessons
