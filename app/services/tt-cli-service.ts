@@ -57,7 +57,8 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         }) {
           const command = Command.make(
             "tt",
-            "get-clips-from-latest-video",
+            "clips",
+            "detect",
             ...(opts.filePath ? [opts.filePath] : []),
             ...(opts.startTime
               ? ["--startTime", opts.startTime.toString()]
@@ -95,7 +96,8 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
       }) {
         const command = Command.make(
           "tt",
-          "create-video-from-clips",
+          "queue",
+          "from-clips",
           JSON.stringify(opts.clips),
           opts.videoId,
           ...(opts.shortsDirectoryOutputName
@@ -116,7 +118,8 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
       ) {
         const command = Command.make(
           "tt",
-          "transcribe-clips",
+          "clips",
+          "transcribe",
           JSON.stringify(clips)
         );
         const result = yield* Command.string(command);
@@ -216,7 +219,8 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         }) {
           const command = Command.make(
             "tt",
-            "send-clips-to-davinci-resolve",
+            "resolve",
+            "send-clips",
             JSON.stringify(opts.clips),
             opts.timelineName
           );
