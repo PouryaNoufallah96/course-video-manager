@@ -371,6 +371,7 @@ export const planStateReducer: EffectReducer<
         title: newTitle,
         order: maxOrder + 1,
         description: "",
+        status: "maybe",
       };
 
       const updatedPlan: Plan = {
@@ -610,7 +611,12 @@ export const planStateReducer: EffectReducer<
                   lesson.id === action.lessonId
                     ? {
                         ...lesson,
-                        status: lesson.status === "done" ? "todo" : "done",
+                        status:
+                          lesson.status === "done"
+                            ? "maybe"
+                            : lesson.status === "maybe"
+                              ? "todo"
+                              : "done",
                       }
                     : lesson
                 ),

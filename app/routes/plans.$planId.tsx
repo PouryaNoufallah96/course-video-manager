@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Check,
   ChevronLeft,
+  CircleHelp,
   ClipboardCopy,
   Code,
   Copy,
@@ -34,6 +35,7 @@ import {
   Play,
   Plus,
   RefreshCw,
+  Square,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
@@ -441,8 +443,16 @@ function SortableLesson({
                         <Check className="w-3 h-3" />
                         DONE
                       </>
+                    ) : lesson.status === "maybe" ? (
+                      <>
+                        <CircleHelp className="w-3 h-3" />
+                        MAYBE
+                      </>
                     ) : (
-                      "TODO"
+                      <>
+                        <Square className="w-3 h-3" />
+                        TODO
+                      </>
                     )}
                   </button>
                 </div>
@@ -811,10 +821,12 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
     }
   );
 
-  // Stats per icon type
+  // Stats per icon type (excluding "maybe" lessons)
   const iconStats = plan.sections.reduce(
     (acc, section) => {
       for (const lesson of section.lessons) {
+        // Skip "maybe" lessons from stats
+        if (lesson.status === "maybe") continue;
         const icon = lesson.icon || "watch";
         acc[icon].total++;
         if (lesson.status === "done") {
@@ -833,20 +845,23 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   const getPercentage = (stats: { total: number; done: number }) =>
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
 
-  // Original stats
+  // Original stats (excluding "maybe" lessons)
   const totalSections = plan.sections.length;
   const totalLessons = plan.sections.reduce(
-    (acc, section) => acc + section.lessons.length,
+    (acc, section) =>
+      acc + section.lessons.filter((l) => l.status !== "maybe").length,
     0
   );
-  // Estimated videos: play/watch = 1, code = 2, discussion = 1
+  // Estimated videos: play/watch = 1, code = 2, discussion = 1 (excluding "maybe" lessons)
   const estimatedVideos = plan.sections.reduce(
     (acc, section) =>
       acc +
-      section.lessons.reduce((lessonAcc, lesson) => {
-        if (lesson.icon === "code") return lessonAcc + 2;
-        return lessonAcc + 1; // watch and discussion = 1
-      }, 0),
+      section.lessons
+        .filter((l) => l.status !== "maybe")
+        .reduce((lessonAcc, lesson) => {
+          if (lesson.icon === "code") return lessonAcc + 2;
+          return lessonAcc + 1; // watch and discussion = 1
+        }, 0),
     0
   );
 

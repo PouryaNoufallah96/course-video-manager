@@ -1,5 +1,5 @@
 export type LessonIcon = "watch" | "code" | "discussion";
-export type LessonStatus = "todo" | "done";
+export type LessonStatus = "todo" | "done" | "maybe";
 
 export interface Lesson {
   id: string;

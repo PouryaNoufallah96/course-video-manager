@@ -12,7 +12,7 @@ const PlanLessonSchema = Schema.Struct({
   icon: Schema.optional(
     Schema.NullOr(Schema.Literal("watch", "code", "discussion"))
   ),
-  status: Schema.optional(Schema.Literal("todo", "done")),
+  status: Schema.optional(Schema.Literal("todo", "done", "maybe")),
   dependencies: Schema.optional(Schema.Array(Schema.String)),
 });
 

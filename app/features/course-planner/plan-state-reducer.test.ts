@@ -946,7 +946,7 @@ describe("planStateReducer", () => {
       );
     });
 
-    it("lesson-status-toggled: toggle from done to todo + emit plan-changed", () => {
+    it("lesson-status-toggled: toggle from done to maybe + emit plan-changed", () => {
       const plan = createTestPlan({
         sections: [
           {
@@ -955,6 +955,38 @@ describe("planStateReducer", () => {
             order: 0,
             lessons: [
               { id: "l1", title: "Lesson 1", order: 0, status: "done" },
+            ],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-status-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons[0]?.status).toBe("maybe");
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+
+    it("lesson-status-toggled: toggle from maybe to todo + emit plan-changed", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [
+              { id: "l1", title: "Lesson 1", order: 0, status: "maybe" },
             ],
           },
         ],
