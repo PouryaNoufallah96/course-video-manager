@@ -520,7 +520,7 @@ function SortableLesson({
             </div>
           ) : lesson.description ? (
             <div
-              className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground max-w-[65ch]"
+              className="mt-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground max-w-[65ch] whitespace-pre-line"
               onClick={() =>
                 dispatch({
                   type: "lesson-description-clicked",
