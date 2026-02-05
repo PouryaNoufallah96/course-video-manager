@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, data } from "react-router";
+import type { LessonPriority } from "@/features/course-planner/types";
 import type { planStateReducer } from "@/features/course-planner/plan-state-reducer";
 import type { Route } from "./+types/plans.$planId";
 import { Console, Effect } from "effect";
@@ -578,6 +579,7 @@ interface SortableSectionProps {
   state: planStateReducer.State;
   dispatch: (action: planStateReducer.Action) => void;
   allLessons: FlattenedLesson[];
+  priorityFilter: LessonPriority;
 }
 
 function SortableSection({
@@ -586,6 +588,7 @@ function SortableSection({
   state,
   dispatch,
   allLessons,
+  priorityFilter,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -609,6 +612,12 @@ function SortableSection({
   };
 
   const sortedLessons = [...section.lessons].sort((a, b) => a.order - b.order);
+
+  // Filter lessons based on priority filter
+  // P3 = show all, P2 = show P1+P2, P1 = show only P1
+  const filteredLessons = sortedLessons.filter(
+    (lesson) => (lesson.priority ?? 2) <= priorityFilter
+  );
 
   return (
     <div
@@ -711,22 +720,28 @@ function SortableSection({
 
       {/* Lessons */}
       <SortableContext
-        items={sortedLessons.map((l) => l.id)}
+        items={filteredLessons.map((l) => l.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-1 ml-4">
-          {sortedLessons.map((lesson, lessonIndex) => (
-            <SortableLesson
-              key={lesson.id}
-              lesson={lesson}
-              lessonNumber={`${sectionNumber}.${lessonIndex + 1}`}
-              sectionId={section.id}
-              editingLesson={state.editingLesson}
-              editingDescription={state.editingDescription}
-              dispatch={dispatch}
-              allLessons={allLessons}
-            />
-          ))}
+          {filteredLessons.map((lesson) => {
+            // Get the original index for consistent numbering
+            const originalIndex = sortedLessons.findIndex(
+              (l) => l.id === lesson.id
+            );
+            return (
+              <SortableLesson
+                key={lesson.id}
+                lesson={lesson}
+                lessonNumber={`${sectionNumber}.${originalIndex + 1}`}
+                sectionId={section.id}
+                editingLesson={state.editingLesson}
+                editingDescription={state.editingDescription}
+                dispatch={dispatch}
+                allLessons={allLessons}
+              />
+            );
+          })}
 
           {/* Add Lesson */}
           {addingLesson ? (
@@ -803,6 +818,9 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   const [activeDragType, setActiveDragType] = useState<
     "section" | "lesson" | null
   >(null);
+
+  // Priority filter state: P3 = show all, P2 = show P1+P2, P1 = show only P1
+  const [priorityFilter, setPriorityFilter] = useState<LessonPriority>(3);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -1143,6 +1161,29 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                 ~{estimatedVideos} videos
               </span>
             </div>
+
+            {/* Priority Filter */}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-muted-foreground">Filter:</span>
+              {([3, 2, 1] as const).map((priority) => (
+                <button
+                  key={priority}
+                  className={`text-xs px-2 py-0.5 rounded-sm font-medium transition-colors ${
+                    priorityFilter === priority
+                      ? priority === 1
+                        ? "bg-red-500/20 text-red-600 ring-1 ring-red-500/50"
+                        : priority === 2
+                          ? "bg-yellow-500/20 text-yellow-600 ring-1 ring-yellow-500/50"
+                          : "bg-gray-500/20 text-gray-500 ring-1 ring-gray-500/50"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                  onClick={() => setPriorityFilter(priority)}
+                >
+                  P{priority}
+                  {priority === 3 && " (All)"}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Sections */}
@@ -1165,6 +1206,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                     state={state}
                     dispatch={dispatch}
                     allLessons={allFlattenedLessons}
+                    priorityFilter={priorityFilter}
                   />
                 ))}
               </div>
