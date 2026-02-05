@@ -40,7 +40,9 @@ export const action = async (args: Route.ActionArgs) => {
   const body = await args.request.json();
 
   return Effect.gen(function* () {
-    const parsed = yield* Schema.decodeUnknown(SyncRequestSchema)(body);
+    const parsed = yield* Schema.decodeUnknown(SyncRequestSchema)(body, {
+      onExcessProperty: "error",
+    });
     const db = yield* DBService;
 
     yield* db.syncPlan(parsed.plan);
