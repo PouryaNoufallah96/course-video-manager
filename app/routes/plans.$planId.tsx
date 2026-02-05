@@ -248,7 +248,7 @@ function SortableLesson({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : undefined,
   };
 
   const violations = checkDependencyViolation(lesson, allLessons);
