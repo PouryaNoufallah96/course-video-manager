@@ -4,6 +4,7 @@ import {
   boolean,
   customType,
   doublePrecision,
+  integer,
   pgTableCreator,
   text,
   timestamp,
@@ -280,6 +281,7 @@ export const planLessons = createTable("plan_lesson", {
   description: text("description").notNull().default(""),
   icon: varchar("icon", { length: 255 }),
   status: text("status").notNull().default("todo"),
+  priority: integer("priority").notNull().default(2),
   dependencies: text("dependencies").array(),
   order: doublePrecision("order").notNull(),
   createdAt: timestamp("created_at", {
