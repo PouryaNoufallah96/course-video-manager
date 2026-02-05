@@ -1169,9 +1169,12 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                 </>
               )}
             </div>
+          </div>
 
+          {/* Sticky Stats and Filters */}
+          <div className="sticky top-0 z-10 bg-background py-3 -mx-6 px-6 border-b">
             {/* Stats */}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2">
               {iconStats.code.total > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-yellow-500/20 text-yellow-600 px-2 py-1 text-xs font-medium">
                   <Code className="w-3 h-3" />
@@ -1202,7 +1205,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
             </div>
 
             {/* Priority Filter */}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">Filter:</span>
               {([3, 2, 1] as const).map((priority) => (
                 <button
