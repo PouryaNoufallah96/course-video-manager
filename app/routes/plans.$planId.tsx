@@ -422,6 +422,26 @@ function SortableLesson({
                         ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  {/* Priority pill */}
+                  <button
+                    className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-sm font-medium ${
+                      lesson.priority === 1
+                        ? "bg-red-500/20 text-red-600"
+                        : lesson.priority === 3
+                          ? "bg-blue-500/20 text-blue-600"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                    onClick={() =>
+                      dispatch({
+                        type: "lesson-priority-toggled",
+                        sectionId,
+                        lessonId: lesson.id,
+                      })
+                    }
+                    title="Click to toggle priority (P2 → P3 → P1 → P2)"
+                  >
+                    P{lesson.priority ?? 2}
+                  </button>
                   {/* Status pill */}
                   <button
                     className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-sm font-medium flex items-center gap-1 ${

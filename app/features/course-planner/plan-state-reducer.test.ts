@@ -913,6 +913,128 @@ describe("planStateReducer", () => {
     });
   });
 
+  describe("Lesson Priority", () => {
+    it("lesson-priority-toggled: cycle from P2 (default) to P3 + emit plan-changed", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }], // no priority = P2
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons[0]?.priority).toBe(3);
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+
+    it("lesson-priority-toggled: cycle from P3 to P1 + emit plan-changed", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0, priority: 3 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons[0]?.priority).toBe(1);
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+
+    it("lesson-priority-toggled: cycle from P1 to P2 + emit plan-changed", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0, priority: 1 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons[0]?.priority).toBe(2);
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+
+    it("lesson-priority-toggled: explicit P2 cycles to P3", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0, priority: 2 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons[0]?.priority).toBe(3);
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+  });
+
   describe("Lesson Status", () => {
     it("lesson-status-toggled: toggle from todo to done + emit plan-changed", () => {
       const plan = createTestPlan({

@@ -13,6 +13,7 @@ const PlanLessonSchema = Schema.Struct({
     Schema.NullOr(Schema.Literal("watch", "code", "discussion"))
   ),
   status: Schema.optional(Schema.Literal("todo", "done", "maybe")),
+  priority: Schema.optional(Schema.Literal(1, 2, 3)),
   dependencies: Schema.optional(Schema.Array(Schema.String)),
 });
 

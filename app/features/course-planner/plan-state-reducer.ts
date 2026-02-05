@@ -1,5 +1,5 @@
 import type { EffectReducer } from "use-effect-reducer";
-import type { Plan, Section, Lesson } from "./types";
+import type { Plan, Section, Lesson, LessonPriority } from "./types";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -87,6 +87,12 @@ export namespace planStateReducer {
     // Lesson Status
     | {
         type: "lesson-status-toggled";
+        sectionId: string;
+        lessonId: string;
+      }
+    // Lesson Priority
+    | {
+        type: "lesson-priority-toggled";
         sectionId: string;
         lessonId: string;
       }
@@ -617,6 +623,45 @@ export const planStateReducer: EffectReducer<
                             : lesson.status === "maybe"
                               ? "todo"
                               : "done",
+                      }
+                    : lesson
+                ),
+              }
+            : section
+        ),
+        updatedAt: getTimestamp(),
+      };
+
+      exec({ type: "plan-changed" });
+
+      return {
+        ...state,
+        plan: updatedPlan,
+      };
+    }
+
+    // Lesson Priority
+    case "lesson-priority-toggled": {
+      const getNextPriority = (
+        current: LessonPriority | undefined
+      ): LessonPriority => {
+        // Cycle: P2 (default) -> P3 -> P1 -> P2
+        if (current === undefined || current === 2) return 3;
+        if (current === 3) return 1;
+        return 2; // current === 1
+      };
+
+      const updatedPlan: Plan = {
+        ...state.plan,
+        sections: state.plan.sections.map((section) =>
+          section.id === action.sectionId
+            ? {
+                ...section,
+                lessons: section.lessons.map((lesson) =>
+                  lesson.id === action.lessonId
+                    ? {
+                        ...lesson,
+                        priority: getNextPriority(lesson.priority),
                       }
                     : lesson
                 ),

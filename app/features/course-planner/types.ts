@@ -1,5 +1,6 @@
 export type LessonIcon = "watch" | "code" | "discussion";
 export type LessonStatus = "todo" | "done" | "maybe";
+export type LessonPriority = 1 | 2 | 3;
 
 export interface Lesson {
   id: string;
@@ -8,6 +9,7 @@ export interface Lesson {
   description?: string;
   icon?: LessonIcon;
   status?: LessonStatus;
+  priority?: LessonPriority;
   dependencies?: string[]; // Array of lesson IDs this lesson depends on
 }
 
