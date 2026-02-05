@@ -1033,6 +1033,70 @@ describe("planStateReducer", () => {
         expect.objectContaining({ type: "plan-changed" })
       );
     });
+
+    it("lesson-priority-toggled: pins the lesson to prevent filter removal", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0, priority: 1 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.pinnedLessonIds).toContain("l1");
+    });
+
+    it("lesson-priority-toggled: does not duplicate pinned lesson on multiple toggles", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0, priority: 1 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.pinnedLessonIds).toEqual(["l1"]);
+    });
   });
 
   describe("Lesson Status", () => {
@@ -1363,6 +1427,72 @@ describe("planStateReducer", () => {
       const state = tester.send({ type: "focus-handled" }).getState();
 
       expect(state.focusRequest).toBeNull();
+    });
+  });
+
+  describe("Priority Filter (34)", () => {
+    it("34a. priority-filter-changed: updates priorityFilter value", () => {
+      const tester = new ReducerTester(planStateReducer, createInitialState());
+
+      // Default is P3
+      expect(tester.getState().priorityFilter).toBe(3);
+
+      const state = tester
+        .send({ type: "priority-filter-changed", priority: 1 })
+        .getState();
+
+      expect(state.priorityFilter).toBe(1);
+    });
+
+    it("34b. priority-filter-changed: clears pinned lessons when filter changes", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [
+              { id: "l1", title: "Lesson 1", order: 0, priority: 1 },
+              { id: "l2", title: "Lesson 2", order: 1, priority: 1 },
+            ],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      // Pin some lessons by toggling priority
+      const stateWithPins = tester
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .send({
+          type: "lesson-priority-toggled",
+          sectionId: "s1",
+          lessonId: "l2",
+        })
+        .getState();
+
+      expect(stateWithPins.pinnedLessonIds).toHaveLength(2);
+
+      // Change filter - should clear pins
+      const state = tester
+        .send({ type: "priority-filter-changed", priority: 2 })
+        .getState();
+
+      expect(state.pinnedLessonIds).toEqual([]);
+      expect(state.priorityFilter).toBe(2);
+    });
+
+    it("34c. initialState has priorityFilter of 3 (show all)", () => {
+      const state = createInitialState(createTestPlan());
+
+      expect(state.priorityFilter).toBe(3);
+      expect(state.pinnedLessonIds).toEqual([]);
     });
   });
 });

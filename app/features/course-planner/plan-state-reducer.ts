@@ -32,6 +32,11 @@ export namespace planStateReducer {
     focusRequest: { type: "add-lesson-button"; sectionId: string } | null;
     deletingSection: { sectionId: string; lessonCount: number } | null;
     deletingLesson: { sectionId: string; lessonId: string } | null;
+    // Priority filter: P3 = show all, P2 = show P1+P2, P1 = show only P1
+    priorityFilter: LessonPriority;
+    // Pinned lessons are kept visible even if they don't match the filter
+    // (used when user edits priority of a lesson while filter is active)
+    pinnedLessonIds: string[];
   };
 
   export type Action =
@@ -116,7 +121,9 @@ export namespace planStateReducer {
     | { type: "sync-failed"; error: string }
     | { type: "sync-retry-requested" }
     // Focus (33)
-    | { type: "focus-handled" };
+    | { type: "focus-handled" }
+    // Priority Filter (34)
+    | { type: "priority-filter-changed"; priority: LessonPriority };
 
   export type Effect =
     | { type: "plan-changed" }
@@ -138,6 +145,8 @@ export const createInitialPlanState = (plan: Plan): planStateReducer.State => ({
   focusRequest: null,
   deletingSection: null,
   deletingLesson: null,
+  priorityFilter: 3,
+  pinnedLessonIds: [],
 });
 
 export const planStateReducer: EffectReducer<
@@ -673,9 +682,15 @@ export const planStateReducer: EffectReducer<
 
       exec({ type: "plan-changed" });
 
+      // Pin the lesson so it stays visible even if it no longer matches the filter
+      const pinnedLessonIds = state.pinnedLessonIds.includes(action.lessonId)
+        ? state.pinnedLessonIds
+        : [...state.pinnedLessonIds, action.lessonId];
+
       return {
         ...state,
         plan: updatedPlan,
+        pinnedLessonIds,
       };
     }
 
@@ -838,6 +853,16 @@ export const planStateReducer: EffectReducer<
       return {
         ...state,
         focusRequest: null,
+      };
+    }
+
+    // Priority Filter (34)
+    case "priority-filter-changed": {
+      // When filter changes, clear pinned lessons
+      return {
+        ...state,
+        priorityFilter: action.priority,
+        pinnedLessonIds: [],
       };
     }
   }

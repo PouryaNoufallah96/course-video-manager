@@ -618,6 +618,7 @@ interface SortableSectionProps {
   dispatch: (action: planStateReducer.Action) => void;
   allLessons: FlattenedLesson[];
   priorityFilter: LessonPriority;
+  pinnedLessonIds: string[];
 }
 
 function SortableSection({
@@ -627,6 +628,7 @@ function SortableSection({
   dispatch,
   allLessons,
   priorityFilter,
+  pinnedLessonIds,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -653,8 +655,11 @@ function SortableSection({
 
   // Filter lessons based on priority filter
   // P3 = show all, P2 = show P1+P2, P1 = show only P1
+  // Also include pinned lessons (those whose priority was recently changed)
   const filteredLessons = sortedLessons.filter(
-    (lesson) => (lesson.priority ?? 2) <= priorityFilter
+    (lesson) =>
+      (lesson.priority ?? 2) <= priorityFilter ||
+      pinnedLessonIds.includes(lesson.id)
   );
 
   return (
@@ -857,8 +862,8 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
     "section" | "lesson" | null
   >(null);
 
-  // Priority filter state: P3 = show all, P2 = show P1+P2, P1 = show only P1
-  const [priorityFilter, setPriorityFilter] = useState<LessonPriority>(3);
+  // Priority filter comes from the reducer (allows pinning behavior)
+  const { priorityFilter, pinnedLessonIds } = state;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -1219,7 +1224,12 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                           : "bg-gray-500/20 text-gray-500 ring-1 ring-gray-500/50"
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
-                  onClick={() => setPriorityFilter(priority)}
+                  onClick={() =>
+                    dispatch({
+                      type: "priority-filter-changed",
+                      priority,
+                    })
+                  }
                 >
                   P{priority}
                   {priority === 3 && " (All)"}
@@ -1249,6 +1259,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                     dispatch={dispatch}
                     allLessons={allFlattenedLessons}
                     priorityFilter={priorityFilter}
+                    pinnedLessonIds={pinnedLessonIds}
                   />
                 ))}
               </div>
