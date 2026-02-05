@@ -190,6 +190,7 @@ interface FlattenedLesson {
   number: string;
   title: string;
   sectionId: string;
+  priority: LessonPriority;
 }
 
 // Helper to check if dependency order is violated
@@ -205,6 +206,31 @@ function checkDependencyViolation(
     if (depIndex > lessonIndex) {
       const depLesson = allFlattenedLessons[depIndex];
       if (depLesson) {
+        violations.push(depLesson);
+      }
+    }
+  }
+
+  return violations;
+}
+
+// Helper to check if dependency priority is violated
+// P1 lessons can only depend on P1 lessons
+// P2 lessons can depend on P1 or P2 lessons
+// P3 lessons can depend on any lesson
+function checkPriorityViolation(
+  lesson: { priority?: LessonPriority; dependencies?: string[] },
+  allFlattenedLessons: FlattenedLesson[]
+): FlattenedLesson[] {
+  const violations: FlattenedLesson[] = [];
+  const lessonPriority = lesson.priority ?? 2;
+
+  for (const depId of lesson.dependencies || []) {
+    const depLesson = allFlattenedLessons.find((l) => l.id === depId);
+    if (depLesson) {
+      const depPriority = depLesson.priority;
+      // A lesson can only depend on lessons with equal or higher priority (lower number)
+      if (depPriority > lessonPriority) {
         violations.push(depLesson);
       }
     }
@@ -252,8 +278,11 @@ function SortableLesson({
     opacity: isDragging ? 0.5 : undefined,
   };
 
-  const violations = checkDependencyViolation(lesson, allLessons);
-  const hasViolation = violations.length > 0;
+  const orderViolations = checkDependencyViolation(lesson, allLessons);
+  const priorityViolations = checkPriorityViolation(lesson, allLessons);
+  const hasOrderViolation = orderViolations.length > 0;
+  const hasPriorityViolation = priorityViolations.length > 0;
+  const hasAnyViolation = hasOrderViolation || hasPriorityViolation;
   const hasDependencies = (lesson.dependencies?.length ?? 0) > 0;
 
   return (
@@ -371,10 +400,19 @@ function SortableLesson({
                     <DropdownMenuTrigger asChild>
                       <button
                         className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-muted ${
-                          hasViolation
+                          hasAnyViolation
                             ? "bg-amber-500/20 text-amber-600"
                             : "text-muted-foreground hover:text-foreground"
                         }`}
+                        title={
+                          hasOrderViolation && hasPriorityViolation
+                            ? `Order violation: depends on later lessons (${orderViolations.map((v) => v.number).join(", ")}). Priority violation: P${lesson.priority ?? 2} depends on lower priority lessons (${priorityViolations.map((v) => `${v.number} P${v.priority}`).join(", ")})`
+                            : hasOrderViolation
+                              ? `Order violation: depends on later lessons (${orderViolations.map((v) => v.number).join(", ")})`
+                              : hasPriorityViolation
+                                ? `Priority violation: P${lesson.priority ?? 2} depends on lower priority lessons (${priorityViolations.map((v) => `${v.number} P${v.priority}`).join(", ")})`
+                                : undefined
+                        }
                       >
                         <Link2 className="w-3 h-3" />
                         {hasDependencies && (
@@ -386,7 +424,7 @@ function SortableLesson({
                               )
                               .filter(Boolean)
                               .join(", ")}
-                            {hasViolation && (
+                            {hasAnyViolation && (
                               <AlertTriangle className="w-3 h-3" />
                             )}
                           </>
@@ -869,6 +907,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
         number: `${sectionIndex + 1}.${lessonIndex + 1}`,
         title: lesson.title,
         sectionId: section.id,
+        priority: lesson.priority ?? 2,
       }));
     }
   );
