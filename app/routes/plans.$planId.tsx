@@ -740,9 +740,9 @@ function SortableSection({
                 </span>
                 {section.title}
               </h2>
-              {/* Estimated videos pill */}
+              {/* Estimated videos pill - uses filtered lessons */}
               {(() => {
-                const sectionVideos = section.lessons
+                const sectionVideos = filteredLessons
                   .filter((l) => l.status !== "maybe")
                   .reduce((acc, lesson) => {
                     if (lesson.icon === "code") return acc + 2;
@@ -930,12 +930,26 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
     }
   );
 
-  // Stats per icon type (excluding "maybe" lessons)
+  // Helper to check if a lesson passes the current filters
+  const passesFilters = (lesson: Lesson) => {
+    // Skip "maybe" lessons from stats
+    if (lesson.status === "maybe") return false;
+    // Check priority filter
+    const lessonPriority = lesson.priority ?? 2;
+    if (lessonPriority > priorityFilter) return false;
+    // Check icon filter (empty = show all)
+    if (iconFilter.length > 0) {
+      const lessonIcon = lesson.icon ?? "watch";
+      if (!iconFilter.includes(lessonIcon)) return false;
+    }
+    return true;
+  };
+
+  // Stats per icon type (filtered by current filters)
   const iconStats = plan.sections.reduce(
     (acc, section) => {
       for (const lesson of section.lessons) {
-        // Skip "maybe" lessons from stats
-        if (lesson.status === "maybe") continue;
+        if (!passesFilters(lesson)) continue;
         const icon = lesson.icon || "watch";
         acc[icon].total++;
         if (lesson.status === "done") {
@@ -954,23 +968,19 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   const getPercentage = (stats: { total: number; done: number }) =>
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
 
-  // Original stats (excluding "maybe" lessons)
-  const totalSections = plan.sections.length;
+  // Filtered stats (respecting current filters)
   const totalLessons = plan.sections.reduce(
-    (acc, section) =>
-      acc + section.lessons.filter((l) => l.status !== "maybe").length,
+    (acc, section) => acc + section.lessons.filter(passesFilters).length,
     0
   );
-  // Estimated videos: play/watch = 1, code = 2, discussion = 1 (excluding "maybe" lessons)
+  // Estimated videos: play/watch = 1, code = 2, discussion = 1 (filtered)
   const estimatedVideos = plan.sections.reduce(
     (acc, section) =>
       acc +
-      section.lessons
-        .filter((l) => l.status !== "maybe")
-        .reduce((lessonAcc, lesson) => {
-          if (lesson.icon === "code") return lessonAcc + 2;
-          return lessonAcc + 1; // watch and discussion = 1
-        }, 0),
+      section.lessons.filter(passesFilters).reduce((lessonAcc, lesson) => {
+        if (lesson.icon === "code") return lessonAcc + 2;
+        return lessonAcc + 1; // watch and discussion = 1
+      }, 0),
     0
   );
 
@@ -1211,9 +1221,6 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                   {getPercentage(iconStats.watch)}%
                 </span>
               )}
-              <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
-                {totalSections} sections
-              </span>
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
                 {totalLessons} lessons
               </span>
