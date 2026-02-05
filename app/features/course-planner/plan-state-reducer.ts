@@ -38,8 +38,9 @@ export namespace planStateReducer {
     focusRequest: { type: "add-lesson-button"; sectionId: string } | null;
     deletingSection: { sectionId: string; lessonCount: number } | null;
     deletingLesson: { sectionId: string; lessonId: string } | null;
-    // Priority filter: P3 = show all, P2 = show P1+P2, P1 = show only P1
-    priorityFilter: LessonPriority;
+    // Priority filter: empty = show all, or show only lessons with matching priority
+    // Multiple priorities can be selected (empty array = show all)
+    priorityFilter: LessonPriority[];
     // Pinned lessons are kept visible even if they don't match the filter
     // (used when user edits priority of a lesson while filter is active)
     pinnedLessonIds: string[];
@@ -132,7 +133,7 @@ export namespace planStateReducer {
     // Focus (33)
     | { type: "focus-handled" }
     // Priority Filter (34)
-    | { type: "priority-filter-changed"; priority: LessonPriority }
+    | { type: "priority-filter-toggled"; priority: LessonPriority }
     // Icon Filter (35)
     | { type: "icon-filter-toggled"; icon: LessonIcon };
 
@@ -156,7 +157,7 @@ export const createInitialPlanState = (plan: Plan): planStateReducer.State => ({
   focusRequest: null,
   deletingSection: null,
   deletingLesson: null,
-  priorityFilter: 3,
+  priorityFilter: [],
   pinnedLessonIds: [],
   iconFilter: [],
 });
@@ -869,11 +870,17 @@ export const planStateReducer: EffectReducer<
     }
 
     // Priority Filter (34)
-    case "priority-filter-changed": {
-      // When filter changes, clear pinned lessons
+    case "priority-filter-toggled": {
+      // Toggle the priority in the filter array
+      const currentFilter = state.priorityFilter;
+      const hasPriority = currentFilter.includes(action.priority);
+      const newFilter = hasPriority
+        ? currentFilter.filter((p) => p !== action.priority)
+        : [...currentFilter, action.priority];
+      // Clear pinned lessons when filter changes
       return {
         ...state,
-        priorityFilter: action.priority,
+        priorityFilter: newFilter,
         pinnedLessonIds: [],
       };
     }

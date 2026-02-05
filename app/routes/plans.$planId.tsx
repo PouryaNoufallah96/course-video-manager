@@ -620,7 +620,7 @@ interface SortableSectionProps {
   state: planStateReducer.State;
   dispatch: (action: planStateReducer.Action) => void;
   allLessons: FlattenedLesson[];
-  priorityFilter: LessonPriority;
+  priorityFilter: LessonPriority[];
   pinnedLessonIds: string[];
   iconFilter: LessonIcon[];
 }
@@ -659,13 +659,14 @@ function SortableSection({
   const sortedLessons = [...section.lessons].sort((a, b) => a.order - b.order);
 
   // Filter lessons based on priority filter and icon filter
-  // P3 = show all, P2 = show P1+P2, P1 = show only P1
+  // Priority filter: empty = show all, otherwise show only matching priorities
   // Also include pinned lessons (those whose priority was recently changed)
   // Icon filter: empty = show all, otherwise show only matching icons
   const filteredLessons = sortedLessons.filter((lesson) => {
-    // Check priority filter (pinned lessons bypass priority filter)
+    // Check priority filter (empty = show all, pinned lessons bypass filter)
     const passesPriorityFilter =
-      (lesson.priority ?? 2) <= priorityFilter ||
+      priorityFilter.length === 0 ||
+      priorityFilter.includes(lesson.priority ?? 2) ||
       pinnedLessonIds.includes(lesson.id);
 
     // Check icon filter (empty = show all)
@@ -934,9 +935,10 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   const passesFilters = (lesson: Lesson) => {
     // Skip "maybe" lessons from stats
     if (lesson.status === "maybe") return false;
-    // Check priority filter
+    // Check priority filter (empty = show all)
     const lessonPriority = lesson.priority ?? 2;
-    if (lessonPriority > priorityFilter) return false;
+    if (priorityFilter.length > 0 && !priorityFilter.includes(lessonPriority))
+      return false;
     // Check icon filter (empty = show all)
     if (iconFilter.length > 0) {
       const lessonIcon = lesson.icon ?? "watch";
@@ -1232,29 +1234,32 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
             {/* Priority Filter */}
             <div className="flex items-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">Filter:</span>
-              {([3, 2, 1] as const).map((priority) => (
-                <button
-                  key={priority}
-                  className={`text-xs px-2 py-0.5 rounded-sm font-medium transition-colors ${
-                    priorityFilter === priority
-                      ? priority === 1
-                        ? "bg-red-500/20 text-red-600 ring-1 ring-red-500/50"
-                        : priority === 2
-                          ? "bg-yellow-500/20 text-yellow-600 ring-1 ring-yellow-500/50"
-                          : "bg-gray-500/20 text-gray-500 ring-1 ring-gray-500/50"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                  onClick={() =>
-                    dispatch({
-                      type: "priority-filter-changed",
-                      priority,
-                    })
-                  }
-                >
-                  P{priority}
-                  {priority === 3 && " (All)"}
-                </button>
-              ))}
+              {([1, 2, 3] as const).map((priority) => {
+                const isSelected = priorityFilter.includes(priority);
+                const showAsActive = priorityFilter.length === 0 || isSelected;
+                return (
+                  <button
+                    key={priority}
+                    className={`text-xs px-2 py-0.5 rounded-sm font-medium transition-colors ${
+                      showAsActive
+                        ? priority === 1
+                          ? "bg-red-500/20 text-red-600"
+                          : priority === 2
+                            ? "bg-yellow-500/20 text-yellow-600"
+                            : "bg-gray-500/20 text-gray-500"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    } ${isSelected ? "ring-1 ring-current" : ""}`}
+                    onClick={() =>
+                      dispatch({
+                        type: "priority-filter-toggled",
+                        priority,
+                      })
+                    }
+                  >
+                    P{priority}
+                  </button>
+                );
+              })}
 
               {/* Icon Filter */}
               <span className="text-muted-foreground mx-1">|</span>

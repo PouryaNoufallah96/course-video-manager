@@ -1431,20 +1431,43 @@ describe("planStateReducer", () => {
   });
 
   describe("Priority Filter (34)", () => {
-    it("34a. priority-filter-changed: updates priorityFilter value", () => {
+    it("34a. priority-filter-toggled: adds priority to filter array", () => {
       const tester = new ReducerTester(planStateReducer, createInitialState());
 
-      // Default is P3
-      expect(tester.getState().priorityFilter).toBe(3);
+      // Default is empty (show all)
+      expect(tester.getState().priorityFilter).toEqual([]);
 
       const state = tester
-        .send({ type: "priority-filter-changed", priority: 1 })
+        .send({ type: "priority-filter-toggled", priority: 1 })
         .getState();
 
-      expect(state.priorityFilter).toBe(1);
+      expect(state.priorityFilter).toEqual([1]);
     });
 
-    it("34b. priority-filter-changed: clears pinned lessons when filter changes", () => {
+    it("34b. priority-filter-toggled: removes priority from filter array when already present", () => {
+      const tester = new ReducerTester(planStateReducer, createInitialState());
+
+      const state = tester
+        .send({ type: "priority-filter-toggled", priority: 1 })
+        .send({ type: "priority-filter-toggled", priority: 2 })
+        .send({ type: "priority-filter-toggled", priority: 1 }) // toggle off P1
+        .getState();
+
+      expect(state.priorityFilter).toEqual([2]);
+    });
+
+    it("34c. priority-filter-toggled: allows multiple priorities to be selected", () => {
+      const tester = new ReducerTester(planStateReducer, createInitialState());
+
+      const state = tester
+        .send({ type: "priority-filter-toggled", priority: 1 })
+        .send({ type: "priority-filter-toggled", priority: 3 })
+        .getState();
+
+      expect(state.priorityFilter).toEqual([1, 3]);
+    });
+
+    it("34d. priority-filter-toggled: clears pinned lessons when filter changes", () => {
       const plan = createTestPlan({
         sections: [
           {
@@ -1481,17 +1504,17 @@ describe("planStateReducer", () => {
 
       // Change filter - should clear pins
       const state = tester
-        .send({ type: "priority-filter-changed", priority: 2 })
+        .send({ type: "priority-filter-toggled", priority: 2 })
         .getState();
 
       expect(state.pinnedLessonIds).toEqual([]);
-      expect(state.priorityFilter).toBe(2);
+      expect(state.priorityFilter).toEqual([2]);
     });
 
-    it("34c. initialState has priorityFilter of 3 (show all)", () => {
+    it("34e. initialState has empty priorityFilter (show all)", () => {
       const state = createInitialState(createTestPlan());
 
-      expect(state.priorityFilter).toBe(3);
+      expect(state.priorityFilter).toEqual([]);
       expect(state.pinnedLessonIds).toEqual([]);
     });
   });
