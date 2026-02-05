@@ -428,8 +428,8 @@ function SortableLesson({
                       lesson.priority === 1
                         ? "bg-red-500/20 text-red-600"
                         : lesson.priority === 3
-                          ? "bg-blue-500/20 text-blue-600"
-                          : "bg-muted text-muted-foreground"
+                          ? "bg-gray-500/20 text-gray-500"
+                          : "bg-yellow-500/20 text-yellow-600"
                     }`}
                     onClick={() =>
                       dispatch({
