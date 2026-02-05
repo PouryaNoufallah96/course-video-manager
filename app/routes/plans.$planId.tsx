@@ -259,7 +259,7 @@ function SortableLesson({
     <div
       ref={setNodeRef}
       style={style}
-      className="py-2 px-3 rounded hover:bg-muted/50 group"
+      className={`py-2 px-3 rounded hover:bg-muted/50 group ${lesson.status === "maybe" ? "opacity-50" : ""}`}
     >
       <div className="flex items-start gap-3">
         {/* Grip handle */}
@@ -655,6 +655,20 @@ function SortableSection({
                 </span>
                 {section.title}
               </h2>
+              {/* Estimated videos pill */}
+              {(() => {
+                const sectionVideos = section.lessons
+                  .filter((l) => l.status !== "maybe")
+                  .reduce((acc, lesson) => {
+                    if (lesson.icon === "code") return acc + 2;
+                    return acc + 1;
+                  }, 0);
+                return sectionVideos > 0 ? (
+                  <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                    ~{sectionVideos} videos
+                  </span>
+                ) : null;
+              })()}
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
               <Button
