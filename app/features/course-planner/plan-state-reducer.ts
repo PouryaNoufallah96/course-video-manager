@@ -1,5 +1,11 @@
 import type { EffectReducer } from "use-effect-reducer";
-import type { Plan, Section, Lesson, LessonPriority } from "./types";
+import type {
+  Plan,
+  Section,
+  Lesson,
+  LessonPriority,
+  LessonIcon,
+} from "./types";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -37,6 +43,9 @@ export namespace planStateReducer {
     // Pinned lessons are kept visible even if they don't match the filter
     // (used when user edits priority of a lesson while filter is active)
     pinnedLessonIds: string[];
+    // Icon filter: null = show all, or show only lessons with matching icon
+    // Multiple icons can be selected (empty array = show all)
+    iconFilter: LessonIcon[];
   };
 
   export type Action =
@@ -123,7 +132,9 @@ export namespace planStateReducer {
     // Focus (33)
     | { type: "focus-handled" }
     // Priority Filter (34)
-    | { type: "priority-filter-changed"; priority: LessonPriority };
+    | { type: "priority-filter-changed"; priority: LessonPriority }
+    // Icon Filter (35)
+    | { type: "icon-filter-toggled"; icon: LessonIcon };
 
   export type Effect =
     | { type: "plan-changed" }
@@ -147,6 +158,7 @@ export const createInitialPlanState = (plan: Plan): planStateReducer.State => ({
   deletingLesson: null,
   priorityFilter: 3,
   pinnedLessonIds: [],
+  iconFilter: [],
 });
 
 export const planStateReducer: EffectReducer<
@@ -863,6 +875,20 @@ export const planStateReducer: EffectReducer<
         ...state,
         priorityFilter: action.priority,
         pinnedLessonIds: [],
+      };
+    }
+
+    // Icon Filter (35)
+    case "icon-filter-toggled": {
+      // Toggle the icon in the filter array
+      const currentFilter = state.iconFilter;
+      const hasIcon = currentFilter.includes(action.icon);
+      const newFilter = hasIcon
+        ? currentFilter.filter((i) => i !== action.icon)
+        : [...currentFilter, action.icon];
+      return {
+        ...state,
+        iconFilter: newFilter,
       };
     }
   }

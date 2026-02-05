@@ -40,7 +40,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, data } from "react-router";
-import type { LessonPriority } from "@/features/course-planner/types";
+import type {
+  LessonPriority,
+  LessonIcon,
+} from "@/features/course-planner/types";
 import type { planStateReducer } from "@/features/course-planner/plan-state-reducer";
 import type { Route } from "./+types/plans.$planId";
 import { Console, Effect } from "effect";
@@ -619,6 +622,7 @@ interface SortableSectionProps {
   allLessons: FlattenedLesson[];
   priorityFilter: LessonPriority;
   pinnedLessonIds: string[];
+  iconFilter: LessonIcon[];
 }
 
 function SortableSection({
@@ -629,6 +633,7 @@ function SortableSection({
   allLessons,
   priorityFilter,
   pinnedLessonIds,
+  iconFilter,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -653,14 +658,22 @@ function SortableSection({
 
   const sortedLessons = [...section.lessons].sort((a, b) => a.order - b.order);
 
-  // Filter lessons based on priority filter
+  // Filter lessons based on priority filter and icon filter
   // P3 = show all, P2 = show P1+P2, P1 = show only P1
   // Also include pinned lessons (those whose priority was recently changed)
-  const filteredLessons = sortedLessons.filter(
-    (lesson) =>
+  // Icon filter: empty = show all, otherwise show only matching icons
+  const filteredLessons = sortedLessons.filter((lesson) => {
+    // Check priority filter (pinned lessons bypass priority filter)
+    const passesPriorityFilter =
       (lesson.priority ?? 2) <= priorityFilter ||
-      pinnedLessonIds.includes(lesson.id)
-  );
+      pinnedLessonIds.includes(lesson.id);
+
+    // Check icon filter (empty = show all)
+    const passesIconFilter =
+      iconFilter.length === 0 || iconFilter.includes(lesson.icon ?? "watch");
+
+    return passesPriorityFilter && passesIconFilter;
+  });
 
   return (
     <div
@@ -863,7 +876,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
   >(null);
 
   // Priority filter comes from the reducer (allows pinning behavior)
-  const { priorityFilter, pinnedLessonIds } = state;
+  const { priorityFilter, pinnedLessonIds, iconFilter } = state;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -1235,6 +1248,52 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                   {priority === 3 && " (All)"}
                 </button>
               ))}
+
+              {/* Icon Filter */}
+              <span className="text-muted-foreground mx-1">|</span>
+              {(["code", "discussion", "watch"] as const).map((icon) => {
+                const isSelected = iconFilter.includes(icon);
+                const showAsActive = iconFilter.length === 0 || isSelected;
+                return (
+                  <button
+                    key={icon}
+                    className={`flex items-center justify-center w-6 h-6 rounded-full transition-colors ${
+                      icon === "code"
+                        ? showAsActive
+                          ? "bg-yellow-500/20 text-yellow-600"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : icon === "discussion"
+                          ? showAsActive
+                            ? "bg-green-500/20 text-green-600"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          : showAsActive
+                            ? "bg-purple-500/20 text-purple-600"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    } ${isSelected ? "ring-1 ring-current" : ""}`}
+                    onClick={() =>
+                      dispatch({
+                        type: "icon-filter-toggled",
+                        icon,
+                      })
+                    }
+                    title={
+                      icon === "code"
+                        ? "Interactive"
+                        : icon === "discussion"
+                          ? "Discussion"
+                          : "Watch"
+                    }
+                  >
+                    {icon === "code" ? (
+                      <Code className="w-3 h-3" />
+                    ) : icon === "discussion" ? (
+                      <MessageCircle className="w-3 h-3" />
+                    ) : (
+                      <Play className="w-3 h-3" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1260,6 +1319,7 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
                     allLessons={allFlattenedLessons}
                     priorityFilter={priorityFilter}
                     pinnedLessonIds={pinnedLessonIds}
+                    iconFilter={iconFilter}
                   />
                 ))}
               </div>
